@@ -19,3 +19,5 @@ jobs:
           persist-credentials: false
       - name: Verify file-backed Portable
         run: python code/personal-agent-os/scripts/verify.py
+      - name: Check optional board display helpers
+        run: node --test tests/board-ui.test.mjs

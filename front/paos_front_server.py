@@ -21,7 +21,7 @@ STATIC = Path(__file__).resolve().parent
 sys.path.insert(0, str(PACKAGE / "code" / "personal-agent-os" / "scripts"))
 
 from paos_attention_service import AttentionServiceProblem, read_home_state
-from paos_home import HomeProblem, agent_project_id, project_agent_home, rooter_home
+from paos_home import HomeProblem, project_agent_home, rooter_home
 from paos_installation import InstallationProblem, effective_data_root, load_installation_descriptor
 from paos_library import LibraryProblem, load_library_roots, scan_skills, scan_workflows
 from paos_registry import ProjectRegistry, RegistryProblem
@@ -71,6 +71,9 @@ class Board:
         except subprocess.TimeoutExpired:
             return {"ok": False, "error_code": "cli_result_unknown", "retry": False,
                     "error": "调用未及时返回，结果未知；请核原件，不自动重发。"}
+        except OSError as exc:
+            return {"ok": False, "error_code": "cli_start_failed", "phase": "process_start",
+                    "error": str(exc), "error_type": type(exc).__name__, "retry": True}
         raw = result.stdout.strip() or result.stderr.strip()
         try:
             value = json.loads(raw)
@@ -93,7 +96,10 @@ class Board:
             if not locator:
                 raise BoardProblem("rooter_unbound", "当前安装未绑定 Rooter 工位。")
             return rooter_home(home_path=runtime_path(locator))
-        return project_agent_home(project=self.registry.read(agent_project_id(home_id)), agent_id=home_id)
+        record = next((p for p in self.projects() if home_id in p["homes"]), None)
+        if record is None:
+            raise BoardProblem("home_not_registered", "此 Home 未在当前安装的项目中登记。")
+        return project_agent_home(project=self.registry.read(record["id"]), agent_id=home_id)
 
     def agent(self, home_id: str) -> dict:
         ref = self.home(home_id)
@@ -177,13 +183,15 @@ class Board:
         return self.cat(["send", room_id, "--from", sender, "--body", body, "--message-id", message_id])
 
     def hint(self, home_id: str, example: dict) -> dict:
-        self.home(home_id)
+        ref = self.home(home_id)
+        if ref["home_kind"] != "project_agent":
+            raise BoardProblem("project_home_required", "画板参考留信面向登记的项目成员；Rooter 使用安装级联络入口。")
         resources = self.examples()
         item = next((x for kind in ("workflow", "skill", "tool") for x in resources[kind]
                      if (x["id"], x["kind"]) == (example.get("id"), example.get("kind"))), None)
         if item is None:
             raise BoardProblem("example_not_found", "选择的库资源不在当前安装登记中。")
-        return self.run_paos(["agent", "send", agent_project_id(home_id), "--to", home_id,
+        return self.run_paos(["agent", "send", ref["project_id"], "--to", home_id,
                               "--sender-kind", "human", "--subject", f"方法参考：{item['title']}",
                               "--body", f"请按当前责任判断是否采用此参考。\n{item['title']}\n{item['path']}",
                               "--message-id", f"board-reference-{uuid.uuid4().hex}"])

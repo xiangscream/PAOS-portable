@@ -13,6 +13,7 @@
   :root{
     --bg:#0e1013;            /* 全局背景 */
     --panel:#14171d;         /* 侧栏/顶栏 */
+    --panel2:#181c23;        /* 原文与输入区域 */
     --card:#1b1f27;          /* 卡片底 */
     --card-hover:#212633;
     --line:#262b36;          /* 边框 */
@@ -144,7 +145,8 @@ let nodes={},links=[],selected=new Set(),tab='agent',dragging=null,dragMoved=fal
 let CURPROJ='';
 function el(n,a={}){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
 function toast(m,ok=true){const t=document.getElementById('toast');t.textContent=m;t.style.borderColor=ok?'var(--accent2)':'var(--danger)';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3200);}
-function esc(s){return String(s??'').replace(/[<&>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]));}
+function esc(s){return String(s??'').replace(/[<&>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function retryAllowed(error){return error.retry!==false;}
 function problem(d){return typeof d.error==='string'?d.error:(d.error?.message||d.error_code||'操作未完成');}
 async function request(url,options){
   const response=await fetch(url,options);const data=await response.json();
@@ -293,9 +295,11 @@ async function openRoom(r){
   d.messages.forEach(m=>{html+=`<div class="mail"><b>${esc(m.sender_id)}</b><p>${esc(m.body)}</p></div>`;});
   html+=`<div class="sec">发言</div><textarea id="msgIn" rows="3" style="width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px"></textarea>`;
   html+=`<div style="margin-top:6px"><button id="btnSend" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer">发送</button>`;
+  html+=`<button id="btnCheckRoom" style="margin-left:8px;padding:6px 14px;cursor:pointer">核对消息</button>`;
   html+=`<button id="btnBack" style="margin-left:8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 14px;cursor:pointer">返回列表</button></div></div>`;
   body.innerHTML=html;
   document.getElementById('btnSend').onclick=()=>sendMsg(d.id);
+  document.getElementById('btnCheckRoom').onclick=()=>openRoom({id:d.id});
   document.getElementById('btnBack').onclick=()=>{tab='rooms';renderSide();};
 }
 async function sendMsg(roomId){
@@ -304,7 +308,7 @@ async function sendMsg(roomId){
   const button=document.getElementById('btnSend');button.disabled=true;
   try{await request(`/api/room/${encodeURIComponent(roomId)}/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:'human',body,message_id:'board-'+crypto.randomUUID()})});
   toast('消息已保存；提醒受理和实际处理分别核对');openRoom({id:roomId});
-  }catch(error){toast(error.message,false);button.disabled=error.retry===false;}
+  }catch(error){toast(error.message+(retryAllowed(error)?'':' 请先核对房间消息，勿重复发送。'),false);button.disabled=!retryAllowed(error);}
 }
 
 // ---- 工位详情 ----

@@ -118,6 +118,15 @@ class BoardTests(unittest.TestCase):
         self.assertEqual(result["error_code"], "cli_result_unknown")
         self.assertIs(result["retry"], False)
 
+    def test_cli_cannot_start_reports_definite_failure_without_retrying(self):
+        with patch("subprocess.run", side_effect=PermissionError("cannot start this Python")) as run:
+            result = self.board.run_paos(["health"])
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(result["error_code"], "cli_start_failed")
+        self.assertEqual(result["phase"], "process_start")
+        self.assertEqual(result["error_type"], "PermissionError")
+        self.assertTrue(result["retry"])
+
     def test_failed_join_cannot_report_success_or_send_message(self):
         with patch.object(self.board, "cat", return_value={"ok": False, "error_code": "seat_failed"}) as call:
             result = self.board.send_message("room-fixture", "human", "消息", "fixture-id")
