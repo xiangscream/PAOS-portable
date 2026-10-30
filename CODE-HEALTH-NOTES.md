@@ -68,3 +68,5 @@ Mail/Notice/TODO 写者。接收器原测试使用临时 localhost 服务和假 
 专门测试 `tests/test_todo_conversion.py` 覆盖 Rooter 与 Coordinator、CRLF、引用/通知/状态往返、旧原件不变、目标存在、错误身份与哈希、未知正文、未知字段、无效状态、重复 ID 和 CLI 只读模式。完整 `scripts/verify.py` 包含这组测试。
 
 这不是生产工位转换验收：本会话不能读用户本机 Rooter/3002 真实 TODO；没有写生产 Home、Mail、Notice、Contact 或项目登记，也未启动 CAT/Runtime。需本人/Owner 先读审候选与业务来源，再沿准确 Home 的写入合同决定是否采用。
+
+本片 Linux 隔离源码回归：105 项包根测试 + 30 项 Core 测试 + 25 项管道测试，共发现 160 项，159 项通过、1 项因缺预生成 build 跳过；架构与 Python 语法检查通过。真实 Windows/WSL 与生产 Home 采用不在此范围。
