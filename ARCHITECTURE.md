@@ -78,3 +78,7 @@ ProjectRegistry 是小型定位模块：唯一新写动作是显式创建五字�
 
 下一片把工位 TODO 从逐行 JSON 改成少量元数据加正常 Markdown/任务列表与置顶；
 当前仍是 v3，尚未声称 Obsidian 结构化解析与双向编辑已经完成。
+
+## TODO 原件合同（v4）
+
+Home 的唯一当前任务事实是 `Workstations/<home>/TODO.md`，由 [TODO v4 模板](libraries/workflow/Templates/workstation-todo.md) 定义：四项小型身份属性、自由 `Pinned`、最小 `Current`、原生 Markdown checkbox `Tasks`。不再生成第二个 Workbench 当前事实。字段更新在有界锁与字节指纹下只改 `Current`，`Pinned` 和 `Tasks` 不被重排；完整 `todo-write` 仍可用原指纹保护人工编辑。历史 v3 不作运行时兼容。

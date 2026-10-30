@@ -8,7 +8,6 @@ facts and responsibility stay owned by the canonical REST surface.
 
 from __future__ import annotations
 
-import importlib.util
 import os
 import re
 import shutil
@@ -16,15 +15,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-_TODO_V3_PATH = Path(__file__).resolve().with_name("paos_todo_v3.py")
-_TODO_V3_SPEC = importlib.util.spec_from_file_location(
-    "paos_todo_v3_workstation_adapter",
-    _TODO_V3_PATH,
-)
-if _TODO_V3_SPEC is None or _TODO_V3_SPEC.loader is None:
-    raise RuntimeError(f"无法加载 TODO v3 helper：{_TODO_V3_PATH}")
-_TODO_V3_HELPER = importlib.util.module_from_spec(_TODO_V3_SPEC)
-_TODO_V3_SPEC.loader.exec_module(_TODO_V3_HELPER)
+from paos_todo import TodoProblem, parse_todo, render_todo
 
 
 class WorkstationProblem(Exception):
@@ -98,10 +89,6 @@ V11_PROJECT_VAULT_DIRS = (
     "Workstations",
     "Archive",
 )
-_TODO_ITEM_RE = re.compile(
-    r"^- \[([ xX])\]\s+([A-Za-z0-9][A-Za-z0-9._-]*)\s+(.+?)\s*$"
-)
-
 
 def _single_line(value: Any) -> str:
     return " ".join(str(value or "").split())
@@ -321,13 +308,13 @@ def render_initial_todo(
     work: dict[str, Any] | None,
     objective: str = "",
 ) -> str:
-    """Render the one normal new-Home TODO contract: paos-todo/v3."""
+    """Render the one normal new-Home TODO contract: paos-todo/v4."""
     project_id = _single_line(project.get("id"))
     agent_id = _single_line(session.get("id"))
     if not project_id or not agent_id:
         raise WorkstationProblem(
             "workstation_todo_identity_missing",
-            "无法生成 TODO v3：Project/Agent identity 不完整。",
+            "无法生成 TODO v4：Project/Agent identity 不完整。",
             {"project_id": project_id, "agent_id": agent_id},
         )
 
@@ -354,25 +341,18 @@ def render_initial_todo(
     )
 
     try:
-        return _TODO_V3_HELPER.render_todo_v3(
+        return render_todo(
             home_kind="project_agent",
             home_id=agent_id,
             project_id=project_id,
             objective=goal,
-            approved_scope="",
-            stage=stage,
+            pinned="- 最新项目口径以项目 INDEX 指向的原件为准；要求与输入引用放这里。",
             next_action=next_action,
             waiting="",
-            results="",
-            result_refs=(),
-            context_refs=(),
-            legacy_source_ref="",
             inflight="",
-            alignment_ref="",
-            input_version=input_version,
-            delivery="",
-            dependencies="",
-            continuation_to="",
+            context_refs=(),
+            result_refs=(),
+            updated_at="",
             tasks=[
                 {
                     "id": "T-001",
@@ -386,7 +366,7 @@ def render_initial_todo(
             ],
         )
     except Exception as exc:
-        code = str(getattr(exc, "code", "todo_v3_render_failed"))
+        code = str(getattr(exc, "code", "todo_render_failed"))
         details = dict(getattr(exc, "details", {}) or {})
         raise WorkstationProblem(code, str(exc), details) from exc
 
@@ -1253,7 +1233,7 @@ def ensure_fixed_workstation(
     active_todo = parse_workstation_todo(
         (workstation / "TODO.md").read_text(encoding="utf-8")
     )
-    if active_todo.get("schema") == "paos-todo/v3" and not notices.exists():
+    if active_todo.get("schema") == "paos-todo/v4" and not notices.exists():
         notices.mkdir()
         created.append(str(notices))
 
@@ -1271,162 +1251,11 @@ def ensure_fixed_workstation(
 
 
 def parse_workstation_todo(text: str) -> dict[str, Any]:
-    """Parse the active workstation TODO contract without guessing history.
-
-    V1.3 converted Homes use paos-todo/v3.  The legacy v2 parser remains
-    available only so the integration candidate can still inspect pre-cutover
-    Homes and the one-time converter can read them.
-    """
-    head = "\n".join(text.splitlines()[:12])
-    if "paos-todo/v3" not in head:
-        return parse_todo_markdown(text)
+    """Exact current TODO contract. No runtime fallback to pre-Portable schemas."""
     try:
-        return _TODO_V3_HELPER.parse_todo_v3(text)
-    except Exception as exc:  # stable WorkstationProblem contract for callers
-        code = str(getattr(exc, "code", "todo_v3_invalid"))
-        details = dict(getattr(exc, "details", {}) or {})
-        raise WorkstationProblem(
-            code,
-            str(exc),
-            details,
-        ) from exc
-
-
-def parse_todo_markdown(text: str) -> dict[str, Any]:
-    """Parse v1.2 TODO current state only from explicit machine-readable sections."""
-    lines = text.splitlines()
-    meta: dict[str, str] = {}
-    metadata_issues: list[str] = []
-    if lines and lines[0].strip() == "---":
-        metadata_closed = False
-        for line in lines[1:]:
-            if line.strip() == "---":
-                metadata_closed = True
-                break
-            key, sep, value = line.partition(":")
-            if sep:
-                key = key.strip()
-                if key in meta:
-                    metadata_issues.append(f"duplicate_key:{key}")
-                meta[key] = value.strip()
-        if not metadata_closed:
-            metadata_issues.append("front_matter_unterminated")
-    else:
-        metadata_issues.append("front_matter_missing")
-
-    for key in ("schema", "project_id", "agent_id"):
-        if not meta.get(key):
-            metadata_issues.append(f"required_key_missing:{key}")
-
-    sections: dict[str, list[str]] = {}
-    section_counts: dict[str, int] = {}
-    active: str | None = None
-    for raw in lines:
-        if raw.startswith("## "):
-            active = raw[3:].strip()
-            section_counts[active] = section_counts.get(active, 0) + 1
-            sections.setdefault(active, [])
-            continue
-        if active is not None:
-            sections[active].append(raw)
-
-    current_section = sections.get("当前")
-    task_section = sections.get("待办")
-    missing_sections = []
-    if current_section is None:
-        missing_sections.append("当前")
-    if task_section is None:
-        missing_sections.append("待办")
-
-    summary = {"stage": "", "progress": "", "blocked": "", "next": ""}
-    labels = {
-        "阶段：": "stage",
-        "进展：": "progress",
-        "阻塞：": "blocked",
-        "下一步：": "next",
-    }
-    current = {
-        "work": "",
-        "objective": "",
-        "stage": "",
-        "next": "",
-        "waiting": "",
-        "results": "",
-        "inflight": "",
-    }
-    current_labels = {
-        "Work：": "work",
-        "目标：": "objective",
-        "阶段：": "stage",
-        "下一步：": "next",
-        "等待：": "waiting",
-        "成果：": "results",
-        "在途：": "inflight",
-    }
-    if current_section is not None:
-        for raw in current_section:
-            stripped = raw.strip()
-            for label, key in labels.items():
-                if stripped.startswith(label):
-                    summary[key] = stripped[len(label) :].strip()
-                    break
-            for label, key in current_labels.items():
-                if stripped.startswith(label):
-                    current[key] = stripped[len(label) :].strip()
-                    break
-
-    detail_labels = {
-        "完成方式：": "completion",
-        "结果：": "result",
-        "产出：": "artifact",
-        "等待：": "waiting",
-    }
-    tasks: list[dict[str, Any]] = []
-    malformed_tasks: list[str] = []
-    if task_section is not None:
-        task: dict[str, Any] | None = None
-        for raw in task_section:
-            stripped = raw.strip()
-            match = _TODO_ITEM_RE.match(stripped)
-            if match:
-                task = {
-                    "done": match.group(1).lower() == "x",
-                    "id": match.group(2),
-                    "title": match.group(3).strip(),
-                    "details": {},
-                }
-                tasks.append(task)
-                continue
-            if stripped.startswith(("- [", "* [", "+ [")):
-                malformed_tasks.append(stripped)
-                task = None
-                continue
-            if task is not None and raw.startswith(("  ", "\t")):
-                for label, key in detail_labels.items():
-                    if stripped.startswith(label):
-                        task["details"][key] = stripped[len(label) :].strip()
-                        break
-
-    done = sum(1 for item in tasks if item["done"])
-    return {
-        "schema": meta.get("schema") or "",
-        "project_id": meta.get("project_id") or "",
-        "agent_id": meta.get("agent_id") or "",
-        "summary": summary,
-        "current": current,
-        "tasks": tasks,
-        "counts": {
-            "total": len(tasks),
-            "done": done,
-            "open": len(tasks) - done,
-        },
-        "missing_sections": missing_sections,
-        "duplicate_sections": [
-            name for name in ("当前", "待办") if section_counts.get(name, 0) > 1
-        ],
-        "metadata_issues": metadata_issues,
-        "malformed_tasks": malformed_tasks,
-    }
+        return parse_todo(text)
+    except TodoProblem as exc:
+        raise WorkstationProblem(exc.code, str(exc), exc.details) from exc
 
 
 def read_fixed_workstation(

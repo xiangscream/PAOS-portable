@@ -32,7 +32,7 @@ Mail/Notice/TODO 写者。接收器原测试使用临时 localhost 服务和假 
 
 ## 没有完成的部分
 
-TODO v3 和部分历史 helper 仍在；没有完整替换成 Obsidian 原生任务/自由置顶。
+上一轮尚保留 TODO v3；见文末本轮 v4 改造。
 已增加 `project register` 新项目定位入口；没有旧 Project JSON 的批量迁移、真实日会自动消费任务或生产 Windows/WSL 采用。
 旧通用 Skill 中的报告模板仍是按需方法，不是硬基座必经流程；继续按真实使用精简。
 
@@ -52,4 +52,11 @@ TODO v3 和部分历史 helper 仍在；没有完整替换成 Obsidian 原生任
 - 旧 `paos_coordinator.py` 的无消费 Work 前置检查和 `paos_workstation.py` 的 `key_files` 预检/周期材料化已退出源码；`paos_v12_convert`、`paos_v13_convert`、`migrate_workless_installation` 及不再被 CLI 调用的兼容/渲染脚本也已退出。真实 Home 写者和跨项目持久消息仍复用。
 - `ProjectRegistry.read()` 的短期内存适配仅为调用现有 Home/Mail 接口，**不持久化** Session status、项目摘要或 revision；名册“active”只指登记，不证明进程在线。
 
-保留未完成：Obsidian 自由 TODO/置顶仍未实现；生产项目迁移需先独立保留原旧文件，再准确登记和回读；并未真实操作用户本机。
+保留未完成：现行 v4 的 Pinned/Tasks 已实现；生产项目迁移需先独立保留原旧文件，再准确登记和回读；并未真实操作用户本机。
+
+## TODO v4 工位合同（本轮候选）
+
+- 新增 `paos_todo.py`，删除 875 行旧 `paos_todo_v3.py`；以原生 Markdown 固定栏目替代逐行 JSON 值，任务状态唯一来自 checkbox 标记，不再维护 `state` 复制字段。
+- `Pinned` 完整承载自由正文、引用与已批准持续要求；`Current` 只保留 objective/next_action/waiting/inflight/context_refs/result_refs/updated_at；`Tasks` 继续保留稳定任务 ID、来源、接受与回告引用。
+- 只写当前区会保留其前后的 Pinned、Tasks 原始字节与换行，修改前进行指纹检查；完整写入验证语义往返和身份。
+- 旧格式不兼容。没有自动改写生产工位，实际迁移需核原件；真实接收器/Obsidian 的点击交互仍未实机验收。

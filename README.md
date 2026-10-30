@@ -98,6 +98,12 @@ python code/personal-agent-os/scripts/verify.py
 不再依赖已剥离的 Node/Dashboard。原无效 Core 测试按退出接口退役，仍有用的数据根/备份
 断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
 
-本包尚未自动迁入真实项目，也未重写 TODO v3 为原生 Markdown 任务列表。
+本包尚未自动迁入真实项目，也未重写 TODO v4 为原生 Markdown 任务列表。
 目标电脑的真实项目登记/接续验收、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
 这是草稿候选，不是生产安装已切换。
+
+## TODO v4 — Agent 与 Obsidian 共用一份原件
+
+Portable 现行 Home 使用 `paos-todo/v4`，参照 [模板与写入边界](libraries/workflow/Templates/workstation-todo.md)。`Pinned` 用普通 Markdown 表达持续有效要求或来源；`Current` 只含当前目标、下一步、等待、在途和引用；`Tasks` 用 Markdown checkbox 的单一状态标记。旧 TODO v3 不在运行时自动兼容、也不自动覆盖原始业务资料。
+
+本轮只改候选代码和模板。真实 Home 转换与本机 Runtime 采用仍须分别验证。

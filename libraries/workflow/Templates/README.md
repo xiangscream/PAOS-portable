@@ -4,7 +4,7 @@
 
 - [项目 AGENTS 入口](project-agents.md)：短共同规则，不写某位成员身份。
 - [长期工位 ENTRY](workstation-entry.md)：稳定身份、工位和安装入口。
-- [TODO v3 合同](workstation-todo.md)：现行TODO模板；写入与回读按[共享 OPS](../Guides/guide-paos-cat-operations.md#当前页与输入)。
+- [TODO v4 工位原件](workstation-todo.md)：现行TODO模板；写入与回读按[共享 OPS](../Guides/guide-paos-cat-operations.md#当前页与输入)。
 - [TEAM](team.md)：当前成员与历史入口，按本人小节局部维护。
 - [共享发布说明](release-guide.md)：发布版本、操作入口和采用步骤。
 - [项目公告](project-announcement.md)：引用同一发布说明。

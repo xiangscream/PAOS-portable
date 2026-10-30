@@ -103,87 +103,31 @@ def _orient_next_action(
 
 
 def _todo_current_view(todo: dict[str, Any]) -> dict[str, Any]:
-    raw = todo.get("current")
-    current = dict(raw) if isinstance(raw, dict) else {}
-    if todo.get("schema") == "paos-todo/v3":
-        current.setdefault("work", current.get("current_work", ""))
-        current.setdefault("next", current.get("next_action", ""))
-        current.setdefault("results", current.get("results", ""))
-        current.setdefault("inflight", current.get("inflight", ""))
-    return current
+    current = todo.get("current")
+    if not isinstance(current, dict):
+        return {}
+    return {**current, "next": current.get("next_action", "")}
 
 
 def _todo_open_tasks(todo: dict[str, Any]) -> list[dict[str, Any]]:
-    tasks = [
-        dict(item)
-        for item in (todo.get("tasks") or [])
-        if isinstance(item, dict)
-    ]
-    if todo.get("schema") == "paos-todo/v3":
-        result: list[dict[str, Any]] = []
-        for item in tasks:
-            state = str(item.get("state") or "todo")
-            item["done"] = state in {"done", "cancelled"}
-            if not item["done"]:
-                result.append(item)
-        return result
-    return [item for item in tasks if not item.get("done")]
+    return [dict(t) for t in todo.get("tasks", [])
+            if isinstance(t, dict) and t.get("state") not in {"done", "cancelled"}]
 
 
-def _orient_todo_contract_issues(
-    todo: dict[str, Any], project_id: str, agent_id: str
-) -> list[str]:
-    issues: list[str] = []
-    schema = str(todo.get("schema") or "")
-    if schema not in {"paos-todo/v2", "paos-todo/v3"}:
-        issues.append(
-            f"schema 必须为 paos-todo/v2 或 paos-todo/v3，实际为 {schema or '缺失'}"
-        )
-        return issues
-
-    if str(todo.get("project_id") or "") != project_id:
-        issues.append(
-            f"project_id 必须为 {project_id}，实际为 {todo.get('project_id') or '缺失'}"
-        )
-
-    if schema == "paos-todo/v3":
-        if todo.get("home_kind") != "project_agent":
-            issues.append(
-                f"home_kind 必须为 project_agent，实际为 {todo.get('home_kind') or '缺失'}"
-            )
-        if str(todo.get("home_id") or "") != agent_id:
-            issues.append(
-                f"home_id 必须为 {agent_id}，实际为 {todo.get('home_id') or '缺失'}"
-            )
-        current = todo.get("current")
-        if not isinstance(current, dict):
-            issues.append("Current 无法解析")
-        else:
-            for field in ("objective", "next_action"):
-                if not str(current.get(field) or "").strip():
-                    issues.append(f"Current 缺少有效字段：{field}")
-        return issues
-
-    if todo.get("agent_id") != agent_id:
-        issues.append(
-            f"agent_id 必须为 {agent_id}，实际为 {todo.get('agent_id') or '缺失'}"
-        )
-    if todo.get("metadata_issues"):
-        issues.extend(f"front matter {item}" for item in todo["metadata_issues"])
-    if todo.get("missing_sections"):
-        issues.append("缺少区段：" + "、".join(todo["missing_sections"]))
-    if todo.get("duplicate_sections"):
-        issues.append("必需区段重复：" + "、".join(todo["duplicate_sections"]))
-    if todo.get("malformed_tasks"):
-        issues.append("待办行格式无效：" + "；".join(todo["malformed_tasks"]))
-
+def _orient_todo_contract_issues(todo: dict[str, Any], project_id: str, agent_id: str) -> list[str]:
+    issues = []
+    if todo.get("schema") != "paos-todo/v4":
+        return [f"TODO schema 不支持：{todo.get('schema') or '缺失'}；需要 paos-todo/v4"]
+    for field, value in (("project_id", project_id), ("home_id", agent_id), ("home_kind", "project_agent")):
+        if todo.get(field) != value:
+            issues.append(f"{field} 应为 {value}，实际为 {todo.get(field)}")
     current = todo.get("current")
     if not isinstance(current, dict):
-        issues.append("当前区无法解析")
+        issues.append("Current 无法解析")
     else:
-        for field in ("objective", "stage", "next"):
-            if not str(current.get(field) or "").strip():
-                issues.append(f"当前区缺少有效字段：{field}")
+        for key in ("objective", "next_action"):
+            if not str(current.get(key) or "").strip():
+                issues.append(f"Current 缺少 {key}")
     return issues
 
 

@@ -7,7 +7,7 @@
 | 对象 | 含义 | 在哪 |
 | --- | --- | --- |
 | Project | 一条业务主线（唯一 Store 上下文） | `private-data/project-registry/projects/<id>.json`（Store 合同） |
-| Agent Home（长期固定工位） | 一个有稳定身份与固定工位的成员责任 | `Workstations/<agent>/`（ENTRY.md + TODO.md(paos-todo/v3) + mailbox/ + notices/） |
+| Agent Home（长期固定工位） | 一个有稳定身份与固定工位的成员责任 | `Workstations/<agent>/`（ENTRY.md + TODO.md(paos-todo/v4) + mailbox/ + notices/） |
 | Current | 本责任区实时行动表（objective/approved_scope/stage/next_action/waiting/results/inflight/delivery 等） | 所属 Home TODO.md 的 Current 区 |
 | Session | 一个原生 Runtime 会话/执行容器（可重建、可代换） | Project Store 资料（历史可读），不承载 Home 责任 |
 | Mail | 发出即不可变的定向消息 | `Workstations/<agent>/mailbox/<message_id>.md` |

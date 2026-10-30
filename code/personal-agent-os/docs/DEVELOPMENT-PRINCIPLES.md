@@ -59,7 +59,7 @@ Portable 新实现不为退役接口保留运行兼容。当前安装的数据�
 |---|---|---|---|
 | CLI 入口 | `scripts/paos.py` | 参数、命令装配、结果渲染与错误出口 | 复制业务规则、绕过 Home/Project 写者 |
 | 服务模块 | `scripts/paos_*.py` | 各自的语义动作与校验（Home、Mail、Notice、Activation、安装等） | 越界改其它 Home、直接拼 Project 状态 |
-| Home 写者 | `paos_todo_v3.py`、`paos_mail.py`、`paos_notice.py`、`paos_attention_service.py` 及激活/唤醒写者 | 只写自己负责的 Home 文件、Mail/Notice/激活事实；合法的跨 Home Mail 投递仍走 mail 写者 | 充当 Project 状态写者、越权改写其它 Home 或绕过对应写者 |
+| Home 写者 | `paos_todo.py`、`paos_mail.py`、`paos_notice.py`、`paos_attention_service.py` 及激活/唤醒写者 | 只写自己负责的 Home 文件、Mail/Notice/激活事实；合法的跨 Home Mail 投递仍走 mail 写者 | 充当 Project 状态写者、越权改写其它 Home 或绕过对应写者 |
 | Project 最小登记 | `paos_registry.py` | 五字段 OB 根/Home/Coordinator 定位；首次 `register` 原子创建 | 复制旧 `human/generated/next_items/key_files`、覆盖既有 Project JSON |
 | 设备/安装定位 | `paos_installation.py`、`paos_workstation.py` | 安装描述、data_root、Library/Windows-WSL locator | 业务状态变更 |
 | 业务规则 | 共享 Workflow Library | 角色、工作循环、Notice/Mail、激活与写协议 | 在 Source 复制第二份规程 |

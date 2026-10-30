@@ -52,7 +52,7 @@ from paos_attention_service import (  # noqa: E402
     send_cat_source as attention_send_cat_source,
     write_home_todo as attention_write_home_todo,
     update_home_todo_fields as attention_update_home_todo_fields,
-    TODO_V3_LIST_FIELDS as attention_todo_list_fields,
+    TODO_LIST_FIELDS as attention_todo_list_fields,
     handle_input as attention_handle_input,
     takeover_input as attention_takeover_input,
     mark_input_read as attention_mark_input_read,
@@ -506,7 +506,7 @@ def _read_orient_inputs(
     unhandled_mail_count = 0
     if root is not None and workstation_mailbox.get("ready"):
         try:
-            if todo.get("schema") == "paos-todo/v3":
+            if todo.get("schema") == "paos-todo/v4":
                 mail_listing = attention_list_project_mail_inputs(
                     root=root,
                     project=project,
@@ -862,7 +862,7 @@ def execute_inbox(
                 tolerate_todo_errors=True,
             )
             todo_schema = str((workstation.get("todo") or {}).get("schema") or "")
-            if todo_schema == "paos-todo/v3":
+            if todo_schema == "paos-todo/v4":
                 listed = attention_list_project_mail_inputs(
                     root=root,
                     project=project,
@@ -1163,16 +1163,8 @@ def execute_workstation(
             ) from None
         return {"ok": True, **result}
 
-def _home_uses_todo_v3(root: Path, agent_id: str) -> bool:
-    """Home 合同只按固定工位 TODO frontmatter schema 判定，与公开服务的
-    `_assert_home_v3` 实时口径一致（TODO.md 存在且标识 `schema: paos-todo/v3`）。
-
-    Current 正文（字段/区段）解析失败——例如 todo_v3_notify_after_invalid
-    ——不把 V3 Home 误判为 legacy：解析错误由 Home 状态视图如实呈现并保留
-    可定位错误码；send/notify 仍走持久 Mail + Notice/intent，与原生注入分离。
-    真实结构/读取错误（工位双入口、TODO.md 读失败）以可定位异常拒绝，不用
-    False 掩盖成 legacy；TODO 缺失=未被迁移的 V1.2 Home 按现存明确 legacy
-    合同路由。不制造新兼容框架。"""
+def _home_uses_todo(root: Path, agent_id: str) -> bool:
+    """Verify the registered v4 TODO marker; unknown Homes fail closed."""
 
     def _frontmatter_schema(raw: bytes) -> str:
         for line in raw.splitlines():
@@ -1200,8 +1192,7 @@ def _home_uses_todo_v3(root: Path, agent_id: str) -> bool:
             {"todo_path": str(todo_file)},
         )
     if not todo_file.is_file():
-        # TODO 缺失=未被迁移的 V1.2 Home；按现存明确 legacy 合同路由。
-        return False
+        raise WorkstationProblem("workstation_todo_missing", f"TODO 不存在：{todo_file}")
     try:
         raw = todo_file.read_bytes()[:4096]
     except OSError as exc:
@@ -1211,14 +1202,14 @@ def _home_uses_todo_v3(root: Path, agent_id: str) -> bool:
             f"无法读取固定工位 TODO.md：{todo_file}",
             {"todo_path": str(todo_file), "reason": str(exc)},
         ) from exc
-    return _frontmatter_schema(raw) == "paos-todo/v3"
+    schema = _frontmatter_schema(raw)
+    if schema != "paos-todo/v4":
+        raise WorkstationProblem("workstation_todo_schema_invalid", f"TODO 需要 paos-todo/v4，实际为 {schema or '缺失'}")
+    return True
 
 
 def _resolve_staff_number_recipients(args: argparse.Namespace) -> list[str]:
-    """Human 统一 S 号寻址：`--to`/`--agents` 中的 `Sxxx`（列表或单字符串，
-    如 chat --to S032 / mail --to S032）经真实注册登记反查为完整 Agent ID，
-    再进入原路由；未注册/歧义/形态错误直接报错，不按目录后缀猜。
-    CLI `--agent-numbers-file` 与 `--installation-file` 是同一登记事实源。"""
+    """Resolve S numbers through the registered local staff map."""
     registry_path = getattr(args, "agent_numbers_file", None)
     installation_path = getattr(args, "installation_file", None) or resolve_installation_path()
     resolved: list[str] = []
@@ -1249,8 +1240,8 @@ def _cross_project_target_lookup(
     """Cross-project targeted CAT lookup: routes only when the recipient is
     a PRECISE registered member of its own project (deterministic `<pid>-sxxx`
     convention) whose registered Home actually exists — never a guessed
-    home/participant.  paos-todo/v3 enforcement is done by the service
-    (`_assert_home_v3` → `attention_home_not_v3`), so callers verify
+    home/participant.  paos-todo/v4 enforcement is done by the service
+    (`_assert_home_current` → `attention_home_not_v4`), so callers verify
     membership + house existence only.  Returns a lookup callable or None
     (None => keep the invoked-project path unchanged)."""
     try:
@@ -1265,44 +1256,28 @@ def _cross_project_target_lookup(
     sessions = [i for i in (project.get("sessions") or []) if isinstance(i, dict)]
     if not any(str(i.get("id") or "") == target_agent_id for i in sessions):
         return None
-    # NOTE: v3 enforcement happens in the service (`_assert_home_v3` raises
-    # `attention_home_not_v3`), so non-v3 targets get the precise error code
+    # NOTE: v3 enforcement happens in the service (`_assert_home_current` raises
+    # `attention_home_not_v4`), so non-v3 targets get the precise error code
     # instead of a misleading home_agent_unknown.
     return lambda _pid: project
 
-def _recipient_contract(
-    *,
-    root: Path,
-    recipients: list[str],
-) -> str:
+def _recipient_contract(*, root: Path, recipients: list[str]) -> str:
+    """Only the current Home contract is routable; unknown/missing Homes fail.
+
+    No legacy mail/activation fallback is created for newly registered Homes.
+    """
     if not recipients:
         return "empty"
-    v3 = [
-        agent_id
-        for agent_id in recipients
-        if _home_uses_todo_v3(root, agent_id)
-    ]
-    if not v3:
-        return "legacy"
-    if len(v3) == len(recipients):
-        return "v3"
-    raise CliError(
-        "接收者同时存在 v2/v3 Home；切换窗口内拒绝混用两套输入/activation 路径。",
-        error_code="v13_mixed_home_contract",
-        details={
-            "v3_agents": v3,
-            "legacy_agents": [
-                agent_id for agent_id in recipients if agent_id not in v3
-            ],
-        },
-    )
+    for agent_id in recipients:
+        _home_uses_todo(root, agent_id)
+    return "v4"
 
 
 def _registered_rooter_home(
     installation_path: Path,
     *,
     home_id: str = "rooter-001",
-    require_todo_v3: bool = True,
+    require_todo_current: bool = True,
 ) -> dict[str, Any]:
     try:
         descriptor = load_installation_descriptor(installation_path)
@@ -1323,7 +1298,7 @@ def _registered_rooter_home(
         return attention_resolve_rooter_home(
             home_path=rooter_home,
             home_id=home_id,
-            require_todo_v3=require_todo_v3,
+            require_todo_current=require_todo_current,
         )
     except AttentionServiceProblem as problem:
         raise CliError(
@@ -1461,7 +1436,7 @@ def execute_agent(
             mail_sender_id = str(args.sender_id or "")
             mail_subject = text_arg(args.subject, "mail subject", required=True)
             normal_delivered = set()
-            if cross_present or _recipient_contract(root=root, recipients=local_recipients or frozen) == "v3":
+            if cross_present or _recipient_contract(root=root, recipients=local_recipients or frozen) == "v4":
                 send_result = {
                     "ok": True,
                     **attention_send_mail_source(
@@ -1584,7 +1559,7 @@ def execute_agent(
         if args.agent_command == "chat":
             target = str(args.to)
             cross_lookup = None
-            if _recipient_contract(root=root, recipients=[target]) != "v3":
+            if _recipient_contract(root=root, recipients=[target]) != "v4":
                 # Same-project targets (legacy or not) keep the ORIGINAL
                 # legacy path: only a genuinely cross-project recipient (not
                 # a member of the invoked project) may attempt the lookup.
@@ -1597,7 +1572,7 @@ def execute_agent(
                     cross_lookup = _cross_project_target_lookup(
                         registry, root, target
                     )
-            if cross_lookup is not None or _recipient_contract(root=root, recipients=[target]) == "v3":
+            if cross_lookup is not None or _recipient_contract(root=root, recipients=[target]) == "v4":
                 return {
                     "ok": True,
                     **attention_send_cat_source(
@@ -1638,7 +1613,7 @@ def execute_agent(
                     if str(value or "").strip()
                 ]
                 selected = list(args.agents or []) or frozen
-                if _recipient_contract(root=root, recipients=selected) == "v3":
+                if _recipient_contract(root=root, recipients=selected) == "v4":
                     return {
                         "ok": True,
                         **attention_request_mail_activation(
@@ -1683,7 +1658,7 @@ def execute_agent(
                     expected_agent_id=expected,
                 )
                 target = str(verified.get("agent_id") or "")
-                if _recipient_contract(root=root, recipients=[target]) == "v3":
+                if _recipient_contract(root=root, recipients=[target]) == "v4":
                     return {
                         "ok": True,
                         **attention_request_cat_activation(
@@ -1740,7 +1715,7 @@ def execute_attention(
             home_ref = _registered_rooter_home(
                 installation_path,
                 home_id=str(getattr(args, "home_id", None) or "rooter-001"),
-                require_todo_v3=(args.attention_command != "rooter-todo-write"),
+                require_todo_current=(args.attention_command != "rooter-todo-write"),
             )
             if args.attention_command == "rooter-show":
                 return {"ok": True, **attention_read_home_state(home_ref)}
@@ -1871,7 +1846,7 @@ def execute_attention(
                 # 写口修复：旧 TODO 破损不能挡合法 v3 恢复载荷（真实 Home 定位
                 # 保留，新载荷合同在 write_home_todo 校验）。todo-update 同理由
                 # update_home_todo_fields 对坏/旧 TODO 给明确恢复写口引导。
-                require_todo_v3=(args.attention_command not in {"todo-write", "todo-update"}),
+                require_todo_current=(args.attention_command not in {"todo-write", "todo-update"}),
             )
             if args.attention_command == "show":
                 return {"ok": True, **attention_read_home_state(home_ref)}
@@ -2214,7 +2189,7 @@ def execute_mail(
                 recipients=list(args.to or []),
                 broadcast=bool(args.broadcast),
             )
-            if _recipient_contract(root=root, recipients=frozen) == "v3":
+            if _recipient_contract(root=root, recipients=frozen) == "v4":
                 return {
                     "ok": True,
                     **attention_send_mail_source(
@@ -2247,7 +2222,7 @@ def execute_mail(
 
         if args.mail_command == "reply":
             find_by_id(project.get("sessions", []), args.agent_id, "Agent")
-            if not _home_uses_todo_v3(root, args.agent_id):
+            if not _home_uses_todo(root, args.agent_id):
                 original = read_mail(root, args.agent_id, args.in_reply_to)
                 metadata = original.get("metadata")
                 if (
@@ -2330,7 +2305,7 @@ def execute_mail(
                     error_code="mail_reply_target_unavailable",
                     hint="对 Human 的正式请求请使用 paos session request-create。",
                 )
-            if _recipient_contract(root=root, recipients=[recipient_id]) != "v3":
+            if _recipient_contract(root=root, recipients=[recipient_id]) != "v4":
                 raise CliError(
                     "当前 Home 已采用 V1.3，但回复目标仍是 legacy Home；切换窗口内拒绝跨合同发送。",
                     error_code="v13_target_not_converted",
@@ -2364,7 +2339,7 @@ def execute_mail(
             return {"ok": True, **reply, "handling": handling}
 
         if args.mail_command == "list":
-            if _home_uses_todo_v3(root, args.agent_id):
+            if _home_uses_todo(root, args.agent_id):
                 return {
                     "ok": True,
                     **attention_list_project_mail_inputs(
@@ -2376,7 +2351,7 @@ def execute_mail(
             return {"ok": True, **list_mail(root, args.agent_id)}
 
         if args.mail_command == "read":
-            if _home_uses_todo_v3(root, args.agent_id):
+            if _home_uses_todo(root, args.agent_id):
                 result = attention_read_project_mail_input(
                     root=root,
                     project=project,
@@ -2394,7 +2369,7 @@ def execute_mail(
         if args.mail_command == "handle":
             find_by_id(project.get("sessions", []), args.agent_id, "Agent")
             reason = text_arg(args.reason, "handling reason")
-            if _home_uses_todo_v3(root, args.agent_id):
+            if _home_uses_todo(root, args.agent_id):
                 resolution = str(args.state or "handled")
                 if reason:
                     resolution = f"{resolution}: {reason}"
@@ -2802,7 +2777,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     x = attention_sub.add_parser(
         "todo-write",
-        help="Replace this exact Project Agent Home TODO v3 after identity validation",
+        help="Replace this exact Project Agent Home TODO v4 after identity validation",
     )
     x.add_argument("project_id")
     x.add_argument("agent_id")
@@ -2816,7 +2791,7 @@ def build_parser() -> argparse.ArgumentParser:
     x = attention_sub.add_parser(
         "todo-update",
         help=(
-            "Update only the named Current fields of this Home's one TODO v3; "
+            "Update only the named Current fields of this Home's one TODO v4; "
             "metadata, unmentioned Current fields and the whole Task body are kept"
         ),
     )
@@ -2829,12 +2804,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         metavar="FIELD=VALUE",
         help=(
-            "Repeatable Current field update (e.g. --set stage='...' "
-            "--set next_action='...'). Fields: objective, approved_scope, stage, "
-            "next_action, waiting, results, inflight, alignment_ref, input_version, "
-            "delivery, dependencies, continuation_to, boundaries, history_ref, "
-            "latest_readback, updated_at, legacy_source_ref, result_refs, context_refs "
-            "(list fields collect each --set value in order)"
+            "Current: objective, next_action, waiting, inflight, updated_at, "
+            "context_refs, result_refs. List refs: repeat --set key=value. "
+            "Pinned and Tasks: use a fingerprint-guarded full todo-write."
         ),
     )
     x.add_argument(
@@ -2959,7 +2931,7 @@ def build_parser() -> argparse.ArgumentParser:
         "rooter-todo-update",
         help=(
             "Update only the named Current fields of the registered Rooter Home's "
-            "one TODO v3; metadata, unmentioned Current fields and the whole Task body are kept"
+            "one TODO v4; metadata, unmentioned Current fields and the whole Task body are kept"
         ),
     )
     x.add_argument(
@@ -2969,12 +2941,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         metavar="FIELD=VALUE",
         help=(
-            "Repeatable Current field update (e.g. --set stage='...' "
-            "--set next_action='...'). Fields: objective, approved_scope, stage, "
-            "next_action, waiting, results, inflight, alignment_ref, input_version, "
-            "delivery, dependencies, continuation_to, boundaries, history_ref, "
-            "latest_readback, updated_at, legacy_source_ref, result_refs, context_refs "
-            "(list fields collect each --set value in order)"
+            "Current: objective, next_action, waiting, inflight, updated_at, "
+            "context_refs, result_refs. List refs: repeat --set key=value. "
+            "Pinned and Tasks: use a fingerprint-guarded full todo-write."
         ),
     )
     x.add_argument(
@@ -2985,7 +2954,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     x = attention_sub.add_parser(
         "rooter-todo-write",
-        help="Replace registered Rooter TODO v3 after identity validation",
+        help="Replace registered Rooter TODO v4 after identity validation",
     )
     x.add_argument("--body", required=True, help="TODO Markdown, @FILE, or '-' for stdin")
     x.add_argument("--home-id", default="rooter-001")

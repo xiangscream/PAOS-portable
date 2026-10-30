@@ -162,77 +162,37 @@ def read_team_todo(root: Path, agent_id: str, *, project_id: str | None = None) 
     trust_issues: list[str] = []
     schema = str(todo.get("schema") or "")
 
-    if schema == "paos-todo/v3":
-        if todo.get("home_kind") != "project_agent":
-            trust_issues.append(f"home_kind:{todo.get('home_kind') or 'missing'}")
-        if project_id is not None and str(todo.get("project_id") or "") != str(project_id):
-            trust_issues.append(f"project_id:{todo.get('project_id')}")
-        if str(todo.get("home_id") or "") != str(agent_id):
-            trust_issues.append(f"home_id:{todo.get('home_id') or 'missing'}")
-        current = todo.get("current") if isinstance(todo.get("current"), dict) else {}
-        if not str(current.get("objective") or "").strip():
-            trust_issues.append("current:objective_missing")
-        if not str(current.get("next_action") or "").strip():
-            trust_issues.append("current:next_action_missing")
-        if trust_issues:
-            info["reason"] = "todo_untrusted"
-            info["trust_issues"] = trust_issues
-            return info
-        info["current_section"] = {
-            "goal": str(current.get("objective") or ""),
-            "stage": str(current.get("stage") or ""),
-            "next": str(current.get("next_action") or ""),
-            "waiting": str(current.get("waiting") or ""),
-            "result": str(current.get("results") or ""),
-            "wip": str(current.get("inflight") or ""),
-        }
-        refs = [
-            str(value)
-            for value in (current.get("context_refs") or [])
-            if str(value or "").strip()
-        ]
-        if refs:
-            info["facts"] = {"Context refs": refs}
-        info["available"] = True
-        info["trusted"] = True
-        info["todo_summary"] = {
-            "stage": str(current.get("stage") or ""),
-            "next": str(current.get("next_action") or ""),
-        }
-        info["counts"] = todo.get("counts") or {}
+    if schema != "paos-todo/v4":
+        info["reason"] = "todo_untrusted"
+        info["trust_issues"] = [f"schema:{schema or 'missing'}"]
         return info
-
-    if schema != "paos-todo/v2":
-        trust_issues.append(f"schema:{schema or 'missing'}")
-    if todo.get("project_id") and project_id is not None and str(todo.get("project_id")) != str(project_id):
-        trust_issues.append(f"project_id:{todo.get('project_id')}")
-    if todo.get("agent_id") and str(todo.get("agent_id")) != str(agent_id):
-        trust_issues.append(f"agent_id:{todo.get('agent_id')}")
-    if todo.get("duplicate_sections"):
-        trust_issues.append("duplicate_sections:" + ",".join(todo["duplicate_sections"]))
-    if todo.get("metadata_issues"):
-        trust_issues.extend(f"front_matter:{item}" for item in todo["metadata_issues"])
-    if todo.get("missing_sections"):
-        trust_issues.append("missing_sections:" + ",".join(todo["missing_sections"]))
-    if not trust_issues and not todo.get("agent_id"):
-        trust_issues.append("agent_id_missing")
+    if todo.get("home_kind") != "project_agent":
+        trust_issues.append("home_kind_invalid")
+    if project_id is not None and str(todo.get("project_id") or "") != str(project_id):
+        trust_issues.append("project_id_mismatch")
+    if str(todo.get("home_id") or "") != str(agent_id):
+        trust_issues.append("home_id_mismatch")
+    current = todo.get("current") if isinstance(todo.get("current"), dict) else {}
+    for field in ("objective", "next_action"):
+        if not str(current.get(field) or "").strip():
+            trust_issues.append(f"current:{field}_missing")
     if trust_issues:
         info["reason"] = "todo_untrusted"
         info["trust_issues"] = trust_issues
         return info
-    try:
-        text = path.read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as exc:
-        info["reason"] = f"todo_unreadable:{type(exc).__name__}"
-        return info
-    section = _current_section(text)
-    if not section.strip():
-        info["reason"] = "current_section_missing"
-        return info
-    _parse_current_section(section, info)
+    info["current_section"] = {
+        "goal": str(current.get("objective") or ""),
+        "next": str(current.get("next_action") or ""),
+        "waiting": str(current.get("waiting") or ""),
+        "wip": str(current.get("inflight") or ""),
+    }
+    refs = [str(v) for v in (current.get("context_refs") or []) if str(v or "").strip()]
+    if refs:
+        info["facts"] = {"Context refs": refs}
+    info["pinned"] = todo.get("pinned") or ""
     info["available"] = True
     info["trusted"] = True
-    info["todo_summary"] = todo.get("summary") or {}
+    info["todo_summary"] = {"next": str(current.get("next_action") or "")}
     info["counts"] = todo.get("counts") or {}
     return info
 

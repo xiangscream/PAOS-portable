@@ -24,7 +24,7 @@
 | template-release-guide | 共享发布说明模板 | Templates | active | template, release, adoption | Templates/release-guide.md |
 | template-team | TEAM 模板 | Templates | active | template, team, peers | Templates/team.md |
 | template-workstation-entry | Workstation ENTRY 模板 | Templates | active | template, workstation, entry | Templates/workstation-entry.md |
-| template-workstation-todo | TODO v3 模板 | Templates | active | template, todo, current | Templates/workstation-todo.md |
+| template-workstation-todo | TODO v4：Obsidian 原生工位 | Templates | active | template, todo, current, obsidian | Templates/workstation-todo.md |
 | wf-agent-work-cycle | Agent 工作循环：恢复、执行与收口 | Workflows | active | agent, continuity, work, kernel | Workflows/wf-agent-work-cycle.md |
 | wf-coordinator-governance-cycle | Coordinator 工作循环：派工与验收 | Workflows | active | coordinator, governance, autonomy, kernel | Workflows/wf-coordinator-governance-cycle.md |
 | wf-meeting-audio-package | 日常输入整理：对话、日会与 Tips | Workflows | active | meeting, audio, transcript, daily-report, weekly-report, evidence | Workflows/wf-meeting-audio-package.md |

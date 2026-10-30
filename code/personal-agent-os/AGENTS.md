@@ -13,7 +13,7 @@
 - `paos_registry.py`：唯一 `paos-project-registry/v1` 项目定位原件；显式 `project register` 只创建五字段登记，不覆盖、不合成旧项目管理状态。正常读取始终只读。
 - `paos.py`：参数、调用既有模块、输出结果。仅 CAT 使用本文件的 HTTP 客户端。Project 登记写入只经 registry，Home 写入仍经各自 writer。
 - `paos_home.py`、`paos_workstation.py`：固定工位定位和文件；Rooter 是安装级工位。
-- `paos_todo_v3.py`：现有 TODO 解析与写入；本片没有改成自由 Markdown 格式。
+- `paos_todo.py`：现行 `paos-todo/v4`，Pinned 自由 Markdown + Current 小字段 + Tasks checkbox；只有 Home 的合法写者修改。
 - `paos_mail.py`、`paos_notice.py`、`paos_attention_service.py`：持久输入与处理事实；不再生成第二份 Workbench 当前页。
 - `paos_library.py`：Workflow/Skill 索引、搜索与使用记录；正文是方法，不是硬状态机。
 - Contact / runtime injection：显式本机绑定与一次提醒；不从迁入的 Project 旧字段恢复原生会话。

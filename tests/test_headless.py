@@ -23,7 +23,7 @@ sys.path.insert(0, str(SCRIPTS))
 import paos
 from paos_installation import write_installation_descriptor
 from paos_library import ensure_workflow_library, ensure_skill_library, register_library_roots
-from paos_todo_v3 import render_todo_v3, parse_todo_v3
+from paos_todo import render_todo, parse_todo
 from paos_registry import ProjectRegistry, RegistryProblem
 
 
@@ -73,7 +73,7 @@ class HeadlessTests(unittest.TestCase):
         (path/'mailbox').mkdir(parents=True)
         (path/'notices').mkdir()
         (path/'ENTRY.md').write_text('# 入口\n参照项目最新口径。\n',encoding='utf-8')
-        (path/'TODO.md').write_text(render_todo_v3(home_kind='project_agent' if pid else 'rooter',
+        (path/'TODO.md').write_text(render_todo(home_kind='project_agent' if pid else 'rooter',
             home_id=sid, project_id=pid, objective='归档原件、更新已有口径',next_action='实读新增材料'),encoding='utf-8')
 
     def save_project(self):
@@ -137,8 +137,42 @@ class HeadlessTests(unittest.TestCase):
     def test_update_uses_existing_writer_and_no_projection(self):
         r=self.call('attention','todo-update','3002','3002-s001','--set','next_action=整理今日原件')[1]
         text=(self.vault/'Workstations/3002-s001/TODO.md').read_text(encoding='utf-8')
-        self.assertEqual(parse_todo_v3(text)['current']['next_action'],'整理今日原件')
+        self.assertEqual(parse_todo(text)['current']['next_action'],'整理今日原件')
         self.assertNotIn('projection',r)
+
+    def test_pinned_and_task_checkboxes_survive_current_update(self):
+        from paos_todo import render_todo, parse_todo
+        path=self.vault/'Workstations/3002-s001/TODO.md'
+        pinned='## 已批准方向\n\n- [[项目最新口径]] 是唯一正文。\n- Human 原话："不用仪式感管理"。'
+        original=render_todo(home_kind='project_agent',home_id='3002-s001',project_id='3002',
+            pinned=pinned,objective='持续整理',next_action='读新输入',
+            context_refs=['[[INDEX]]'],tasks=[dict(id='T-1',title='处理日会',state='waiting',
+                waiting='等转写',source_refs=['[[Materials/日会]]'])])
+        path.write_text(original,encoding='utf-8')
+        self.call('attention','todo-update','3002','3002-s001','--set','next_action=核对决定')
+        updated=path.read_text(encoding='utf-8')
+        self.assertEqual(updated.split('# Current\n')[0],original.split('# Current\n')[0])
+        self.assertEqual(updated.split('# Tasks\n')[1],original.split('# Tasks\n')[1])
+        parsed=parse_todo(updated)
+        self.assertEqual(parsed['pinned'],pinned)
+        self.assertEqual(parsed['tasks'][0]['state'],'waiting')
+        self.assertEqual(parsed['current']['next_action'],'核对决定')
+
+    def test_full_todo_write_accepts_checkbox_change_and_rejects_old_schema(self):
+        from paos_todo import parse_todo, fingerprint_todo
+        path=self.vault/'Workstations/3002-s001/TODO.md'
+        old=path.read_text(encoding='utf-8')
+        checkbox=old.replace('# Tasks\n', '# Tasks\n\n- [x] **T-004** · 归档完成\n')
+        candidate=self.root/'incoming.md';candidate.write_text(checkbox,encoding='utf-8')
+        fp=fingerprint_todo(path)
+        self.call('attention','todo-write','3002','3002-s001','--body','@'+str(candidate),
+                  '--expected-fingerprint',fp)
+        self.assertEqual(parse_todo(path.read_text(encoding='utf-8'))['tasks'][0]['state'],'done')
+        before=path.read_bytes()
+        candidate.write_text(checkbox.replace('paos-todo/v4','paos-todo/v3'),encoding='utf-8')
+        code,_=self.call('attention','todo-write','3002','3002-s001','--body','@'+str(candidate),ok=False)
+        self.assertNotEqual(code,0)
+        self.assertEqual(path.read_bytes(),before)
 
     def test_bad_fingerprint_does_not_write(self):
         path=self.vault/'Workstations/3002-s001/TODO.md';before=path.read_bytes()
@@ -159,6 +193,19 @@ class HeadlessTests(unittest.TestCase):
         self.assertEqual(self.call('inbox','3002','3002-s002')[1]['durable_mail']['unhandled_count'],1)
         self.call('attention','handle','3002','3002-s002',nid,'--resolution','原件已归档、口径已更新','--action-ref','Works/整理结果.md')
         self.assertEqual(self.call('inbox','3002','3002-s002')[1]['durable_mail']['unhandled_count'],0)
+
+    def test_invalid_current_before_takeover_never_marks_notice_read(self):
+        self.send('mail-takeover-invalid')
+        home=self.vault/'Workstations/3002-s002'
+        path=home/'TODO.md'
+        before=path.read_bytes()
+        notices=list((home/'notices').glob('notice-*.md'))
+        self.assertEqual(len(notices),1)
+        code,_=self.call('attention','takeover','3002','3002-s002',notices[0].stem,
+                          '--set','next_action=',ok=False)
+        self.assertNotEqual(code,0)
+        self.assertEqual(path.read_bytes(),before)
+        self.assertFalse(list((home/'notices'/'.read').glob('*.json')))
 
     def test_reminder_replay_never_submits_twice(self):
         with patch.object(paos,'_remind_via_native',return_value={'agent_id':'3002-s002','state':'accepted','accepted':True}) as inject:
@@ -268,7 +315,7 @@ class HeadlessTests(unittest.TestCase):
         self.install.write_text(json.dumps(config),encoding='utf-8')
         self.call('workstation','init','3002','3002-s003','--objective','接续实际工作')
         path=self.vault/'Workstations/3002-s003/TODO.md'
-        self.assertEqual(parse_todo_v3(path.read_text(encoding='utf-8'))['schema'],'paos-todo/v3')
+        self.assertEqual(parse_todo(path.read_text(encoding='utf-8'))['schema'],'paos-todo/v4')
         self.call('orient','3002','3002-s003')
 
     def test_malformed_coordinator_is_explicit_error(self):
