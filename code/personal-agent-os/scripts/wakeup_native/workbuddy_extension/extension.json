@@ -1,0 +1,9 @@
+{
+  "id": "paos-session-send",
+  "name": "PAOS Session Send",
+  "version": "0.3.0",
+  "service": {
+    "entry": "server/index.cjs",
+    "activationEvents": ["onStartup"]
+  }
+}

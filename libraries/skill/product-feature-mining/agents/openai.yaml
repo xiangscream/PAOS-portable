@@ -1,0 +1,4 @@
+interface:
+  display_name: "产品功能挖掘"
+  short_description: "从完整调研建立推理主线并挖掘高价值产品功能"
+  default_prompt: "Use $product-feature-mining to research the available materials, build a clear reasoning chain, and conclude which features should define the product."

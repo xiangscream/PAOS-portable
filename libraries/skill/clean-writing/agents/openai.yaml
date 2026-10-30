@@ -1,0 +1,12 @@
+interface:
+  display_name: Clean Writing
+  short_description: Turn working-language into clear, reader-appropriate final writing.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

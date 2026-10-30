@@ -1,0 +1,21 @@
+.....................FF
+======================================================================
+FAIL: test_posix_state_root_unchanged (test_wake_opencode_b2b2.WindowsStateRootResolutionTests.test_posix_state_root_unchanged)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\remo\Desktop\agent学习计划\PAOS-Projects\3002-Personal-Agent-OS\Source-v12-integrated-release\attention-dashboard-v1-static\tests\test_wake_opencode_b2b2.py", line 369, in test_posix_state_root_unchanged
+    self.assertIn("3002/3002-s027/6454fec8", str(resolved))
+AssertionError: '3002/3002-s027/6454fec8' not found in 'C:\\Users\\remo\\AppData\\Local\\Temp\\tmpany2slmi\\native\\3002\\3002-s027\\6454fec8ce835e41aa6b5528d118266a4c852599bfe22e6b87b9d4d2b9e3689d'
+
+======================================================================
+FAIL: test_windows_absolute_state_root_resolves_to_wsl_real_dir (test_wake_opencode_b2b2.WindowsStateRootResolutionTests.test_windows_absolute_state_root_resolves_to_wsl_real_dir)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\remo\Desktop\agent学习计划\PAOS-Projects\3002-Personal-Agent-OS\Source-v12-integrated-release\attention-dashboard-v1-static\tests\test_wake_opencode_b2b2.py", line 345, in test_windows_absolute_state_root_resolves_to_wsl_real_dir
+    self.assertTrue(str(resolved).startswith("/mnt/c/Users/remo/.paos/wakeup-native/opencode"))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 23 tests in 9.876s
+
+FAILED (failures=2)

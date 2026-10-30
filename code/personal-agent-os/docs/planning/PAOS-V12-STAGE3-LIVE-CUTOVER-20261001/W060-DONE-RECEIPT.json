@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "delta": {
+    "since_revision": 803,
+    "current_revision": 804,
+    "events": [
+      {
+        "event_id": "3002-e784",
+        "event_type": "coordinator.work.transitioned",
+        "project_id": "3002",
+        "session_id": "3002-s010",
+        "operation_id": "op-s010-w060-stage3-accept-20261002",
+        "base_revision": 803,
+        "revision": 804,
+        "timestamp": "2026-10-02T08:02:45.690212Z",
+        "touched_paths": [
+          "/work_items/3002-w060/status"
+        ],
+        "allocated_ids": [],
+        "summary": "Coordinator 将 Work 3002-w060 迁移为 done：三条done_when均已满足：Source e4/Library b55候选与A1-A5已接受；Codex/OpenCode固定工位fresh恢复、真实产物和s027→s029→s010受控接力已接受；e4 exact独审/Windows完整7/7成立，PR114/115/116已合并且de27实际运行。Rooter最终安装回流、六绑定双环境共享目录与原样本字节、两项目当前成员采用及例外已接受。按V1.2正式Coordinator验收合同结束Work，不伪造员工Close、不改成员任期；s014人工例外由s009持有，不阻塞本Work。证据Works/V12-STAGE2-RESULT-20260930.md及Works/V12-STAGE3-ADOPTION-RESULT-20261001.md、Rooter shared-state proof。",
+        "details": {
+          "changes": [
+            {
+              "path": "/work_items/3002-w060/status",
+              "before": "doing",
+              "after": "done"
+            }
+          ],
+          "reason": "三条done_when均已满足：Source e4/Library b55候选与A1-A5已接受；Codex/OpenCode固定工位fresh恢复、真实产物和s027→s029→s010受控接力已接受；e4 exact独审/Windows完整7/7成立，PR114/115/116已合并且de27实际运行。Rooter最终安装回流、六绑定双环境共享目录与原样本字节、两项目当前成员采用及例外已接受。按V1.2正式Coordinator验收合同结束Work，不伪造员工Close、不改成员任期；s014人工例外由s009持有，不阻塞本Work。证据Works/V12-STAGE2-RESULT-20260930.md及Works/V12-STAGE3-ADOPTION-RESULT-20261001.md、Rooter shared-state proof。",
+          "status": "done"
+        }
+      }
+    ]
+  }
+}

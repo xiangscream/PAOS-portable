@@ -1,0 +1,10 @@
+[
+  {
+    "timestamp": "2026-10-01T13:56:35.787Z",
+    "visible_terminal_output": "ERROR [mail_write_failed]: �޷�д�� Mail �ļ���C:\\Users\\remo\\Desktop\\agentѧϰ�ƻ�\\PAOS-Projects\\3002-Personal-Agent-OS\\.paos\\mail\\dispatch\\msg-s031-v12-stage3-codex-recovery-20261001-01.json\r\nCAUSE: [Errno 13] Permission denied: 'C:\\\\Users\\\\remo\\\\Desktop\\\\agentѧϰ�ƻ�\\\\PAOS-Projects\\\\3002-Personal-Agent-OS\\\\.paos\\\\mail\\\\dispatch\\\\.msg-s031-v12-stage3-codex-recovery-20261001-01.json.staging-7f26eb811ff74e40a7765deacc8b397e'\r\n"
+  },
+  {
+    "timestamp": "2026-10-01T13:58:10.548Z",
+    "visible_terminal_output": "ERROR [mail_write_failed]: �޷�д�� Mail �ļ���C:\\Users\\remo\\Desktop\\agentѧϰ�ƻ�\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s031\\mailbox\\.handled\\rooter-v12-stage3-adoption-3002-20261001.json\r\nCAUSE: [Errno 13] Permission denied: 'C:\\\\Users\\\\remo\\\\Desktop\\\\agentѧϰ�ƻ�\\\\PAOS-Projects\\\\3002-Personal-Agent-OS\\\\Workstations\\\\3002-s031\\\\mailbox\\\\.handled\\\\.rooter-v12-stage3-adoption-3002-20261001.json.staging-d0669770204a4f22b00f0ded4ddba9ab'\r\n"
+  }
+]

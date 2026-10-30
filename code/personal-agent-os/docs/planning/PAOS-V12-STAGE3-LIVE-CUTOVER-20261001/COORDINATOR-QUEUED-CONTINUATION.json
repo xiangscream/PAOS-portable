@@ -1,0 +1,19 @@
+{
+  "source": "Codex app wait_threads/read_thread public thread observations",
+  "thread_id": "01a042ee-4ac4-7613-8619-3782fc03554f",
+  "previous_turn": {
+    "id": "01a0fb78-9327-75d0-bf40-41a9278dc670",
+    "status": "completed",
+    "completedAt": 1790927671
+  },
+  "next_turn": {
+    "id": "01a0fb9b-92f1-74d1-8c7f-3ff7ccc2e83a",
+    "startedAt": 1790927672,
+    "input_tool": "send_message_to_thread",
+    "input_text": "检查 Workstation mailbox，并从当前工位继续。",
+    "first_commentary": "我会先读本人工位和最新邮件，确认刚才的组件整理已收口，再从 TODO 接续真正未完成的主线。"
+  },
+  "observed_gap_seconds": 1,
+  "rooter_correction": "Rooter initially mistook one completed turn for a stopped handoff and sent a redundant explicit reminder. The existing queued wake had already started the next turn. No need for another scheduler is established by this sample.",
+  "scope": "Observed continuation between two native turns; business lifecycle result must be established separately. No hidden reasoning included."
+}

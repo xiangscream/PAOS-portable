@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{TITLE}} · 架构图模板</title>
+<style>
+  :root{
+    --ink:#1F2329;
+    --ink-2:#4E5969;
+    --ink-3:#86909C;
+    --line:#E5E6EB;
+    --bg:#FFFFFF;
+    --bg-soft:#F7F8FA;
+
+    /* 收单/控制 · 蓝 */
+    --blue:#1664FF; --blue-soft:#E8F0FF; --blue-deep:#0E42B5;
+    /* 中枢/合规 · 青 */
+    --teal:#14B8A6; --teal-soft:#E6F8F5; --teal-deep:#0E8A7C;
+    /* 出口/分账 · 绿 */
+    --green:#22C55E; --green-soft:#E8F8EE; --green-deep:#15803D;
+    /* 警示/重点 · 橙 */
+    --orange:#F59E0B; --orange-soft:#FEF3D6;
+    /* 风险/断点 · 红 */
+    --red:#EF4444; --red-soft:#FDECEC;
+
+    --shadow: 0 2px 8px rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.04);
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;padding:0;background:var(--bg-soft);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased
+  }
+  .page{max-width:1620px;margin:0 auto;padding:36px 32px 48px}
+  .header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px;flex-wrap:wrap}
+  .title{font-size:24px;font-weight:700;letter-spacing:.5px;color:var(--ink)}
+  .sub{font-size:13px;color:var(--ink-3);margin-top:6px;letter-spacing:.3px;line-height:1.7}
+  .tag{display:inline-block;font-size:12px;color:var(--blue-deep);background:var(--blue-soft);padding:4px 10px;border-radius:4px;font-weight:600;letter-spacing:.5px}
+
+  .canvas{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:28px 28px 18px;box-shadow:var(--shadow);position:relative;
+  }
+  .diagram{position:relative;width:100%;}
+  svg.flow{width:100%;height:auto;display:block;font-family:inherit}
+
+  .legend{
+    display:flex;flex-wrap:wrap;gap:20px 28px;justify-content:center;
+    padding:16px 12px 4px;margin-top:10px;border-top:1px dashed var(--line)
+  }
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2)}
+  .lg-line{position:relative;display:inline-block;width:38px;height:10px}
+  .lg-line svg{display:block;width:100%;height:100%}
+  .lg-step{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:50%;background:var(--blue-deep);
+    color:#fff;font-size:11px;font-weight:700
+  }
+
+  .footnote{
+    margin-top:18px;font-size:12px;color:var(--ink-3);
+    display:flex;flex-direction:column;gap:6px;line-height:1.7
+  }
+  .footnote b{color:var(--ink-2);font-weight:600}
+
+  .highlights{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+    margin-top:18px
+  }
+  .hl{
+    background:linear-gradient(180deg,#F4F8FF 0%,#FFFFFF 100%);
+    border:1px solid #C9DCFF;border-radius:8px;padding:14px 16px
+  }
+  .hl-t{font-size:12px;color:var(--blue-deep);font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+  .hl-d{font-size:12.5px;color:var(--ink-2);line-height:1.7}
+
+  /* 响应式：窄屏不压缩，改为横向滚动 */
+  @media (max-width: 1100px){
+    .highlights{grid-template-columns:1fr}
+  }
+  @media (max-width: 980px){
+    .page{padding:20px 14px}
+    .title{font-size:20px}
+    .canvas{padding:14px 10px;overflow-x:auto}
+    svg.flow{min-width:1480px}
+    .legend{gap:10px 16px}
+  }
+  @media (max-width: 480px){
+    .title{font-size:18px}
+    .sub{font-size:12px}
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <!-- ============ HEADER ============ -->
+    <div class="header">
+      <div>
+        <span class="tag">{{PHASE_TAG}}</span>
+        <div class="title" style="margin-top:10px">{{TITLE}}</div>
+        <div class="sub">{{SUBTITLE_PATH}}</div>
+      </div>
+      <div class="sub" style="text-align:right">
+        架构范式：<b style="color:var(--ink-2)">{{PARADIGM}}</b><br/>
+        合规原则：<b style="color:var(--ink-2)">{{COMPLIANCE}}</b><br/>
+        控制权：<b style="color:var(--ink-2)">{{CONTROL}}</b>
+      </div>
+    </div>
+
+    <div class="canvas">
+      <div class="diagram">
+        <!-- viewBox 标准尺寸：1640 × 900（4 层布局） -->
+        <svg class="flow" viewBox="0 0 1640 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="{{TITLE}}">
+          <!-- ============ DEFS：4 色 marker + 阴影滤镜 ============ -->
+          <defs>
+            <marker id="ah-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#1664FF"/>
+            </marker>
+            <marker id="ah-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#14B8A6"/>
+            </marker>
+            <marker id="ah-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#22C55E"/>
+            </marker>
+            <marker id="ah-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#F59E0B"/>
+            </marker>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.06"/>
+            </filter>
+          </defs>
+
+          <!-- ============================================== -->
+          <!-- 左侧专属标签区（x: 10 ~ 200） -->
+          <!-- 每层一个 pill 主标题 + 多行说明文字 -->
+          <!-- ============================================== -->
+
+          <!-- 标签 1 · Layer 2 体系标签 -->
+          <g>
+            <rect x="20" y="218" width="180" height="34" rx="17" fill="#1664FF"/>
+            <text x="110" y="240" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">{{LAYER2_BADGE}}</text>
+            <text x="20" y="270" font-size="11" fill="#0E42B5" font-weight="600">{{LAYER2_LINE1}}</text>
+            <text x="20" y="286" font-size="11" fill="#0E42B5">{{LAYER2_LINE2}}</text>
+          </g>
+
+          <!-- 标签 2 · Layer 3 体系标签 -->
+          <g>
+            <rect x="20" y="448" width="180" height="34" rx="17" fill="#0E8A7C"/>
+            <text x="110" y="470" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">{{LAYER3_BADGE}}</text>
+            <text x="20" y="500" font-size="11" fill="#0E8A7C" font-weight="600">{{LAYER3_LINE1}}</text>
+            <text x="20" y="516" font-size="11" fill="#0E8A7C">{{LAYER3_LINE2}}</text>
+            <text x="20" y="532" font-size="11" fill="#0E8A7C">{{LAYER3_LINE3}}</text>
+            <text x="20" y="548" font-size="11" fill="#14B8A6" font-weight="600">{{LAYER3_LINE4}}</text>
+            <text x="20" y="564" font-size="11" fill="#14B8A6">{{LAYER3_LINE5}}</text>
+          </g>
+
+          <!-- 标签 3 · Layer 4 体系标签 -->
+          <g>
+            <rect x="20" y="700" width="180" height="34" rx="17" fill="#15803D"/>
+            <text x="110" y="722" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">{{LAYER4_BADGE}}</text>
+            <text x="20" y="752" font-size="11" fill="#15803D" font-weight="600">{{LAYER4_LINE1}}</text>
+            <text x="20" y="768" font-size="11" fill="#15803D">{{LAYER4_LINE2}}</text>
+          </g>
+
+          <!-- ============================================== -->
+          <!-- Layer 1 · 入口层（3 列：列中线 360 / 920 / 1480） -->
+          <!-- ============================================== -->
+          <g filter="url(#soft)">
+            <rect x="250" y="30" width="220" height="60" rx="8" fill="#FFFFFF" stroke="#E5E6EB"/>
+            <text x="360" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2329">{{L1_NODE1_TITLE}}</text>
+            <text x="360" y="76" text-anchor="middle" font-size="12" fill="#86909C">{{L1_NODE1_SUB}}</text>
+
+            <rect x="810" y="30" width="220" height="60" rx="8" fill="#FFFFFF" stroke="#E5E6EB"/>
+            <text x="920" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2329">{{L1_NODE2_TITLE}}</text>
+            <text x="920" y="76" text-anchor="middle" font-size="12" fill="#86909C">{{L1_NODE2_SUB}}</text>
+
+            <rect x="1370" y="30" width="220" height="60" rx="8" fill="#FFFFFF" stroke="#E5E6EB"/>
+            <text x="1480" y="56" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2329">{{L1_NODE3_TITLE}}</text>
+            <text x="1480" y="76" text-anchor="middle" font-size="12" fill="#86909C">{{L1_NODE3_SUB}}</text>
+          </g>
+
+          <!-- ============================================== -->
+          <!-- Layer 2 · 收单层（虚线容器 + 中央节点） -->
+          <!-- ============================================== -->
+          <!-- 虚线容器框 -->
+          <g>
+            <rect x="220" y="188" width="1400" height="100" rx="10" fill="#F4F8FF" stroke="#C9DCFF" stroke-dasharray="6 4"/>
+          </g>
+
+          <!-- 中央节点（覆盖 Layer 1 三列宽度） -->
+          <g filter="url(#soft)">
+            <rect x="320" y="208" width="1240" height="72" rx="10" fill="#FFFFFF" stroke="#1664FF" stroke-width="1.6"/>
+            <text x="940" y="234" text-anchor="middle" font-size="15" font-weight="700" fill="#0E42B5">{{L2_CENTER_TITLE}}</text>
+            <text x="940" y="254" text-anchor="middle" font-size="12" fill="#1664FF">{{L2_CENTER_SUB}}</text>
+            <!-- 3 个属性徽章 -->
+            <g>
+              <rect x="610" y="262" width="160" height="14" rx="7" fill="#E8F0FF"/>
+              <text x="690" y="273" text-anchor="middle" font-size="10" font-weight="700" fill="#0E42B5">{{L2_BADGE1}}</text>
+            </g>
+            <g>
+              <rect x="860" y="262" width="160" height="14" rx="7" fill="#E8F0FF"/>
+              <text x="940" y="273" text-anchor="middle" font-size="10" font-weight="700" fill="#0E42B5">{{L2_BADGE2}}</text>
+            </g>
+            <g>
+              <rect x="1110" y="262" width="160" height="14" rx="7" fill="#E8F0FF"/>
+              <text x="1190" y="273" text-anchor="middle" font-size="10" font-weight="700" fill="#0E42B5">{{L2_BADGE3}}</text>
+            </g>
+          </g>
+
+          <!-- 步骤① 三条枝线竖直汇入虚线框上沿（y=180 = 188 - 7px 让位） -->
+          <line x1="360" y1="92" x2="360" y2="180" stroke="#1664FF" stroke-width="2" marker-end="url(#ah-blue)"/>
+          <line x1="920" y1="92" x2="920" y2="180" stroke="#1664FF" stroke-width="2" marker-end="url(#ah-blue)"/>
+          <line x1="1480" y1="92" x2="1480" y2="180" stroke="#1664FF" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+          <!-- 步骤① 编号 + 文案（右移避开主线 x=920） -->
+          <g>
+            <rect x="970" y="120" width="84" height="24" rx="3" fill="#1664FF"/>
+            <text x="1012" y="137" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">{{STEP1_LABEL}}</text>
+            <circle cx="1066" cy="132" r="12" fill="#0E42B5"/>
+            <text x="1066" y="136" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">1</text>
+          </g>
+          <text x="970" y="180" font-size="10.5" fill="#86909C">{{STEP1_DESC}}</text>
+
+          <!-- ============================================== -->
+          <!-- Layer 3 · 中枢层（虚线容器 + 大型枢纽节点 + 提示框） -->
+          <!-- ============================================== -->
+          <!-- 虚线容器框 -->
+          <g>
+            <rect x="220" y="378" width="1400" height="280" rx="12" fill="#FAFCFB" stroke="#9FE3D3" stroke-dasharray="6 4"/>
+          </g>
+
+          <!-- 顶部聚合胶囊（可选，描述聚合关系） -->
+          <g>
+            <rect x="690" y="392" width="460" height="28" rx="14" fill="#FFFFFF" stroke="#14B8A6" stroke-width="1.4"/>
+            <text x="920" y="411" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0E8A7C" letter-spacing="0.3">{{L3_TOP_PILL}}</text>
+          </g>
+
+          <!-- 中央枢纽节点 -->
+          <g filter="url(#soft)">
+            <rect x="600" y="448" width="640" height="120" rx="10" fill="#F4F8FF" stroke="#1664FF" stroke-width="1.8"/>
+            <text x="920" y="478" text-anchor="middle" font-size="16" font-weight="700" fill="#0E42B5">{{L3_HUB_TITLE}}</text>
+            <text x="920" y="500" text-anchor="middle" font-size="12" fill="#1664FF">{{L3_HUB_SUB}}</text>
+            <!-- 4 个能力徽章（pill row） -->
+            <g>
+              <rect x="640" y="514" width="130" height="22" rx="11" fill="#FFFFFF" stroke="#1664FF"/>
+              <text x="705" y="529" text-anchor="middle" font-size="11" font-weight="700" fill="#0E42B5">{{L3_CAP1}}</text>
+            </g>
+            <g>
+              <rect x="780" y="514" width="130" height="22" rx="11" fill="#FFFFFF" stroke="#1664FF"/>
+              <text x="845" y="529" text-anchor="middle" font-size="11" font-weight="700" fill="#0E42B5">{{L3_CAP2}}</text>
+            </g>
+            <g>
+              <rect x="920" y="514" width="130" height="22" rx="11" fill="#FFFFFF" stroke="#1664FF"/>
+              <text x="985" y="529" text-anchor="middle" font-size="11" font-weight="700" fill="#0E42B5">{{L3_CAP3}}</text>
+            </g>
+            <g>
+              <rect x="1060" y="514" width="140" height="22" rx="11" fill="#FFFFFF" stroke="#1664FF"/>
+              <text x="1130" y="529" text-anchor="middle" font-size="11" font-weight="700" fill="#0E42B5">{{L3_CAP4}}</text>
+            </g>
+            <text x="920" y="556" text-anchor="middle" font-size="11" fill="#86909C">{{L3_HUB_FOOT}}</text>
+          </g>
+
+          <!-- 步骤② 干线：Layer 2 → Layer 3 中央（y2=370 = 378 - 8px 让位） -->
+          <line x1="920" y1="280" x2="920" y2="370" stroke="#1664FF" stroke-width="2.4" marker-end="url(#ah-blue)"/>
+
+          <!-- 步骤② 编号 + 文案 -->
+          <g>
+            <rect x="938" y="312" width="120" height="24" rx="3" fill="#0E42B5"/>
+            <text x="998" y="329" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">{{STEP2_LABEL}}</text>
+            <circle cx="1070" cy="324" r="12" fill="#0E42B5"/>
+            <text x="1070" y="328" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">2</text>
+          </g>
+          <text x="938" y="357" font-size="10.5" fill="#86909C">{{STEP2_DESC}}</text>
+
+          <!-- ============================================== -->
+          <!-- Layer 4 · 出口层（4 列扇出：列中线 410 / 730 / 1050 / 1370） -->
+          <!-- ============================================== -->
+          <g filter="url(#soft)">
+            <rect x="300" y="780" width="220" height="74" rx="8" fill="#F0FBF4" stroke="#22C55E"/>
+            <text x="410" y="807" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">{{L4_NODE1_TITLE}}</text>
+            <text x="410" y="827" text-anchor="middle" font-size="11.5" fill="#22C55E">{{L4_NODE1_TAG}}</text>
+            <text x="410" y="843" text-anchor="middle" font-size="11" fill="#86909C">{{L4_NODE1_SUB}}</text>
+
+            <rect x="620" y="780" width="220" height="74" rx="8" fill="#F0FBF4" stroke="#22C55E"/>
+            <text x="730" y="807" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">{{L4_NODE2_TITLE}}</text>
+            <text x="730" y="827" text-anchor="middle" font-size="11.5" fill="#22C55E">{{L4_NODE2_TAG}}</text>
+            <text x="730" y="843" text-anchor="middle" font-size="11" fill="#86909C">{{L4_NODE2_SUB}}</text>
+
+            <rect x="940" y="780" width="220" height="74" rx="8" fill="#F0FBF4" stroke="#22C55E"/>
+            <text x="1050" y="807" text-anchor="middle" font-size="14" font-weight="700" fill="#15803D">{{L4_NODE3_TITLE}}</text>
+            <text x="1050" y="827" text-anchor="middle" font-size="11.5" fill="#22C55E">{{L4_NODE3_TAG}}</text>
+            <text x="1050" y="843" text-anchor="middle" font-size="11" fill="#86909C">{{L4_NODE3_SUB}}</text>
+
+            <!-- 第 4 列用蓝色突出（如"提现到自己"等异质场景） -->
+            <rect x="1260" y="780" width="220" height="74" rx="8" fill="#EFF5FF" stroke="#1664FF"/>
+            <text x="1370" y="807" text-anchor="middle" font-size="14" font-weight="700" fill="#0E42B5">{{L4_NODE4_TITLE}}</text>
+            <text x="1370" y="827" text-anchor="middle" font-size="11.5" fill="#1664FF">{{L4_NODE4_TAG}}</text>
+            <text x="1370" y="843" text-anchor="middle" font-size="11" fill="#86909C">{{L4_NODE4_SUB}}</text>
+          </g>
+
+          <!-- 步骤③ 主干线：Layer 3 节点底部 → 水平干线 y=658 -->
+          <line x1="920" y1="568" x2="920" y2="656" stroke="#22C55E" stroke-width="2.4"/>
+
+          <!-- 步骤③ 编号 + 文案（左移避开主线 x=920） -->
+          <g>
+            <rect x="640" y="582" width="160" height="24" rx="3" fill="#22C55E"/>
+            <text x="720" y="599" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">{{STEP3_LABEL}}</text>
+            <circle cx="812" cy="594" r="12" fill="#15803D"/>
+            <text x="812" y="598" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff">3</text>
+          </g>
+          <!-- 步骤③ 警示提示框（右移避开主线 x=920） -->
+          <g>
+            <rect x="1000" y="582" width="240" height="24" rx="3" fill="#FEF3D6" stroke="#F59E0B"/>
+            <text x="1120" y="599" text-anchor="middle" font-size="11" font-weight="700" fill="#B45309">{{STEP3_TIP}}</text>
+          </g>
+
+          <!-- 水平干线（连接 4 列起点）— 没有 marker-end，是连接器 -->
+          <line x1="410" y1="658" x2="1370" y2="658" stroke="#22C55E" stroke-width="2"/>
+
+          <!-- 4 条扇出枝线（y2=772 = 780 - 8px 让位） -->
+          <line x1="410" y1="658" x2="410" y2="772" stroke="#22C55E" stroke-width="2" marker-end="url(#ah-green)"/>
+          <line x1="730" y1="658" x2="730" y2="772" stroke="#22C55E" stroke-width="2" marker-end="url(#ah-green)"/>
+          <line x1="1050" y1="658" x2="1050" y2="772" stroke="#22C55E" stroke-width="2" marker-end="url(#ah-green)"/>
+          <line x1="1370" y1="658" x2="1370" y2="772" stroke="#1664FF" stroke-width="2" marker-end="url(#ah-blue)"/>
+
+          <!-- 4 个目的地标签（start anchor + 右移 10px，避免压竖线） -->
+          <text x="420" y="760" text-anchor="start" font-size="10.5" fill="#15803D" font-weight="600">{{L4_LABEL1}}</text>
+          <text x="740" y="760" text-anchor="start" font-size="10.5" fill="#15803D" font-weight="600">{{L4_LABEL2}}</text>
+          <text x="1060" y="760" text-anchor="start" font-size="10.5" fill="#15803D" font-weight="600">{{L4_LABEL3}}</text>
+          <text x="1380" y="760" text-anchor="start" font-size="10.5" fill="#0E42B5" font-weight="600">{{L4_LABEL4}}</text>
+        </svg>
+      </div>
+
+      <!-- ============ LEGEND（必须用 SVG marker，不要用 CSS border 三角） ============ -->
+      <div class="legend">
+        <div class="legend-item">
+          <span class="lg-line">
+            <svg viewBox="0 0 38 10">
+              <defs>
+                <marker id="lg-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#1664FF"/>
+                </marker>
+              </defs>
+              <line x1="0" y1="5" x2="30" y2="5" stroke="#1664FF" stroke-width="2" marker-end="url(#lg-blue)"/>
+            </svg>
+          </span>
+          <span>{{LEGEND_BLUE}}</span>
+        </div>
+        <div class="legend-item">
+          <span class="lg-line">
+            <svg viewBox="0 0 38 10">
+              <defs>
+                <marker id="lg-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#22C55E"/>
+                </marker>
+              </defs>
+              <line x1="0" y1="5" x2="30" y2="5" stroke="#22C55E" stroke-width="2" marker-end="url(#lg-green)"/>
+            </svg>
+          </span>
+          <span>{{LEGEND_GREEN}}</span>
+        </div>
+        <div class="legend-item"><span class="lg-step">n</span><span>步骤序号</span></div>
+      </div>
+    </div>
+
+    <!-- ============ 三能力卡（亮点摘要） ============ -->
+    <div class="highlights">
+      <div class="hl">
+        <div class="hl-t">{{HL1_TITLE}}</div>
+        <div class="hl-d">{{HL1_DESC}}</div>
+      </div>
+      <div class="hl">
+        <div class="hl-t">{{HL2_TITLE}}</div>
+        <div class="hl-d">{{HL2_DESC}}</div>
+      </div>
+      <div class="hl">
+        <div class="hl-t">{{HL3_TITLE}}</div>
+        <div class="hl-d">{{HL3_DESC}}</div>
+      </div>
+    </div>
+
+    <!-- ============ 脚注（步骤详细描述） ============ -->
+    <div class="footnote">
+      <span><b>① {{STEP1_LABEL}}：</b>{{STEP1_FOOTNOTE}}</span>
+      <span><b>② {{STEP2_LABEL}}：</b>{{STEP2_FOOTNOTE}}</span>
+      <span><b>③ {{STEP3_LABEL}}：</b>{{STEP3_FOOTNOTE}}</span>
+    </div>
+  </div>
+</body>
+</html>

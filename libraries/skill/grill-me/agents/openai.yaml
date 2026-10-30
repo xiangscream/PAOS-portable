@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "Challenge drafts with focused questions."
+  default_prompt: "Use the grill-me skill to challenge this draft or idea with focused questions, then help me tighten it."

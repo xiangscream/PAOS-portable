@@ -1,0 +1,9 @@
+{
+  "source_commit": "c5378fadbe073f352f731c6263b7560d113c8142",
+  "http_agents": 5,
+  "rendered_cards": 5,
+  "ids_rendered": true,
+  "todo_path_rendered": true,
+  "codex_manual_rendered": true,
+  "boundary": "Actual frontend rendering function over isolated HTTP response; no browser navigation or production cutover"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Teaching Slide Builder"
+  short_description: "构建、审计并交付支持单文件导出与网页编辑的教学幻灯片"
+  default_prompt: "Use $build-teaching-slides to build or improve a browser-based teaching deck with synchronized speaker notes, validation, single-file offline HTML delivery, persistent Inspect editing, and draggable layouts."

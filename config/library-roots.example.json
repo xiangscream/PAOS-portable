@@ -1,0 +1,7 @@
+{
+  "schema": "paos-library-roots/v1",
+  "workflow_root": "<PAOS_ROOT>/libraries/workflow",
+  "skill_root": "<PAOS_ROOT>/libraries/skill",
+  "tool_catalog": "<PAOS_ROOT>/libraries/tool-catalog.md",
+  "registered_at": "2026-10-20T04:54:23Z"
+}

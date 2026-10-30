@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "service": "attention-dashboard-v1",
+  "inbox": "private-data/inbox/tips",
+  "build": {
+    "schema": "paos-build-identity/v1",
+    "source_commit": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+    "release_tag": null,
+    "runtime_fingerprint": "sha256:7e1688fb91c1a3f655ccd90ddda2a74d44be583ed56a78b75a8716ac86102e89",
+    "static_fingerprint": "sha256:303215c6a6378a3e8cfdf30fb1132801339ec0b90e8987e2efb24ef6293a7e46"
+  }
+}

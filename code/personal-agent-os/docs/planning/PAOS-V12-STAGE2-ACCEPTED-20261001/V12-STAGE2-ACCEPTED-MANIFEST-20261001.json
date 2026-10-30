@@ -1,0 +1,31 @@
+{
+  "project_id": "3002",
+  "work_id": "3002-w060",
+  "status": "STAGE2-CANDIDATE-ACCEPTED",
+  "production_adoption": "NOT_AUTHORIZED",
+  "source": {
+    "pr": 114,
+    "head": "e4f0189bd04a9a48b5594d4c000611e97cc75ad4",
+    "review": "Works/FINAL-E4-NOTE-REVIEW-S029-20261001.md",
+    "windows_verifier": "PAOS-Rooter/rooter-001/reports/V12-E4F0189-WINDOWS-VERIFIER-20261001.txt",
+    "verifier_gates_passed": 7,
+    "python_tests": 842,
+    "node_tests_per_timezone": 167,
+    "http_render_evidence": "PAOS-Rooter/rooter-001/reports/V12-C5378FA-INSTALLATION-PASS-20261001.md"
+  },
+  "library": {
+    "head": "b55c5c53076ae12b41fe8fd335542c486ee19f49",
+    "review": "Works/LIBRARY-MERGE-B55-REVIEW-S029-20261001.md",
+    "preserve_production_usage_events": true
+  },
+  "production_source_before": "3b86ac555a7526fcd5160fb7dd8404c98bad9733",
+  "result": "Works/V12-STAGE2-RESULT-20260930.md",
+  "next_todo": "Works/V12-STAGE3-NEXT-TODO-20260930.md",
+  "boundaries": [
+    "No production deployment or binding replacement authorized by this manifest",
+    "No harness autostart",
+    "OpenCode keeps current session model unless Human explicitly changes it",
+    "No replay of unresolved Wake attempts",
+    "Single controlled relay sample does not prove long-term unattended reliability"
+  ]
+}

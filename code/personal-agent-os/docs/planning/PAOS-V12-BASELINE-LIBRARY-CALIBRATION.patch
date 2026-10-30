@@ -1,0 +1,167 @@
+diff --git a/README.md b/README.md
+index cea7484..b32e21f 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # PAOS Libraries
+ 
+-本目录是 PAOS V1.1 canonical Workflow / Skill 共享 Library 的**机器本地安装根**。
++本目录是 PAOS V1.2 canonical Workflow / Skill 共享 Library 的**机器本地安装根**。
+ 
+ - `workflow/`：Workflow Library（Guides / Workflows / Templates）
+ - `skill/`：Skill Library
+diff --git a/skill/README.md b/skill/README.md
+index 8cc1efb..9e21452 100644
+--- a/skill/README.md
++++ b/skill/README.md
+@@ -26,3 +26,5 @@ version: 1
+ ```
+ 
+ Agent 调用 Skill 后可记录 0 / 0.3 / 0.5 / 1 的价值分。PAOS 将使用次数、30 天热度、最近使用时间、跨 Project 数量与平均价值作为派生统计写入 Catalog。
++
++共享规则的登记、替换与历史退出统一遵循[准则登记与退役](../workflow/Guides/guide-project-work-world.md#准则登记与退役)。
+diff --git a/workflow/.paos/catalog.json b/workflow/.paos/catalog.json
+index 006e6c6..f6ec9dd 100644
+--- a/workflow/.paos/catalog.json
++++ b/workflow/.paos/catalog.json
+@@ -2,7 +2,7 @@
+   "schema": "paos-library-catalog/v1",
+   "kind": "workflow",
+   "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow",
+-  "generated_at": "2026-10-02T08:05:03Z",
++  "generated_at": "2026-10-02T09:31:15Z",
+   "items": [
+     {
+       "id": "guide-paos-cat-operations",
+@@ -31,7 +31,7 @@
+         "current"
+       ],
+       "status": "active",
+-      "version": "3",
++      "version": "4",
+       "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-project-work-world.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-project-work-world.md"
+@@ -76,7 +76,7 @@
+         "recovery"
+       ],
+       "status": "active",
+-      "version": "4",
++      "version": "5",
+       "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-upgrade-adoption.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-upgrade-adoption.md"
+@@ -91,7 +91,7 @@
+         "adoption"
+       ],
+       "status": "active",
+-      "version": "3",
++      "version": "4",
+       "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-v12-installed-release.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-v12-installed-release.md"
+diff --git a/workflow/Guides/guide-project-work-world.md b/workflow/Guides/guide-project-work-world.md
+index b64c496..09630c8 100644
+--- a/workflow/Guides/guide-project-work-world.md
++++ b/workflow/Guides/guide-project-work-world.md
+@@ -5,7 +5,7 @@ title: Project 文件与 Git
+ description: 成果归项目、当前入口清楚、历史可读，文本版本使用现有 Git。
+ tags: project, files, git, current
+ status: active
+-version: 3
++version: 4
+ ---
+ 
+ # Project 文件与 Git
+@@ -31,6 +31,16 @@ PROJECT 根的 INDEX 指当前正文，TEAM 指当前同事。目录按真实用
+ 
+ 正式状态在 PAOS，TODO 解释自己准备怎么继续。checkbox 完成不代表验收；提交记录不代表 Work 已接受。参考快照注明来源即可，不给普通资料增加逐文件哈希和必填 provenance 账本。
+ 
++## 准则登记与退役
++
++会指导 Agent 行为的文件必须能从现有入口找到：Project 规则登记在 INDEX 的当前入口；Workflow / Skill 以既有元数据登记进各自 Catalog。登记只说明主题、现行路径及适用范围，不复制正文，不另建登记系统。普通草稿、原始输入和个人临时笔记无需登记成规则。
++
++一个主题只维护一份现行准则。工位、AGENTS、模板与其他指南只链接对应章节；环境差异在同一准则内说明，不复制一本。修改规则时，沿登记入口和旧名称、路径、关键术语检查引用它的 Project、Workflow、Skill 与实际 Harness 入口，一起处理被替代的口径。
++
++被取代的正文移出 current：有追溯价值的放 Archive 或使用 Git 固定版本链接，必要旧路径仅留指向现行来源的短导航。历史材料标明历史，不继续自称“当前/唯一合同”；有效证据与原始日志保持原样。能从 Git 恢复的重复副本无需再堆一份归档。
++
++升级收口在原有交付记录写清现行来源、退出的旧入口和剩余例外，并从实际入场路径回读；不增加独立审批或每人一份自查报告。Workflow / Skill 源文件变化后重建 Catalog，保留使用记录。若两份内容是否仍有效涉及项目判断，交 Coordinator 确定；确定后的引用与归档清理由维护者完成。
++
+ ## 项目文本 Git
+ 
+ 2001/3002 的正文、INDEX、TEAM、工位 ENTRY/TODO、项目规则可进入本地 Git。Source 与 Library 保持独立仓库，不嵌成同一份历史。
+@@ -54,7 +64,7 @@ PROJECT 根的 INDEX 指当前正文，TEAM 指当前同事。目录按真实用
+ 3. 构造隔离候选时，先完整复制 fixture，再把 converter 输出中相同相对路径的文件叠加进去。保留未被输出提及的 Project 和 Workstation 文件。
+ 4. 演练回退时，对每份本轮生成的 `TODO.pre-v12.md` 将原字节恢复为同目录 `TODO.md`，删除本轮新增的备份文件，并恢复原始 `project.json`。逐项比较完整文件路径与内容，确认结果回到冻结输入；不要仅凭 `errors=[]` 宣布转换与回退通过。
+ 
+-Stage 2 只在隔离副本演练，不写生产 Project/Library/Store。只有明确进入 Stage 3 后，才按其正式切换指令操作生产目录。
++上述转换步骤是 V1.2 历史演练方法，不是当前待办。未来转换先在副本演练，生产写入按该次升级的实际授权执行。
+ 
+ ## 归档与边界
+ 
+diff --git a/workflow/Guides/guide-upgrade-adoption.md b/workflow/Guides/guide-upgrade-adoption.md
+index 50dc678..9251d9b 100644
+--- a/workflow/Guides/guide-upgrade-adoption.md
++++ b/workflow/Guides/guide-upgrade-adoption.md
+@@ -5,12 +5,12 @@ title: 当前升级说明与员工采用
+ description: 改进在整个当前安装统一采用并支持真实工作后完成，成员自改入口，Rooter 收口例外。
+ tags: upgrade, adoption, recovery
+ status: active
+-version: 4
++version: 5
+ ---
+ 
+ # 当前升级说明与员工采用
+ 
+-适用2001、3002当前团队及Rooter。V1.2 Stage2已接受、Stage3已授权；Source已生产切换，成员采用正在执行。实际版本和可复制入口见[安装发布说明](guide-v12-installed-release.md)，当前责任继续，不重新办理接班手续。
++适用2001、3002当前团队及Rooter。V1.2 Stage3及w060已验收，人工采用例外见安装说明。实际版本和可复制入口见[安装发布说明](guide-v12-installed-release.md)，当前责任继续，不重新办理接班手续。
+ 
+ ## 现在就按此工作
+ 
+@@ -44,7 +44,8 @@ Rooter按成员收口「已投递、本人已读、采用完成、仍有例外
+ 2. Windows/WSL 调用入口、安装描述、Library roots、Wake绑定及实际消费者一致。旧locator退出当前路径，旧workspace不再接收当前输出；保留历史与回退入口。
+ 3. 2001、3002及Rooter的当前入口、短TODO、TEAM和共享指南采用同一合同。已归档项目退出活动与自动运行；离线或待入场成员有明确恢复入口，不代其本人入场或确认采用。
+ 4. 当前团队沿真实任务验证恢复、同事联系、交付、下游消费及成果回流；明确自动、手动和不支持的路径。配置存在、测试通过或忙碌标记不代替真实工作。
+-5. 安装和成员例外已经修复，或由当前验收者明确接受其范围、责任人和下一步；未接受的例外继续留在当前TODO。
++5. 按[准则登记与退役](guide-project-work-world.md#准则登记与退役)检查 Project、Workflow、Skill 及其引用入口；旧口径退出 current，Catalog 已重建。新增文档不能与旧指南同时充当现行规则。
++6. 安装和成员例外已经修复，或由当前验收者明确接受其范围、责任人和下一步；未接受的例外继续留在当前TODO。
+ 
+ Source push、PR merge、转换成功、公告送达分别只是过程证据。尚未获准生产切换时，成果称候选，统一采用事项仍保持未完成；不以阶段边界把它删出总目标。
+ 
+diff --git a/workflow/Guides/guide-v12-installed-release.md b/workflow/Guides/guide-v12-installed-release.md
+index 2c50ce1..1fac3c5 100644
+--- a/workflow/Guides/guide-v12-installed-release.md
++++ b/workflow/Guides/guide-v12-installed-release.md
+@@ -5,12 +5,12 @@ title: V1.2 已安装版本与采用
+ description: 当前安装入口、恢复方式和成员采用要求。
+ tags: paos, release, adoption
+ status: active
+-version: 3
++version: 4
+ ---
+ 
+ # V1.2 当前安装
+ 
+-Source 已生产切换；团队自行采用正在执行。当前业务责任继续，不新建升级 Work，不重新申请任期或接班许可。
++Stage3 与 w060 已正式验收；s014 保留由 s009 跟进的人工采用例外。当前业务责任继续，不新建升级 Work，不重新申请任期或接班许可。
+ 
+ | 发布项 | 版本 |
+ | --- | --- |
+diff --git a/workflow/README.md b/workflow/README.md
+index 166168c..f29d766 100644
+--- a/workflow/README.md
++++ b/workflow/README.md
+@@ -1,6 +1,6 @@
+ # Workflow Library
+ 
+-V1.2 Stage 1 隔离候选。发布前由 s010 的 exact manifest 固定 Source、CLI、Library、模板和转换器版本；本目录尚未替换运行中的 V1.1 Library。
++V1.2 已安装共享方法库。当前发布与采用结果见[安装说明](Guides/guide-v12-installed-release.md)；本文只导航，不维护第二份规则。
+ 
+ ## 入口
+ 
+@@ -25,3 +25,5 @@ Workflow 规定谁在何时维护什么、怎样协作和收口；Skill 提供
+ 
+ 文档与 CLI 同版发布。新增共享规则先说明它替代哪份维护；临时尝试留项目，不为目录完整增加规则。`CATALOG.md` 和 `.paos/catalog.json` 从 Markdown 元数据生成，发布时使用 manifest 指定的 Library commit。
+ 
++
++共享规则的登记、替换与历史退出统一遵循[准则登记与退役](Guides/guide-project-work-world.md#准则登记与退役)。

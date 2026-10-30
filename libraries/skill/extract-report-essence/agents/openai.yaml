@@ -1,0 +1,4 @@
+interface:
+  display_name: "提取报告精华版"
+  short_description: "将全量调研报告转化为有证据边界的管理决策精华版文档"
+  default_prompt: "Use $extract-report-essence to create an independent Feishu management essence version from this full report."

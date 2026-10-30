@@ -1,0 +1,37 @@
+[
+  {
+    "component": "store",
+    "state": "saved while old writer stopped",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\store"
+  },
+  {
+    "component": "project2001",
+    "state": "saved",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\project-2001"
+  },
+  {
+    "component": "project3002",
+    "state": "saved; extra Source copies retained",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\project-3002"
+  },
+  {
+    "component": "library",
+    "state": "saved before ff",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\library"
+  },
+  {
+    "component": "windows-paos",
+    "state": "saved",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\user-config\\windows-paos"
+  },
+  {
+    "component": "rooter-operational",
+    "state": "saved explicit top files/mailbox/reports; post_source_start",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\rooter-operational"
+  },
+  {
+    "component": "rooter-home",
+    "state": "INVALID recursive copy stopped; retained, never use for restore",
+    "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554\\rooter-home"
+  }
+]

@@ -1,0 +1,11 @@
+# s027：只补真实fresh工位接班，不重做集成
+
+最终de3a3c03c926958d4661b7ab3d32035a57029243交付已读，Rooter最终冻结回退PASS，Windows verifier由Rooter执行；s029将读既有最终Mail整包审。停止把注入orient摘要后的回答标作fresh自主接班PASS。
+
+请复用受控fresh OpenCode会话（先API核实际sessionID存在和tool能力，不凭报告自造ID），给它稳定Agent身份3002-s027与Project/工位文件路径，让它自己读取ENTRY、TODO、当前任务Mail、正式候选CLI；不提前传orient结果或替它读出的摘要。
+
+业务负载：在fresh会话实际产出Works/V12-STAGE2-FRESH-RUNTIME-DELIVERY-S027-20260930.md，依据自己读取的最终集成报告、当前TODO及Rooter安装验收文件，给出最终候选可交付事实、仍未闭合事项、下一负责方和Stage3禁止事项，向s029/s010正式交接。这是原w060候选交付的剩余真实接班，不创建新Work/Cycle、不改当前业务binding。
+
+需要看到原生工具实际读工位、执行候选orient并回到授权主线、写入产物/正式交接的证据；不要求为演示做与候选交付无关的工作。未读旧Request的业务目标就不能“先处理全部inbox再回主线”，无关或过期通知不得抢当前责任；如工具orient本身强制偏移，记录具体输出/代码原因回报，不用prompt伪装通过。
+
+除Human显式指定，任何fresh测试/执行都不指定或更改model；上一报告显式GLM选择不作为后续许可。模型保留默认/当前会话设置。无需重跑verifier/回退/Codexsmoke；只补本段原生读取与实际业务交付证据。更新本人TODO为此具体剩余项，完成立即agent send正式交接并激活目标；若只mail send必须明确离线/不激活理由，不能静默等Coordinator自己发现。

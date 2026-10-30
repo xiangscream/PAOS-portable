@@ -1,0 +1,4 @@
+interface:
+  display_name: "软件业务流程梳理"
+  short_description: "从真实证据收敛用户旅程、状态合同、异常恢复与功能闭环"
+  default_prompt: "Use $software-business-process-analysis to 梳理这个软件的第一主路径、状态合同、断路恢复和选项处置。"

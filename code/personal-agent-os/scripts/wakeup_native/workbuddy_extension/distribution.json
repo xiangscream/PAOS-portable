@@ -1,0 +1,9 @@
+{
+  "extensionId": "paos-session-send",
+  "version": "0.3.0",
+  "kind": "platform",
+  "grantedPermissions": ["conversations.sendPrompt"],
+  "processPolicy": {"server": "fork", "renderer": null},
+  "resident": true,
+  "status": "active"
+}

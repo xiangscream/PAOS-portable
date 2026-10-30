@@ -1,0 +1,30 @@
+[
+  {
+    "turn_id": "01a0f7b6-a58e-7ea2-a0cf-9ccb4bdd43eb",
+    "cwd": "C:\\",
+    "approval_policy": "on-request",
+    "sandbox_policy": {
+      "type": "workspace-write",
+      "writable_roots": [
+        "C:\\Users\\remo\\.codex\\visualizations\\2026\\09\\19\\01a0b95c-c097-7f90-b0dc-f2a3bce41fc5"
+      ],
+      "network_access": false,
+      "exclude_tmpdir_env_var": false,
+      "exclude_slash_tmp": false
+    }
+  },
+  {
+    "turn_id": "01a0f7e2-6c47-7020-a3cd-d90da3687075",
+    "cwd": "C:\\",
+    "approval_policy": "on-request",
+    "sandbox_policy": {
+      "type": "workspace-write",
+      "writable_roots": [
+        "C:\\Users\\remo\\.codex\\visualizations\\2026\\09\\19\\01a0b95c-c097-7f90-b0dc-f2a3bce41fc5"
+      ],
+      "network_access": false,
+      "exclude_tmpdir_env_var": false,
+      "exclude_slash_tmp": false
+    }
+  }
+]

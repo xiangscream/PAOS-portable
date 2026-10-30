@@ -1,0 +1,56 @@
+# Personal Agent OS Git 忽略规则 — 2026-07-31
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# 派生数据（可重建）
+build/
+
+# 私有数据（不进入 Git）
+private-data/
+
+# Secret Store (extended)
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*-secret*
+*credential*
+credentials*
+
+# Node / Python dependency dirs
+node_modules/
+.venv/
+.pytest_cache/
+
+# Runtime artifacts
+runtime/
+raw-logs/
+
+# 日志与数据库
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# WSL 互操作
+*.lnk
+
+# Runtime artifacts (extended)
+logs/
+*.pid
+secrets*

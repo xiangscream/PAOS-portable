@@ -1,0 +1,46 @@
+{
+  "schema": "paos-visible-native-log-selection/v1",
+  "utc_start": "2026-09-29T16:00:00",
+  "utc_end": "2026-10-01T08:54:35+00:00",
+  "selection": "Original visible user and assistant messages plus explicit error/abort events; reasoning, analysis, tool payloads and runtime environment omitted. Selected JSONL lines are unchanged. Not a full native transcript.",
+  "records": [
+    {
+      "agent": "rooter-001",
+      "file": "rooter-001.jsonl",
+      "source_snapshot_bytes": 101561670,
+      "records": 130,
+      "types": {
+        "message/user/None": 40,
+        "message/assistant/commentary": 71,
+        "event/turn_aborted": 2,
+        "message/assistant/final_answer": 17
+      },
+      "bytes": 198871
+    },
+    {
+      "agent": "3002-s010",
+      "file": "3002-s010.jsonl",
+      "source_snapshot_bytes": 807306205,
+      "records": 148,
+      "types": {
+        "message/user/None": 26,
+        "message/assistant/commentary": 90,
+        "message/assistant/final_answer": 30,
+        "event/turn_aborted": 2
+      },
+      "bytes": 234123
+    },
+    {
+      "agent": "3002-s031",
+      "file": "3002-s031.jsonl",
+      "source_snapshot_bytes": 166787604,
+      "records": 154,
+      "types": {
+        "message/user/None": 9,
+        "message/assistant/commentary": 139,
+        "message/assistant/final_answer": 6
+      },
+      "bytes": 169594
+    }
+  ]
+}

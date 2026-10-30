@@ -1,0 +1,428 @@
+{
+  "source_commit": "c5378fadbe073f352f731c6263b7560d113c8142",
+  "http_status": 200,
+  "api": {
+    "ok": true,
+    "team": {
+      "schema": "paos-contact/v1",
+      "roster_filter": "fixed_workstation",
+      "agents": [
+        {
+          "agent_id": "3002-s010",
+          "identity_id": "integrator",
+          "agent_label": "PAOS 开发总管",
+          "membership_basis": "fixed_workstation",
+          "session_status": "active",
+          "workstation_todo": {
+            "available": true,
+            "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s010\\TODO.md",
+            "extra_lines": [
+              "输入：Source 9a10e329f0516481dea4a8df7912305f4ec9013a / PR114（Rooter Windows6/7：Architecture FAIL；真实team HTTP200却0行，canonical root构建器5行）；Library c0786efe7f129fcc59890a6ed4697226fd630ddd范围独审PASS。b17的7/7不外延。",
+              "分工：s027执行集成与TEAM/peers/status；s029独审；s031只Codex；Rooter安装/Library；本人解释目标、验收、收口和接续。",
+              "阻塞：已实证team_contact误用self.store.root；页面缺TODO入口、Codex人工打开入口未落，Architecture失败。此前五项代码独审不覆盖这条失败，联系面尚未闭合；不重做Library/fresh/接力旧验收。锁恢复仍关闭。生产采用保持Stage3授权边界。",
+              "接续实况：本次Mail已投递，追加激活因Rooter同责任Wake在途而锁超时，native_side_effect=false；历史失败回执保留。Rooter已确认无残留CLI、两个锁可正常获取/释放，不需删锁、recover或重放。",
+              "原生回读：s027已实读并继续代码/UI接线；s029已交Library0ab独审。当前按实际产物接下一棒，不依据历史uncertain宣布系统停住。报告Rooter/reports/V12-B17DA14-WINDOWS-AND-WAKE-20261001.md。",
+              "边界：不改变OpenCode模型、不自动启动Harness、不生产切换；部署/Store/Runtime/Library统一采用仍需Stage3主线授权。"
+            ],
+            "current_section": {
+              "work": "3002-w060 · V1.2 Stage 2 实施、真实接力与统一采用候选",
+              "goal": "形成可实际统一采用的候选，员工从固定工位恢复、定向交接由下游接住；代码通过和通知送达不能替代业务完成。",
+              "stage": "受控业务接力/fresh已验；9a10最终安装实跑FAIL，联系面窄修执行中，Stage2尚未PASS。",
+              "next": "Rooter已单次交s027修Project.root_path接线/Architecture/TODO入口/Codex人工入口；本人不重复派工或激活。新提交交s029实际delta独审及Rooter同一隔离HTTP最终验证后，收总RESULT。",
+              "waiting": "",
+              "result": "",
+              "wip": ""
+            },
+            "trusted": true,
+            "todo_summary": {
+              "stage": "受控业务接力/fresh已验；9a10最终安装实跑FAIL，联系面窄修执行中，Stage2尚未PASS。",
+              "progress": "",
+              "blocked": "已实证team_contact误用self.store.root；页面缺TODO入口、Codex人工打开入口未落，Architecture失败。此前五项代码独审不覆盖这条失败，联系面尚未闭合；不重做Library/fresh/接力旧验收。锁恢复仍关闭。生产采用保持Stage3授权边界。",
+              "next": "Rooter已单次交s027修Project.root_path接线/Architecture/TODO入口/Codex人工入口；本人不重复派工或激活。新提交交s029实际delta独审及Rooter同一隔离HTTP最终验证后，收总RESULT。"
+            },
+            "counts": {
+              "total": 4,
+              "done": 1,
+              "open": 3
+            }
+          },
+          "runtime_contact": {
+            "configured": true,
+            "binding_status": "bound",
+            "online_state": "online",
+            "checked_at": "2026-09-30T05:43:59Z",
+            "state_basis": "last_probe",
+            "attach": {
+              "driver": "codex",
+              "session_id": "01a042ee-4ac4-7613-8619-3782fc03554f",
+              "command": null,
+              "reason": "attach_undefined_for_driver:codex",
+              "manual_open": {
+                "native_thread": "01a042ee-4ac4-7613-8619-3782fc03554f",
+                "co_agent_root": "C:/Users/remo/Desktop/agent学习计划/co-agent-2-wake-app-tools-8f2",
+                "command": null,
+                "note": "codex 无外部 attach：按人工在 Windows 终端用 co_agent 根目录打开该 native thread；binding 配置 manual_open 时按其原文展示；本读面不编造命令、不自动启动 Harness"
+              },
+              "source": "derived_from_binding"
+            },
+            "inflight_attempts": [
+              "agent-mail-0288023e0fe827101bb4877cf92600a9",
+              "agent-mail-05a1409c25d4da1a7699800ea698e262",
+              "agent-mail-0688d5ce4e501b57b86c05567c7d8baa",
+              "agent-mail-277af47c6839a5ecd014e3b16a6849d3",
+              "agent-mail-29c97e9a7ab1796d01c605cfc06a1fd5",
+              "agent-mail-37457c78c8b22173a74a31d74bed8cba",
+              "agent-mail-37c66307cf3bde2fecc41e562a60612f",
+              "agent-mail-53465edbadf1c1fac0ac32c116480e7d",
+              "agent-mail-55c9fe5ea5a2f70eb3f7612a703f2dea",
+              "agent-mail-659be0fc8b2fce620c33c3b63becb88d",
+              "agent-mail-81a6e2c5bc5b58ca3bf7f37d698c83b7",
+              "agent-mail-9f85c20104cd460b988a20b725d23e4c",
+              "agent-mail-a345a474b1afa825b992da72ea829247",
+              "agent-mail-a473f3f64e58c988ba0f8d3f84d14edc",
+              "agent-mail-ab5e3bd8a896dcd7347ca2dd5594d337",
+              "agent-mail-b48eca008554594fc64c37ef50e204bc",
+              "agent-mail-c7cdca3469393fe8ce6c34b877255a86",
+              "agent-mail-d1d1369337257de0f93926f6b11bea7f",
+              "agent-mail-fd60329b9a880ac9ba21bfb13e34521f"
+            ],
+            "uncertain_attempts": [],
+            "driver": "codex",
+            "native_session_id": "01a042ee-4ac4-7613-8619-3782fc03554f"
+          },
+          "current_work": {
+            "id": "3002-w007",
+            "title": "总体规划把控",
+            "status": "doing"
+          }
+        },
+        {
+          "agent_id": "3002-s027",
+          "identity_id": "implementer",
+          "agent_label": "摩擦汇总与代码审查",
+          "membership_basis": "fixed_workstation",
+          "session_status": "active",
+          "workstation_todo": {
+            "available": true,
+            "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s027\\TODO.md",
+            "current_section": {
+              "work": "3002-w060 · V1.2 Stage 2：HTTP 根接线修复完成（c5378fa 已推 PR #114 head）",
+              "goal": "finish Rooter `msg-rooter-9a10-real-http-repair` 三点：根解析/架构、UI TODO 入口、Codex 手动入口。",
+              "stage": "**全部落实**——`project_store.project_root_path()` 唯一推断点替代 store.root 猜目录（Rooter 实证 HTTP team_agerts=[] 的真实根因已修；\"缺工位诚实降级\"错误定性撤回）；root_path 未登记 → unavailable_reason 明示（不并入空名册）；架构检查 9 条通过；teamAgentView 加本人工位 TODO 路径入口；codex 附 manual_open（native thread+co_agent_root+可选 manual_open 配置原文；不编造命令）。",
+              "next": "无可执行项——等 Rootel Windows verifier（含 c5378fa 最终轮）+ HTTP→页面数据流复验、s029 审本次 delta、s010 统一收拢。",
+              "waiting": "Rooter 复核、s029 独审、s010 收拢（真实依赖）。",
+              "result": "readback §8；contact 21/21；全套 python 817（唯一失败=已记录环境性）；架构检查过。",
+              "wip": "无未提交改动。"
+            },
+            "trusted": true,
+            "todo_summary": {
+              "stage": "**全部落实**——`project_store.project_root_path()` 唯一推断点替代 store.root 猜目录（Rooter 实证 HTTP team_agerts=[] 的真实根因已修；\"缺工位诚实降级\"错误定性撤回）；root_path 未登记 → unavailable_reason 明示（不并入空名册）；架构检查 9 条通过；teamAgentView 加本人工位 TODO 路径入口；codex 附 manual_open（native thread+co_agent_root+可选 manual_open 配置原文；不编造命令）。",
+              "progress": "",
+              "blocked": "",
+              "next": "无可执行项——等 Rootel Windows verifier（含 c5378fa 最终轮）+ HTTP→页面数据流复验、s029 审本次 delta、s010 统一收拢。"
+            },
+            "counts": {
+              "total": 16,
+              "done": 16,
+              "open": 0
+            }
+          },
+          "runtime_contact": {
+            "configured": true,
+            "binding_status": "bound",
+            "online_state": "online",
+            "checked_at": "2026-10-01T05:16:42Z",
+            "state_basis": "last_probe",
+            "attach": {
+              "driver": "opencode",
+              "session_id": "ses_f22099a35ffeZNS78Cq72m3KUF",
+              "command": "opencode attach http://127.0.0.1:4102 --session ses_f22099a35ffeZNS78Cq72m3KUF",
+              "source": "derived_from_binding"
+            },
+            "inflight_attempts": [
+              "agent-mail-186a0c4329ab24e657b78b3f1cef29f4",
+              "agent-mail-961b7a826fa5d064dd7caff680a12617",
+              "agent-mail-a3ff9d6f0f6be785f69a1c2bd982c957",
+              "agent-mail-a66458bffc18fa1eabd8aef33d5dd7f3",
+              "agent-mail-b4c46c34071e9cd739b452ee3f4f1c05",
+              "agent-mail-cbb49d78a3e3bf627c39089f06b04566"
+            ],
+            "uncertain_attempts": [
+              "agent-mail-005efc7beb5946a94eb155436059ac89",
+              "agent-mail-07ed22c1a9b2e7de21683e4552089084",
+              "agent-mail-0c58abb95000c695f04cf3d9611203ad",
+              "agent-mail-2879143d9a4336ab5fc1ed0aff9c26d0",
+              "agent-mail-293a03d991992b352cde5a7050881344",
+              "agent-mail-2e865f119148da7329dd074abaf7d3d1",
+              "agent-mail-2faa211a04513d02dd2c82f33f03cd88",
+              "agent-mail-31a3984e6f1c6547f4195c97a93f4788",
+              "agent-mail-372196c1057560fd47257659935071f3",
+              "agent-mail-3894864a156217e67d8de380e6f67f57",
+              "agent-mail-398980295948358d5141418d34481b36",
+              "agent-mail-4a07e7ebe17b00c59a40494a0ce7ee67",
+              "agent-mail-4d48b43ba50849fd8c7d7dfaea00669c",
+              "agent-mail-541f5a0aca650151df0d25e689ded653",
+              "agent-mail-56aab6bc267b67258b4959772f6fe611",
+              "agent-mail-5e45de2ae8035aebaff09c6fda77fef6",
+              "agent-mail-602f77b1ea545a6b61cf1b383371cd3e",
+              "agent-mail-6750851dd3fb67e3be43ce3786d01381",
+              "agent-mail-6912b785bdb5bde89f8736675b4dc8d8",
+              "agent-mail-6a70299d96e869c522d34b4ae2fdc542",
+              "agent-mail-836f871d0dcb32fef344a01d3b942b95",
+              "agent-mail-88aaf987ac0fbd98864ce236d2db9815",
+              "agent-mail-89fe2deb43b1c22bde3c20f7205aa7a7",
+              "agent-mail-8aa09b7b14cada186630cf1ca4fd8a7e",
+              "agent-mail-8aa3922c2bcc58062e0e5112c6eca1dc",
+              "agent-mail-9354ddf05a1ba976346f9bd42712c4d7",
+              "agent-mail-977ef1126e7a9626af370ec2a10aa2b4",
+              "agent-mail-9826a8a5f253f2a78e4cb123bce79a84",
+              "agent-mail-9a82dc519090da3d06dd0fc815a17c2b",
+              "agent-mail-afccaaf5342736e0b3c4fa459a1551f0",
+              "agent-mail-b5e0640a01eea31dde197605acf3aaa9",
+              "agent-mail-b764c1ba8ef2058e5da339d02531e6ba",
+              "agent-mail-b9f154d709f44dc5fc3aebdcf154494e",
+              "agent-mail-bb11e023defb0922be641f6ba9c5e17e",
+              "agent-mail-bb592cad5abe9b5f9d7f8c6288737182",
+              "agent-mail-be77975ae17654ed587ea92c12a8a8ca",
+              "agent-mail-cb55fa2f0dd6cc54404a5a83b3586d72",
+              "agent-mail-d8a78e2cdf723db2a3ad5f5c994c61a8",
+              "agent-mail-e0b3efcc8ce7e9b03696dca8dc9fb9ad",
+              "agent-mail-e2e1634ec2d0a7981bc0210c783a6c5a",
+              "agent-mail-e864cd932c1808a8390956d473ee3604"
+            ],
+            "driver": "opencode",
+            "native_session_id": "ses_f22099a35ffeZNS78Cq72m3KUF"
+          },
+          "current_work": {
+            "id": "3002-w060",
+            "title": "PAOS V1.2 Pack A：文件优先的 Agent 恢复路径",
+            "status": "doing"
+          }
+        },
+        {
+          "agent_id": "3002-s029",
+          "identity_id": "implementer",
+          "agent_label": "opencode 适配 CAT 自动续步研究",
+          "membership_basis": "fixed_workstation",
+          "session_status": "active",
+          "workstation_todo": {
+            "available": true,
+            "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s029\\TODO.md",
+            "extra_lines": [
+              "状态：active（PAOS 当前状态）。"
+            ],
+            "facts": {
+              "当前事实（原 TODO 转换保留）": [
+                "当前 Stage 2 集成候选精确 HEAD `3fb359daaf5112acbd0522ebcd67e8410cbb0b53`（PR `#114`，本地=origin 已核）。Library exact `16014ca3dc3f3ae23ea9e6151c274923fd1e9bcf`；Stage 2 Lean Plan `docs/planning/PAOS-V12-STAGE2-LEAN-PLAN-20260929.md`（PR #110 @ `61bb543d`）。",
+                "4102 收口（2026-09-30 09:10Z 裁决 `msg-s010-attempt-cross-host-resume-20260930-01`）：s010 接受恢复报告 §8，与 s027 本人确认互印——不再重复调查；「reentry 自然收口」更正记录见恢复报告 §9（replay 仅回旧 receipt，native 到达以 GET 为准）。",
+                "收口进度（2026-09-30 16:1xZ）：Library delta `8d60520..fd24c73` 独审 PASS（`Works/LIBRARY-DELTA-FD24C73-REVIEW-S029-20260930.md`；建议 s010 记 Library exact=`fd24c73` 进最终 manifest）；S2-04c 关闭（s027 真实 agent send 新 message_id `msg-3002-w060-strict-fresh-handoff-agent-send-s027-20260930`，唤醒 `msg_paos_c48693b4…` GET 到达本人会话并消费；原 mail-send dispatch 未覆盖）——**自动接力（严格 fresh 受控场景）成立**；attempt 观察态按正式 recover 显式收口。",
+                "待续触点：s031 Codex fresh 的 Runtime 工具阻塞（approval policy=never）如实保留，不重复要授权。",
+                "当前新候选（本轮审查对象）：s031 `8b306c123da8f592edbc29c2f7690596e6870ff5`（parent `89b6dfc`，`feat/s031-opencode-model-inherit-20260930`，worktree `Source-v12-s031-model-inherit`）。",
+                "项判定：`ba559fc` 关闭 P1/P2'/P2''；`d9fb7f3` 关闭 P2-new/P2'''/P3-note；`3fb359d` 关闭 P1'（`T-001` 散文合成 fallback 删除，真实旧输入 frozen-b 上空待办验证）。**本人四轮全部发现（P1/P2/P2'/P2''/P2-new/P2'''/P3-note/P1'）已在 `3fb359d` 验证关闭（converter 代码与转换语义层面）。**",
+                "真实依赖：R5 全程 verifier 可复现、R4 主链/扰动链、A4 真机接力、fresh Codex/OpenCode、消息实际消费、R6 独立回退重跑、R7/R8 —— 均待他方交付，Reviewer 只读不代造证据。",
+                "机械事实：CAT 入口已收敛——Room participant / scope / local binding / 实际会话一致为 `ses_f12d21b5fffe8z3nExCw6s2pw8`，generation 2；已消费并 ACK `x-31c0bc4d6ae1`，回执 `x-411001d6f1cb` → s010。WSL 无 `paos` CLI 入口（交 s031/Rooter）。",
+                "正式投递（2026-09-30）：`msg-s029-model-inherit-review-official-20260930-01` 经候选 CLI `mail send` → s010，delivery=**delivered**，dispatch `dispatch/msg-s029-model-inherit-review-official-20260930-01.json` 已生成；`mail status` 读回 delivered。**偏差记录：该次误用 `mail send`（无激活步骤），s010 系手动消费；4102 交付已改用 `agent send`（含激活）。**之前手写 mailbox 文件仅作已读 evidence（无 dispatch），正式交接已补齐。ENTRY Runtime 联系面已核：4101 / `ses_f12d21b5fffe8z3nExCw6s2pw8` / attach 命令一致；共-workflow v2 已读回（`wf-agent-work-cycle.md` version: 2）。",
+                "4102 交付唤醒事实（2026-09-30 核，含 s010 纠偏）：4102 Mail 已被 s010 消费（handled_at=07:04:25Z，state=incorporated）——不再记「未消费」。两次投递区分记录：第一次 `mail send` 为接口使用偏差（无激活）；第二次 `agent send` 为正式激活的机械失败（attempt `agent-mail-0288…` 卡 `triggering`，codex driver `co_agent_root` WSL 路径伪象，交 s031 窄修 `msg-s010-cross-host-handoff-s031-20260930-01`）。CAT 提醒 `x-6a1cecfd75e1` 已完成其触发作用。",
+                "4102 恢复进展（s010 裁决执行中）：SIGCONT 恢复**失败已证**（进程唤醒后立即被 SIGTTIN/SIGTTOU 重新停止，wchan `do_signal_stop`；裸 SIGCONT 无法持久恢复 tty 绑定进程）；s027 窗口协调 Mail `msg-s029-4102-window-request-s027-20260930-01` 已 delivered，但其 wake=uncertain（s027 binding 即 4102 死端口，鸡生蛋）→ s027 仅能靠自然恢复或 Human 开原终端（pts/3 `fg` 优雅退出）。按「联系不上先做隔离验证」：服务单元 `Works/OPENCODE-4102-paos-opencode-3002-s027.service`（StartLimitIntervalSec=60/Burst=3 重启上限）已备，正在隔离自检。",
+                "自查：`Workstations/3002-s029/SELF-AUDIT-20260928.md`；员工手册 `Workstations/3002-s029/AGENTS.md`。",
+                "Human 模型规则（生效即约束全部后续工作）：除非 Human 显式指定，不改变 OpenCode 会话模型；自动调用/Wake/接续沿用当前会话模型；旧「按复杂度自动选模」撤销。8b306c1 报告 §1.3 曾引用旧复杂度条款——驱动语义结论不变，选模指引出处已由 Human 规则取代（补注见报告附录）。"
+              ]
+            },
+            "current_section": {
+              "work": "`3002-w060` · V1.2 Stage 2 独立复核（Reviewer）。",
+              "goal": "以独立 Reviewer 身份对 V1.2 Stage 2 隔离候选做**只读**审查，区分代码门禁与 A4 真机/任期证据；不改 Source、不合并/部署、不改 Store/Runtime/CAT/Wake。",
+              "stage": "V1.2 Stage 2（隔离候选；生产 `Source` 仍 detached `3b86ac5`，未切换）。",
+              "next": "联系面余项 9a10e32 独审已交付 PASS（五件皆齐：信任门/错误三态/固定名册/orient 优先/项目页投影——Works/CONTACT-REMAINDER-9A10E32-REVIEW-S029-20261001.md；Mail+CAT 送达）。无本人挂起项；等 Rooter 最终 Windows verifier、s010 收拢。",
+              "waiting": "s010 对业务 delta 结论与 R4/A4 残余的消费收拢；s031 Codex fresh 的 create_thread 授权（Human 侧）；Rooter 最终候选 Windows verifier。",
+              "result": "#111 PASS＋converter 五轮＋model-inherit＋cross-host be4bfe4＋lifecycle 9fa5618＋4102 恢复＋业务 delta＋Library fd24c73（路径见 T-006b/各报告）。",
+              "wip": "无（只读复核）。"
+            },
+            "trusted": true,
+            "todo_summary": {
+              "stage": "V1.2 Stage 2（隔离候选；生产 `Source` 仍 detached `3b86ac5`，未切换）。",
+              "progress": "",
+              "blocked": "",
+              "next": "联系面余项 9a10e32 独审已交付 PASS（五件皆齐：信任门/错误三态/固定名册/orient 优先/项目页投影——Works/CONTACT-REMAINDER-9A10E32-REVIEW-S029-20261001.md；Mail+CAT 送达）。无本人挂起项；等 Rooter 最终 Windows verifier、s010 收拢。"
+            },
+            "counts": {
+              "total": 6,
+              "done": 6,
+              "open": 0
+            }
+          },
+          "runtime_contact": {
+            "configured": true,
+            "binding_status": "bound",
+            "online_state": "online",
+            "checked_at": "2026-10-01T05:16:42Z",
+            "state_basis": "last_probe",
+            "attach": {
+              "driver": "opencode",
+              "session_id": "ses_f12d21b5fffe8z3nExCw6s2pw8",
+              "command": "opencode attach http://127.0.0.1:4101 --session ses_f12d21b5fffe8z3nExCw6s2pw8",
+              "source": "derived_from_binding"
+            },
+            "inflight_attempts": [
+              "agent-mail-3592a577eab0e86fc7e76094df7aecee"
+            ],
+            "uncertain_attempts": [
+              "agent-mail-0e43b00313c7d848f438760880c1f699",
+              "agent-mail-144efa6e0e1473f07501b6ac180878f0",
+              "agent-mail-1caba854ae855ee0abe1243e9cabd6d6",
+              "agent-mail-2879bdeb58c66851a217caaa65e8e78a",
+              "agent-mail-2c9196991595516e091cd5ae00a495ca",
+              "agent-mail-3237eefdd58997a0bda00437afdc2aa0",
+              "agent-mail-3acdcc36ffdaff2ed33f72be79c9aaec",
+              "agent-mail-3dcd7817a3b7c1f096a7c41098290063",
+              "agent-mail-4effd617c07fa18b3430e05b8518de46",
+              "agent-mail-546c2e09f9f32dce7c2cfc03827ed795",
+              "agent-mail-57899d3c560e6e03393b55d1d0247562",
+              "agent-mail-592ae4f4d6ee130256e6367559aef102",
+              "agent-mail-63e91064b15dd7fdacbd5d7874e0b498",
+              "agent-mail-666612ccc2ebb9ec5127ab1e4116e66f",
+              "agent-mail-675e3bd8ef1bcb6e26ba350ae14686b0",
+              "agent-mail-76f99e060c9388c2736825da1518827f",
+              "agent-mail-7a8a86704ea960bf550886a6af0722cf",
+              "agent-mail-7be45ef5b8b3217756c47351eeaa91a0",
+              "agent-mail-84b27eeafe40ce20df482fe5c7649699",
+              "agent-mail-8fab15c9ebf24d82e45403f591f9879a",
+              "agent-mail-a9cc267a5fdd782cafe3680ee2c1ee89",
+              "agent-mail-b4339f7a65ad65c019544edf7073de2c",
+              "agent-mail-bf3fa81f14b8e1d937b26eb379715ff7",
+              "agent-mail-d2b870dfe27f83f32f3f5b60238efa0f",
+              "agent-mail-d7d6f51fb58211fbde1dcc52b2f7f014",
+              "agent-mail-d83e8d18488b1aa2e9548b585b0fcb5b",
+              "agent-mail-f8e1c7d9eae7afe54d2246540ca1f19d",
+              "rooter-s029-after-abort-narrow-read-20260929-01",
+              "rooter-s029-clean-review-narrow-20260929-01",
+              "rooter-s029-stage2-fresh-runtime-20260929-01",
+              "rooter-s029-version-recovery-20260928"
+            ],
+            "driver": "opencode",
+            "native_session_id": "ses_f12d21b5fffe8z3nExCw6s2pw8"
+          },
+          "current_work": {
+            "id": "3002-w060",
+            "title": "PAOS V1.2 Pack A：文件优先的 Agent 恢复路径",
+            "status": "doing"
+          }
+        },
+        {
+          "agent_id": "3002-s031",
+          "identity_id": "reviewer",
+          "agent_label": "Runtime Reliability Specialist",
+          "membership_basis": "fixed_workstation",
+          "session_status": "active",
+          "workstation_todo": {
+            "available": true,
+            "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s031\\TODO.md",
+            "current_section": {
+              "work": "3002-w060 · PAOS V1.2 Pack A：文件优先的 Agent 恢复路径",
+              "goal": "完成本 Work 中 s031 负责的 Stage 2 CLI、Runtime 与通信验收；不把单项验收写成 Stage 2 整体完成。",
+              "stage": "s031 的 T-006 已由 s010 接受并收口；Stage 2 整合与总体验收由 s010 协调推进。",
+              "next": "T-007 fresh 核验与正式交接已完成；Mail delivered，Wake activation failed，s010 已消费该报告。Stage 2 整体裁决仍由 Coordinator 负责；不重发、不重试。Rooter 不在 Project 3002 peers 中；如需由 s031 直达 Rooter 当前 Codex Thread，等待 Human 对该确切 Thread 的明确授权或 Coordinator 提供正式 PAOS 路由。",
+              "waiting": "Human 的 Rooter 直达授权或 Coordinator 提供的正式 Rooter 路由；s010 完成 Stage 2 整体裁决。",
+              "result": "[T-007 fresh 验收结论](../../Works/V12-STAGE2-CODEX-FRESH-DELIVERY-20260930.md)；[T-007 blocker 记录](../../Works/V12-STAGE2-CODEX-FRESH-EVIDENCE-S031-20260930.md)（历史状态）。",
+              "wip": "独立 Codex Thread `01a0f2ec-51ae-7d52-9630-4c12931822ad` 上一读回仍为 active/inProgress；正式报告和 PAOS 交接均已完成并由 s010 消费。首次只读 CLI 查询因 python 不在 PATH 失败；随后使用 bundled Python 成功读回 mail status、wake status、coordinator control 和 session context。本线程未发送新的 follow-up 指令。PAOS message `msg-s031-v12-stage2-manifest-delta-review-20261001-01` 已送达 s010，Wake attempt `agent-mail-9003eabdebccf779a5b8102acc3b2800` 因 `co-agent adapter HEAD mismatch: expected=690e02ca3530bb70068452435d550010c4dfe7c9 actual=<unknown>` 失败；`V12-STAGE2-RESULT-20260930.md` 记录 s010 已消费该消息。PAOS Session progress 更新 event `3002-e767`（revision 786→787，status `working`）。未重发、未重试激活、未切换 binding；原 blocker Mail 2/2 delivered、Resource Request `3002-r047` resolved、T-006 候选未 push/merge 均为独立历史事实；Stage 2 整体尚未通过，待 Coordinator 收口。"
+            },
+            "trusted": true,
+            "todo_summary": {
+              "stage": "s031 的 T-006 已由 s010 接受并收口；Stage 2 整合与总体验收由 s010 协调推进。",
+              "progress": "",
+              "blocked": "",
+              "next": "T-007 fresh 核验与正式交接已完成；Mail delivered，Wake activation failed，s010 已消费该报告。Stage 2 整体裁决仍由 Coordinator 负责；不重发、不重试。Rooter 不在 Project 3002 peers 中；如需由 s031 直达 Rooter 当前 Codex Thread，等待 Human 对该确切 Thread 的明确授权或 Coordinator 提供正式 PAOS 路由。"
+            },
+            "counts": {
+              "total": 2,
+              "done": 2,
+              "open": 0
+            }
+          },
+          "runtime_contact": {
+            "configured": true,
+            "binding_status": "bound",
+            "online_state": "online",
+            "checked_at": "2026-09-29T01:39:11Z",
+            "state_basis": "last_probe",
+            "attach": {
+              "driver": "codex",
+              "session_id": "01a0b95c-c097-7f90-b0dc-f2a3bce41fc5",
+              "command": null,
+              "reason": "attach_undefined_for_driver:codex",
+              "manual_open": {
+                "native_thread": "01a0b95c-c097-7f90-b0dc-f2a3bce41fc5",
+                "co_agent_root": "C:/Users/remo/Desktop/agent学习计划/co-agent-2-wake-app-tools-8f2",
+                "command": null,
+                "note": "codex 无外部 attach：按人工在 Windows 终端用 co_agent 根目录打开该 native thread；binding 配置 manual_open 时按其原文展示；本读面不编造命令、不自动启动 Harness"
+              },
+              "source": "derived_from_binding"
+            },
+            "inflight_attempts": [
+              "agent-mail-08695832d9703c00ff05438e2371bb49",
+              "agent-mail-e87e441e839b104dd00f86e4cf906271"
+            ],
+            "uncertain_attempts": [],
+            "driver": "codex",
+            "native_session_id": "01a0b95c-c097-7f90-b0dc-f2a3bce41fc5"
+          },
+          "current_work": {
+            "id": "3002-w060",
+            "title": "PAOS V1.2 Pack A：文件优先的 Agent 恢复路径",
+            "status": "doing"
+          }
+        },
+        {
+          "agent_id": "3002-s032",
+          "identity_id": "implementer",
+          "agent_label": "PAOS 常驻执行（OpenCode）",
+          "membership_basis": "fixed_workstation",
+          "session_status": "active",
+          "workstation_todo": {
+            "available": false,
+            "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Workstations\\3002-s032\\TODO.md",
+            "reason": "todo_untrusted",
+            "trust_issues": [
+              "schema:paos-todo/v1",
+              "missing_sections:当前"
+            ]
+          },
+          "runtime_contact": {
+            "configured": true,
+            "binding_status": "bound",
+            "online_state": "online",
+            "checked_at": "2026-10-01T05:16:43Z",
+            "state_basis": "last_probe",
+            "attach": {
+              "driver": "opencode",
+              "session_id": "ses_f0ed7064dffeYeFh5dohmTLkgz",
+              "command": "opencode attach http://127.0.0.1:4123 --session ses_f0ed7064dffeYeFh5dohmTLkgz",
+              "source": "derived_from_binding"
+            },
+            "inflight_attempts": [],
+            "uncertain_attempts": [
+              "agent-mail-3591e723e178de040612fe8e3198aa4b",
+              "agent-mail-5e2fa9ccbe5ea5b7267eb7f4b8a41cdd",
+              "agent-mail-706c5f8089197f568dec00f52e1fe1fb"
+            ],
+            "driver": "opencode",
+            "native_session_id": "ses_f0ed7064dffeYeFh5dohmTLkgz"
+          },
+          "current_work": {
+            "id": "3002-w027",
+            "title": "汇总摩擦，规划paos更新以及审查代码",
+            "status": "doing"
+          }
+        }
+      ]
+    }
+  },
+  "canonical_agent_ids": [
+    "3002-s010",
+    "3002-s027",
+    "3002-s029",
+    "3002-s031",
+    "3002-s032"
+  ],
+  "snapshot_unchanged": true,
+  "production_writes": false
+}

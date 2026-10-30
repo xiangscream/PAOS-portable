@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"C:\\Users\\remo\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe\" -X utf8 -B \"C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS\\Source\\personal-agent-os\\scripts\\codex_receiver_session_start.py\"",
+            "timeout": 10,
+            "statusMessage": "Preparing registered own receiver"
+          }
+        ]
+      }
+    ]
+  }
+}

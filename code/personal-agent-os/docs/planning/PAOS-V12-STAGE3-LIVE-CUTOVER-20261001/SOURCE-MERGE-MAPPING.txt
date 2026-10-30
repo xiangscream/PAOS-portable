@@ -1,0 +1,3 @@
+de27c07cb80c09e6066ae8cd6d9204aca58b7f91 fix(v1.2): opencode driver resolves Windows absolute state_root (shared Windows/WSL wake state) (#116)
+82959713ec567a32a1183abb618f3767b2be400e fix(v1.2): orient next_action always recovers live Work before stale Requests (#115)
+819b642ee7ec6378c72694bc6645c16ef538f517 feat(v1.2): lean integrated release — Stage 2 accepted, Stage 3 authorized (#114)

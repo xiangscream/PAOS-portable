@@ -1,0 +1,27 @@
+diff --git a/co_agent/service.py b/co_agent/service.py
+index fbc1ee4..1ca7bb5 100644
+--- a/co_agent/service.py
++++ b/co_agent/service.py
+@@ -534,6 +534,11 @@ class Service:
+         room = self.store.read_room(room_id)
+         if room.get("status") != "open":
+             raise ConflictError("Room 已停止，不能修改设置。")
++        if "activation_owner" in payload:
++            new_owner = str(payload["activation_owner"]).strip()
++            current_owner = str(room.get("activation_owner") or "cat")
++            if new_owner not in {"cat", "paos"}:
++                raise ValidationError("activation_owner 只允许 cat 或 paos。")
+         wake_mode = str(payload.get("wake_mode") or room.get("wake_mode") or "event").strip()
+         if wake_mode not in {"event", "interval"}:
+             raise ValidationError("wake_mode 只允许 event 或 interval。")
+@@ -545,6 +550,10 @@ class Service:
+             raise ValidationError("interval_minutes 必须是 1–1440 之间的整数。")
+         now = utc_now()
+         def apply(current: dict[str, Any]) -> None:
++            if "activation_owner" in payload:
++                threshold_owner = str(payload["activation_owner"]).strip()
++                if threshold_owner != (current.get("activation_owner") or "cat"):
++                    current["activation_owner"] = threshold_owner
+             old_mode = current.get("wake_mode") or "event"
+             current["wake_mode"] = wake_mode
+             current["interval_minutes"] = interval_minutes if wake_mode == "interval" else 0

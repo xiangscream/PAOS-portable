@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "schema": "paos-installation/v1",
+  "configured": true,
+  "path": "C:\\Users\\remo\\.paos\\installation.json",
+  "source_root": "C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Source/personal-agent-os",
+  "library_roots_config": "C:/Users/remo/.paos/library-roots.json",
+  "source_root_exists": true,
+  "library_roots": {
+    "schema": "paos-library-roots/v1",
+    "registered": true,
+    "config_path": "C:\\Users\\remo\\.paos\\library-roots.json",
+    "workflow_root": "C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow",
+    "skill_root": "C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill",
+    "registered_at": "2026-10-01T10:46:50Z"
+  }
+}

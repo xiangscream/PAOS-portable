@@ -1,0 +1,3 @@
+interface:
+  display_name: "Daily Work Summary"
+  short_description: "Turn mixed notes and agent handoffs into a decision-ready end-of-day summary."

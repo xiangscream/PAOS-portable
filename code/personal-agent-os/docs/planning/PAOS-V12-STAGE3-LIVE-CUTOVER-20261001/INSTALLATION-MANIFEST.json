@@ -1,0 +1,371 @@
+{
+  "schema": "paos-installation-stage3-evidence/v1",
+  "observed_at": "2026-10-02T08:23:10.322991+00:00",
+  "authorization": "https://github.com/xiangscream/personal-agent-os/pull/110#issuecomment-5929489000",
+  "stage": "production deployed; real handoff accepted; w060 done; s014 manual adoption exception retained",
+  "work_acceptance": {
+    "ok": true,
+    "delta": {
+      "since_revision": 803,
+      "current_revision": 804,
+      "events": [
+        {
+          "event_id": "3002-e784",
+          "event_type": "coordinator.work.transitioned",
+          "project_id": "3002",
+          "session_id": "3002-s010",
+          "operation_id": "op-s010-w060-stage3-accept-20261002",
+          "base_revision": 803,
+          "revision": 804,
+          "timestamp": "2026-10-02T08:02:45.690212Z",
+          "touched_paths": [
+            "/work_items/3002-w060/status"
+          ],
+          "allocated_ids": [],
+          "summary": "Coordinator 将 Work 3002-w060 迁移为 done：三条done_when均已满足：Source e4/Library b55候选与A1-A5已接受；Codex/OpenCode固定工位fresh恢复、真实产物和s027→s029→s010受控接力已接受；e4 exact独审/Windows完整7/7成立，PR114/115/116已合并且de27实际运行。Rooter最终安装回流、六绑定双环境共享目录与原样本字节、两项目当前成员采用及例外已接受。按V1.2正式Coordinator验收合同结束Work，不伪造员工Close、不改成员任期；s014人工例外由s009持有，不阻塞本Work。证据Works/V12-STAGE2-RESULT-20260930.md及Works/V12-STAGE3-ADOPTION-RESULT-20261001.md、Rooter shared-state proof。",
+          "details": {
+            "changes": [
+              {
+                "path": "/work_items/3002-w060/status",
+                "before": "doing",
+                "after": "done"
+              }
+            ],
+            "reason": "三条done_when均已满足：Source e4/Library b55候选与A1-A5已接受；Codex/OpenCode固定工位fresh恢复、真实产物和s027→s029→s010受控接力已接受；e4 exact独审/Windows完整7/7成立，PR114/115/116已合并且de27实际运行。Rooter最终安装回流、六绑定双环境共享目录与原样本字节、两项目当前成员采用及例外已接受。按V1.2正式Coordinator验收合同结束Work，不伪造员工Close、不改成员任期；s014人工例外由s009持有，不阻塞本Work。证据Works/V12-STAGE2-RESULT-20260930.md及Works/V12-STAGE3-ADOPTION-RESULT-20261001.md、Rooter shared-state proof。",
+            "status": "done"
+          }
+        }
+      ]
+    }
+  },
+  "source": {
+    "accepted": "e4f0189bd04a9a48b5594d4c000611e97cc75ad4",
+    "merged": "819b642ee7ec6378c72694bc6645c16ef538f517",
+    "narrow_patch": {
+      "pull_request": 115,
+      "reviewed_candidate": "ca2660002dcf47c059fb5f41b7378aadeb634eb3",
+      "merged": "82959713ec567a32a1183abb618f3767b2be400e",
+      "reviewed_merge_tree_diff": "",
+      "affected_checks": {
+        "windows": "10/10",
+        "independent_s029": "10/10"
+      },
+      "full_verifier": "accepted e4 Windows 7/7; not rerun for this narrow patch"
+    },
+    "wake_path_patch": {
+      "pull_request": 116,
+      "reviewed_candidate": "384f8d0f7154bd52aee7a1fba57886b089830c28",
+      "merged": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+      "reviewed_merge_tree_diff": "",
+      "affected_checks": {
+        "windows": "23/23",
+        "independent_s029": "WSL wake 23 plus 2 subtests; contact 21"
+      },
+      "shared_state_proof": {
+        "observed_at": "2026-10-02T07:21:28.678370+00:00",
+        "scope": "installed driver path and existing file reads, no native prompt or state mutation",
+        "agents": {
+          "2001-s021": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s021\\d447f0a850a60be5706bf934b297c0b50c9243bb3e2d2d9ed8dc34e41466743c",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-9623da2505eee0298705af85a575a5bf.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s021/d447f0a850a60be5706bf934b297c0b50c9243bb3e2d2d9ed8dc34e41466743c",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-9623da2505eee0298705af85a575a5bf.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          },
+          "2001-s022": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s022\\81b0a6eaa31a71c2a4aba57d4bb18c5d5464fc082a97943f55bcc343b512cd35",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-0ae57c493270a860677eb9c6094a66cd.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s022/81b0a6eaa31a71c2a4aba57d4bb18c5d5464fc082a97943f55bcc343b512cd35",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-0ae57c493270a860677eb9c6094a66cd.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          },
+          "2001-s023": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s023\\2e0a26a40204a3b2ee51a703997b699daf38be9526c637eaab430bdc5084114e",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-15b162ed00006e2f34365daf5bea8434.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s023/2e0a26a40204a3b2ee51a703997b699daf38be9526c637eaab430bdc5084114e",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 1,
+              "sample": "agent-mail-15b162ed00006e2f34365daf5bea8434.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          },
+          "3002-s027": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s027\\85d708afcce3f2cf700f48c963cfaa8d72778b767f4ac704600f2b5ced0f1427",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 5,
+              "sample": "agent-mail-0336039123951d101dab18ad9aab8455.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s027/85d708afcce3f2cf700f48c963cfaa8d72778b767f4ac704600f2b5ced0f1427",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 5,
+              "sample": "agent-mail-0336039123951d101dab18ad9aab8455.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          },
+          "3002-s029": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s029\\6454fec8ce835e41aa6b5528d118266a4c852599bfe22e6b87b9d4d2b9e3689d",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 3,
+              "sample": "agent-mail-22c1d448237523253d31ba0d0e72ed40.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s029/6454fec8ce835e41aa6b5528d118266a4c852599bfe22e6b87b9d4d2b9e3689d",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 3,
+              "sample": "agent-mail-22c1d448237523253d31ba0d0e72ed40.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          },
+          "3002-s032": {
+            "windows": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s032\\88d77b1e6b75b40397a9d106b8112f28fa902b86f0c8ccbde1bf4f647a548392",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 2,
+              "sample": "agent-mail-558d6d2ef57065a790df53dfde3b9b40.json"
+            },
+            "wsl": {
+              "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+              "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s032/88d77b1e6b75b40397a9d106b8112f28fa902b86f0c8ccbde1bf4f647a548392",
+              "absolute": true,
+              "exists": true,
+              "wake_lock_exists": true,
+              "attempt_files": 2,
+              "sample": "agent-mail-558d6d2ef57065a790df53dfde3b9b40.json"
+            },
+            "same_actual_location": true,
+            "existing_sample_bytes_equal": true
+          }
+        },
+        "all_six_same_actual_location": true
+      }
+    },
+    "installed": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+    "accepted_merge_tree_diff": "",
+    "local_status": "M docs/planning/34-FRICTION-LOG-REAL-USE.md",
+    "running_health": {
+      "ok": true,
+      "service": "attention-dashboard-v1",
+      "inbox": "private-data/inbox/tips",
+      "build": {
+        "schema": "paos-build-identity/v1",
+        "source_commit": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+        "release_tag": null,
+        "runtime_fingerprint": "sha256:7e1688fb91c1a3f655ccd90ddda2a74d44be583ed56a78b75a8716ac86102e89",
+        "static_fingerprint": "sha256:303215c6a6378a3e8cfdf30fb1132801339ec0b90e8987e2efb24ef6293a7e46"
+      }
+    }
+  },
+  "library": {
+    "accepted": "b55c5c53076ae12b41fe8fd335542c486ee19f49",
+    "installed": "ed32316df77b59867fdc43d1a3b154be34da4e66",
+    "usage_preservation": [
+      {
+        "library": "workflow",
+        "original_events": 0,
+        "original_events_preserved_bytes": 0,
+        "all_preserved": true
+      },
+      {
+        "library": "skill",
+        "original_events": 1,
+        "original_events_preserved_bytes": 1,
+        "all_preserved": true
+      }
+    ],
+    "local_status": "?? skill/.paos/usage-events/"
+  },
+  "installation_descriptor": {
+    "schema": "paos-installation/v1",
+    "source_root": "C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Source/personal-agent-os",
+    "library_roots_config": "C:/Users/remo/.paos/library-roots.json"
+  },
+  "opencode": [
+    {
+      "agent": "3002-s029",
+      "base_url": "http://127.0.0.1:4101",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f12d21b5fffe8z3nExCw6s2pw8",
+      "session_created_version": "1.18.32"
+    },
+    {
+      "agent": "3002-s027",
+      "base_url": "http://127.0.0.1:4102",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f22099a35ffeZNS78Cq72m3KUF",
+      "session_created_version": "1.18.32"
+    },
+    {
+      "agent": "2001-s021",
+      "base_url": "http://127.0.0.1:4110",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f626c2e58ffefiGeX5e06SUnfJ",
+      "session_created_version": "1.18.30"
+    },
+    {
+      "agent": "2001-s022",
+      "base_url": "http://127.0.0.1:4111",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f626a5b81ffek740zZpH3H2evo",
+      "session_created_version": "1.18.30"
+    },
+    {
+      "agent": "2001-s023",
+      "base_url": "http://127.0.0.1:4112",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f62698f16ffeCkcgbOH8X3Yxm3",
+      "session_created_version": "1.18.30"
+    },
+    {
+      "agent": "3002-s032",
+      "base_url": "http://127.0.0.1:4123",
+      "health": {
+        "healthy": true,
+        "version": "1.18.33"
+      },
+      "native_session_id": "ses_f0ed7064dffeYeFh5dohmTLkgz",
+      "session_created_version": "1.18.33"
+    }
+  ],
+  "cat": {
+    "source_commit": "5fa04ffe1f5cb061f9c9c07176435d3c9d711bf6",
+    "codex_wake_adapter_commit": "690e02ca3530bb70068452435d550010c4dfe7c9",
+    "consumer_evidence": "V12-STAGE3-CAT-20261001/",
+    "model_omitted": true
+  },
+  "projects": [
+    {
+      "id": "1001",
+      "status": "closed",
+      "root_path": "C:\\Users\\remo\\Desktop\\OBSBOT-first-month-workspace"
+    },
+    {
+      "id": "1002",
+      "status": "closed",
+      "root_path": "C:\\Users\\remo\\Desktop\\OBSBOT-first-month-workspace"
+    },
+    {
+      "id": "1003",
+      "status": "closed",
+      "root_path": "C:\\Users\\remo\\Desktop\\lesson"
+    },
+    {
+      "id": "1004",
+      "status": "closed",
+      "root_path": "C:\\Users\\remo\\Desktop\\OBSBOT-Projects\\1004-文档整理"
+    },
+    {
+      "id": "1005",
+      "status": "closed",
+      "root_path": ""
+    },
+    {
+      "id": "2001",
+      "status": "active",
+      "root_path": "C:\\Users\\remo\\Desktop\\OBSBOT-Projects\\2001-LRC101"
+    },
+    {
+      "id": "2002",
+      "status": "closed",
+      "root_path": ""
+    },
+    {
+      "id": "2003",
+      "status": "closed",
+      "root_path": ""
+    },
+    {
+      "id": "3001",
+      "status": "closed",
+      "root_path": "C:\\Users\\remo\\Desktop\\obs-agent"
+    },
+    {
+      "id": "3002",
+      "status": "active",
+      "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Projects\\3002-Personal-Agent-OS"
+    }
+  ],
+  "project_git": {
+    "2001": "8ad0715b97f6cee85f8d4db72e372afffbff3277",
+    "3002": "920a0bd6c476af2b0b11d284a6661715010ca665"
+  },
+  "restore_point": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\restore-points\\V12-STAGE3-20261001-183554",
+  "invalid_restore_component": "rooter-home",
+  "runtime_model_policy": "preserve current native session setting, omit model in automatic calls"
+}

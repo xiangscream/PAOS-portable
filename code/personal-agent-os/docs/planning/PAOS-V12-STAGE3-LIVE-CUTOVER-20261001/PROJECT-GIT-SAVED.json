@@ -1,0 +1,21 @@
+[
+  {
+    "project": "2001",
+    "commit": "8ad0715b97f6cee85f8d4db72e372afffbff3277",
+    "saved_paths": [],
+    "scope": "selected Stage3 adoption and current entry pages only; unrelated business files retained"
+  },
+  {
+    "project": "3002",
+    "commit": "920a0bd6c476af2b0b11d284a6661715010ca665",
+    "saved_paths": [
+      "Works/V12-STAGE3-ADOPTION-RESULT-20261001.md",
+      "Works/V12-STAGE3-CODEX-RECOVERY-READBACK-S031-20261001.md",
+      "Workstations/3002-s010/TODO.md",
+      "Workstations/3002-s027/TODO.md",
+      "Workstations/3002-s029/TODO.md",
+      "Workstations/3002-s031/TODO.md"
+    ],
+    "scope": "selected Stage3 adoption and current entry pages only; unrelated business files retained"
+  }
+]

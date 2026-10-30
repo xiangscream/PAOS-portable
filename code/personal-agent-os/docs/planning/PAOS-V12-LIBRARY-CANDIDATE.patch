@@ -1,0 +1,2180 @@
+diff --git a/adoption/2001/.gitignore b/adoption/2001/.gitignore
+new file mode 100644
+index 0000000..e84a53e
+--- /dev/null
++++ b/adoption/2001/.gitignore
+@@ -0,0 +1,15 @@
++# Runtime and private state
++.paos/
++private-data/
++**/mailbox/
++**/.cache/
++**/__pycache__/
++*.log
++# Separate Source repositories
++Source*/
++# Large media remains in its existing location
++*.mp4
++*.mov
++*.mkv
++*.wav
++*.zip
+diff --git a/adoption/2001/AGENTS.md b/adoption/2001/AGENTS.md
+new file mode 100644
+index 0000000..f424bd9
+--- /dev/null
++++ b/adoption/2001/AGENTS.md
+@@ -0,0 +1,8 @@
++# Project 2001 共同工作规则
++
++以启动信息给出的长期Agent身份找Workstations/<agent-id>/ENTRY.md，从PAOS当前事实、个人TODO和mailbox恢复责任。消息处理后继续已授权未完成主线；澄清只调整约束，inbox空不代表无工作。实质进展/交付/交接时更新当前区；成果归Project，长历史另存。同事直接协作，可修机械问题找Rooter，不等Human催促。
++
++换Runtime按已部署安装流程接入原身份，同实例压缩后从入口恢复，不靠旧聊天猜命令或重派工。版本看C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow/Guides/guide-upgrade-adoption.md；操作查同版help/共享指南，专业方法按需读Skill。候选命令在正式发布后采用；交付需要接续用持久投递加已有激活，确认本人消费和产物。阶段安排保持，停止对应交付完成、真实依赖/阻碍或明确停止。
++有可执行的未完成TODO就继续，发送消息不结束责任。等待前写明谁提供什么、成果位置和回流通知入口，并告知提供者完成后持久交付及唤醒收口者；没有自动联系能力就明确手动路径。交接需下一位实际读取并推进，送达/ACK/online分别只证明相应状态。
++
++升级以整个当前安装统一采用及真实工作验证为完成：Source正常合并后，实际服务、CLI/config、Wake/消费者、Library与TEAM/工位同版；旧入口退出当前路径，未接受例外继续留TODO。候选、测试和公告不代替采用，不改变当前Stage3生产切换审查边界。
+diff --git a/adoption/2001/TEAM.md b/adoption/2001/TEAM.md
+new file mode 100644
+index 0000000..10fd39c
+--- /dev/null
++++ b/adoption/2001/TEAM.md
+@@ -0,0 +1,55 @@
++# 2001 Team
++
++Coordinator：2001-s009。职责来自Coordinator，个人介绍由本人维护；不手抄Work或在线状态。
++
++## 当前成员
++
++### 2001-s009
++- 成员状态：在队
++- 职责：Coordinator / 产品主线
++- Harness：Codex（本人确认/更新）
++- 工位：[ENTRY](Workstations/2001-s009/ENTRY.md)
++- 当前动作：[TODO](Workstations/2001-s009/TODO.md)
++- 联系：PAOS 2001-s009；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 2001-s014
++- 成员状态：在队
++- 职责：主稿编辑 / Human直接对接
++- Harness：WorkBuddy / 人工接续（本人确认/更新）
++- 工位：[ENTRY](Workstations/2001-s014/ENTRY.md)
++- 当前动作：[TODO](Workstations/2001-s014/TODO.md)
++- 联系：PAOS 2001-s014；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 2001-s021
++- 成员状态：在队
++- 职责：实施
++- Harness：OpenCode（本人确认/更新）
++- 工位：[ENTRY](Workstations/2001-s021/ENTRY.md)
++- 当前动作：[TODO](Workstations/2001-s021/TODO.md)
++- 联系：PAOS 2001-s021；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 2001-s022
++- 成员状态：在队
++- 职责：实施 / 独立复核
++- Harness：OpenCode（本人确认/更新）
++- 工位：[ENTRY](Workstations/2001-s022/ENTRY.md)
++- 当前动作：[TODO](Workstations/2001-s022/TODO.md)
++- 联系：PAOS 2001-s022；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++## 待入场
++
++### 2001-s023
++- 成员状态：pending_ack，不作为已入场执行者
++- Harness：OpenCode（本人确认）
++- 工位：[ENTRY](Workstations/2001-s023/ENTRY.md)
++- 当前动作：[TODO](Workstations/2001-s023/TODO.md)
++- 联系：PAOS 2001-s023
++- 入场证词由本人完成，不代Ack
++
++## 历史与变化
++
++历史人员与责任保留PAOS和既有Project文件；不能从历史Session猜当前团队。本文件变化查Project Git历史。
+diff --git a/adoption/2001/Workstations/2001-s009/ENTRY.md b/adoption/2001/Workstations/2001-s009/ENTRY.md
+new file mode 100644
+index 0000000..01e704a
+--- /dev/null
++++ b/adoption/2001/Workstations/2001-s009/ENTRY.md
+@@ -0,0 +1,18 @@
++# 2001-s009 固定工位
++
++长期Agent：2001-s009
++Project：2001
++Project根：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101
++固定工位：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s009
++TODO：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s009/TODO.md
++Mail：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s009/mailbox
++TEAM：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找2001-s009；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/2001/Workstations/2001-s014/ENTRY.md b/adoption/2001/Workstations/2001-s014/ENTRY.md
+new file mode 100644
+index 0000000..1039849
+--- /dev/null
++++ b/adoption/2001/Workstations/2001-s014/ENTRY.md
+@@ -0,0 +1,18 @@
++# 2001-s014 固定工位
++
++长期Agent：2001-s014
++Project：2001
++Project根：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101
++固定工位：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s014
++TODO：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s014/TODO.md
++Mail：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s014/mailbox
++TEAM：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找2001-s009；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/2001/Workstations/2001-s021/ENTRY.md b/adoption/2001/Workstations/2001-s021/ENTRY.md
+new file mode 100644
+index 0000000..cf98e1e
+--- /dev/null
++++ b/adoption/2001/Workstations/2001-s021/ENTRY.md
+@@ -0,0 +1,18 @@
++# 2001-s021 固定工位
++
++长期Agent：2001-s021
++Project：2001
++Project根：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101
++固定工位：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s021
++TODO：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s021/TODO.md
++Mail：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s021/mailbox
++TEAM：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找2001-s009；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/2001/Workstations/2001-s022/ENTRY.md b/adoption/2001/Workstations/2001-s022/ENTRY.md
+new file mode 100644
+index 0000000..95b6bc9
+--- /dev/null
++++ b/adoption/2001/Workstations/2001-s022/ENTRY.md
+@@ -0,0 +1,18 @@
++# 2001-s022 固定工位
++
++长期Agent：2001-s022
++Project：2001
++Project根：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101
++固定工位：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s022
++TODO：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s022/TODO.md
++Mail：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s022/mailbox
++TEAM：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找2001-s009；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/2001/Workstations/2001-s023/ENTRY.md b/adoption/2001/Workstations/2001-s023/ENTRY.md
+new file mode 100644
+index 0000000..962fe91
+--- /dev/null
++++ b/adoption/2001/Workstations/2001-s023/ENTRY.md
+@@ -0,0 +1,20 @@
++# 2001-s023 固定工位
++
++长期Agent：2001-s023
++Project：2001
++Project根：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101
++固定工位：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s023
++TODO：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s023/TODO.md
++Mail：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/Workstations/2001-s023/mailbox
++TEAM：C:/Users/remo/Desktop/OBSBOT-Projects/2001-LRC101/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++当前正式状态仍为 `pending_ack`：这属于首次入场，须由 s023 本人完成入场确认。在本人确认前不接执行任务；Rooter 与 Coordinator 不代 Ack。换会话免接班手续不改变这条准入事实。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找2001-s009；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/3002/.gitignore b/adoption/3002/.gitignore
+new file mode 100644
+index 0000000..e84a53e
+--- /dev/null
++++ b/adoption/3002/.gitignore
+@@ -0,0 +1,15 @@
++# Runtime and private state
++.paos/
++private-data/
++**/mailbox/
++**/.cache/
++**/__pycache__/
++*.log
++# Separate Source repositories
++Source*/
++# Large media remains in its existing location
++*.mp4
++*.mov
++*.mkv
++*.wav
++*.zip
+diff --git a/adoption/3002/AGENTS.md b/adoption/3002/AGENTS.md
+new file mode 100644
+index 0000000..8956178
+--- /dev/null
++++ b/adoption/3002/AGENTS.md
+@@ -0,0 +1,8 @@
++# Project 3002 共同工作规则
++
++以启动信息给出的长期Agent身份找Workstations/<agent-id>/ENTRY.md，从PAOS当前事实、个人TODO和mailbox恢复责任。消息处理后继续已授权未完成主线；澄清只调整约束，inbox空不代表无工作。实质进展/交付/交接时更新当前区；成果归Project，长历史另存。同事直接协作，可修机械问题找Rooter，不等Human催促。
++
++换Runtime按已部署安装流程接入原身份，同实例压缩后从入口恢复，不靠旧聊天猜命令或重派工。版本看C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow/Guides/guide-upgrade-adoption.md；操作查同版help/共享指南，专业方法按需读Skill。候选命令在正式发布后采用；交付需要接续用持久投递加已有激活，确认本人消费和产物。阶段安排保持，停止对应交付完成、真实依赖/阻碍或明确停止。
++有可执行的未完成TODO就继续，发送消息不结束责任。等待前写明谁提供什么、成果位置和回流通知入口，并告知提供者完成后持久交付及唤醒收口者；没有自动联系能力就明确手动路径。交接需下一位实际读取并推进，送达/ACK/online分别只证明相应状态。
++
++升级以整个当前安装统一采用及真实工作验证为完成：Source正常合并后，实际服务、CLI/config、Wake/消费者、Library与TEAM/工位同版；旧入口退出当前路径，未接受例外继续留TODO。候选、测试和公告不代替采用，不改变当前Stage3生产切换审查边界。
+diff --git a/adoption/3002/TEAM.md b/adoption/3002/TEAM.md
+new file mode 100644
+index 0000000..cdc454e
+--- /dev/null
++++ b/adoption/3002/TEAM.md
+@@ -0,0 +1,58 @@
++# 3002 Team
++
++Coordinator：3002-s010。职责来自Coordinator，个人介绍由本人维护；不手抄Work或在线状态。
++
++## 当前成员
++
++### 3002-s010
++- 成员状态：在队
++- 职责：Coordinator / 集成
++- Harness：Codex（本人确认/更新）
++- 工位：[ENTRY](Workstations/3002-s010/ENTRY.md)
++- 当前动作：[TODO](Workstations/3002-s010/TODO.md)
++- 联系：PAOS 3002-s010；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 3002-s027
++- 成员状态：在队
++- 职责：Domain / continuity / converter / 一般 CLI 与联系面
++- Harness：OpenCode（本人确认/更新）
++- 工位：[ENTRY](Workstations/3002-s027/ENTRY.md)
++- 当前动作：[TODO](Workstations/3002-s027/TODO.md)
++- 联系：PAOS 3002-s027；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 3002-s029
++- 成员状态：在队
++- 职责：独立复核
++- Harness：OpenCode（本人确认/更新）
++- 当前服务：`http://127.0.0.1:4101`；会话：`ses_f12d21b5fffe8z3nExCw6s2pw8`（2026-09-30 核对）
++- Windows 打开：`wsl --exec /home/remo/.opencode/bin/opencode attach http://127.0.0.1:4101 --session ses_f12d21b5fffe8z3nExCw6s2pw8`
++- 服务未启动时：`wsl --exec systemctl --user start paos-opencode-3002-s029.service`
++- V1.2 自动调用继承当前会话模型；除非 Human 显式指定，不改变模型设置。
++- 工位：[ENTRY](Workstations/3002-s029/ENTRY.md)
++- 当前动作：[TODO](Workstations/3002-s029/TODO.md)
++- 联系：PAOS 3002-s029；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 3002-s031
++- 成员状态：在队
++- 职责：Codex Runtime 专项与原生接班验收
++- Harness：Codex（本人确认/更新）
++- 工位：[ENTRY](Workstations/3002-s031/ENTRY.md)
++- 当前动作：[TODO](Workstations/3002-s031/TODO.md)
++- 联系：PAOS 3002-s031；已有CAT讨论沿原线程
++- 个人介绍/专长：本人按需补充
++
++### 3002-s032
++- 成员状态：在队（s010 已确认的支持位）
++- 职责：运行问题补证与支持；当前责任读本人 TODO 和 PAOS live
++- Harness：OpenCode（本人确认/更新）
++- 工位：[ENTRY](Workstations/3002-s032/ENTRY.md)
++- 当前动作：[TODO](Workstations/3002-s032/TODO.md)
++- 联系：PAOS 3002-s032；实际端口与打开方式读取联系面，不手抄在线状态
++- 个人介绍/专长：本人按需补充
++
++## 历史与变化
++
++历史人员与责任保留PAOS和既有Project文件；不能从历史Session猜当前团队。本文件变化查Project Git历史。
+diff --git a/adoption/3002/Workstations/3002-s010/ENTRY.md b/adoption/3002/Workstations/3002-s010/ENTRY.md
+new file mode 100644
+index 0000000..bdf5d81
+--- /dev/null
++++ b/adoption/3002/Workstations/3002-s010/ENTRY.md
+@@ -0,0 +1,18 @@
++# 3002-s010 固定工位
++
++长期Agent：3002-s010
++Project：3002
++Project根：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS
++固定工位：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s010
++TODO：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s010/TODO.md
++Mail：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s010/mailbox
++TEAM：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找3002-s010；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/3002/Workstations/3002-s027/ENTRY.md b/adoption/3002/Workstations/3002-s027/ENTRY.md
+new file mode 100644
+index 0000000..9ec8ecb
+--- /dev/null
++++ b/adoption/3002/Workstations/3002-s027/ENTRY.md
+@@ -0,0 +1,18 @@
++# 3002-s027 固定工位
++
++长期Agent：3002-s027
++Project：3002
++Project根：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS
++固定工位：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s027
++TODO：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s027/TODO.md
++Mail：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s027/mailbox
++TEAM：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找3002-s010；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/3002/Workstations/3002-s029/ENTRY.md b/adoption/3002/Workstations/3002-s029/ENTRY.md
+new file mode 100644
+index 0000000..de207f3
+--- /dev/null
++++ b/adoption/3002/Workstations/3002-s029/ENTRY.md
+@@ -0,0 +1,18 @@
++# 3002-s029 固定工位
++
++长期Agent：3002-s029
++Project：3002
++Project根：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS
++固定工位：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s029
++TODO：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s029/TODO.md
++Mail：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s029/mailbox
++TEAM：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找3002-s010；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/3002/Workstations/3002-s031/ENTRY.md b/adoption/3002/Workstations/3002-s031/ENTRY.md
+new file mode 100644
+index 0000000..c198555
+--- /dev/null
++++ b/adoption/3002/Workstations/3002-s031/ENTRY.md
+@@ -0,0 +1,18 @@
++# 3002-s031 固定工位
++
++长期Agent：3002-s031
++Project：3002
++Project根：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS
++固定工位：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s031
++TODO：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s031/TODO.md
++Mail：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s031/mailbox
++TEAM：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找3002-s010；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。
+diff --git a/adoption/3002/Workstations/3002-s032/ENTRY.md b/adoption/3002/Workstations/3002-s032/ENTRY.md
+new file mode 100644
+index 0000000..334f953
+--- /dev/null
++++ b/adoption/3002/Workstations/3002-s032/ENTRY.md
+@@ -0,0 +1,18 @@
++# 3002-s032 固定工位
++
++长期Agent：3002-s032
++Project：3002
++Project根：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS
++固定工位：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s032
++TODO：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s032/TODO.md
++Mail：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Workstations/3002-s032/mailbox
++TEAM：C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/TEAM.md
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json；连接配置与定位分开。
++
++## 恢复
++
++确认已部署版本，读共享升级说明、本人 TODO 当前区、Mail 和 PAOS live 责任。V1.2 发布后，新 Runtime 从固定 ENTRY、当前 TODO 与 orient 直接继续原责任，不办理 owner、instance ID、enter 或旧 Cycle/claim 手续；换会话时手动停旧会话和消费者。精确命令读已发布指南与 help。
++
++消息处理后继续可执行原目标；没有新消息不表示待机。责任/优先级找3002-s010；方法库/工位/通信机械问题找rooter-001，给具体失败。交付要对方接续用agent send；已有Mail用agent notify，不只留信便结束。OpenCode调用继承本人会话模型，除非Human明确指定，不改变模型设置。
+diff --git a/adoption/GIT-SCOPE.md b/adoption/GIT-SCOPE.md
+new file mode 100644
+index 0000000..057b9ac
+--- /dev/null
++++ b/adoption/GIT-SCOPE.md
+@@ -0,0 +1,9 @@
++# Project 文本 Git 范围
++
++候选配置在2001/3002根的`.gitignore`；正式采用前与已有Human规则合并，Stage1不初始化或修改生产Project Git。
++
++跟踪TEAM、AGENTS、Workstations的ENTRY/TODO/可选笔记、Works和其他正常文本成果；2001的飞书主稿仍以云端文档为权威，Git只保存本地说明、来源与成果定位。3002的Source保持独立仓库，不纳入Project外层Git。
++
++运行绑定、Store/private-data、缓存、自动日志、私有mailbox和大媒体留既有位置。邮件是否另作可分享资料由用途决定，不能用自动提交把所有通信外发。忽略文件仍是本地工作世界的一部分，不移动或删除。
++
++提交使用明确文件或hunk，提交前读diff；不可`git add .`卷入在途代码、运行配置或旁人的改动。Git提供文件历史，不代替PAOS责任/验收，不回滚已经发生的外部写入。
+diff --git a/adoption/README.md b/adoption/README.md
+new file mode 100644
+index 0000000..eaa3cdd
+--- /dev/null
++++ b/adoption/README.md
+@@ -0,0 +1,7 @@
++# 双项目文件候选
++
++Stage 2副本演练、Stage 3正式采用；尚未复制生产。TEAM/AGENTS/各工位ENTRY与同版converter生成的TODO组合。既有Human规则须合并保留，不整表覆盖。
++
++2001 roster由s009确认，3002由s010确认。Harness是已核安装事实，个人介绍/偏好由本人补充；未代写采用或Ack。在队不等于在线，TEAM不授予权限。切换前重读当前名单。
++
++共享Library只维护一份，工位引用方法，不复制手册。Source/Library/converter/adapter由exact manifest固定，不改生产Store或binding。
+diff --git a/adoption/rooter/ENTRY.md b/adoption/rooter/ENTRY.md
+new file mode 100644
+index 0000000..e65e0d8
+--- /dev/null
++++ b/adoption/rooter/ENTRY.md
+@@ -0,0 +1,15 @@
++# rooter-001 固定入口
++
++身份：rooter-001，installation-level Rooter，复用Human operational authority，不创建PAOS Project/Session。
++Home：C:/Users/remo/Desktop/agent学习计划/PAOS-Rooter/rooter-001
++当前动作：本Home TODO.md
++持久消息：本Home mailbox/
++Workflow：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/workflow
++Skill：C:/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill
++安装描述：当前用户 ~/.paos/installation.json
++
++## 恢复
++
++读取当前 TODO、消息与共享升级说明，确认发布阶段。Project 意义向各 Coordinator 取得，已明确责任后的机械治理主动执行；管理沿当前 Human 入口，不借 Project Agent 身份，也不建立 Rooter Project Session。
++
++交接核本人消费及产物。全队停而责任未完时主动定位、与Coordinator/执行者修复，不等Human发现；有可执行责任就继续。停止对应具体交付、真实等待/阻碍或明确停止，记录接续位置。
+diff --git a/skill/.paos/catalog.json b/skill/.paos/catalog.json
+index 539c50d..25e03fd 100644
+--- a/skill/.paos/catalog.json
++++ b/skill/.paos/catalog.json
+@@ -1,8 +1,8 @@
+ {
+   "schema": "paos-library-catalog/v1",
+   "kind": "skill",
+-  "root_path": "/mnt/c/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill",
+-  "generated_at": "2026-09-20T08:55:27Z",
++  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill",
++  "generated_at": "2026-09-30T15:41:50Z",
+   "items": [
+     {
+       "id": "clean-writing",
+@@ -15,8 +15,8 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "/mnt/c/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill/clean-writing/SKILL.md",
+-      "relative_path": "clean-writing/SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\clean-writing\\SKILL.md",
++      "relative_path": "clean-writing\\SKILL.md",
+       "stats": {
+         "uses": 0,
+         "uses_30d": 0,
+@@ -38,8 +38,8 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "/mnt/c/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill/skill-engineering-change/SKILL.md",
+-      "relative_path": "skill-engineering-change/SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\skill-engineering-change\\SKILL.md",
++      "relative_path": "skill-engineering-change\\SKILL.md",
+       "stats": {
+         "uses": 0,
+         "uses_30d": 0,
+@@ -61,16 +61,16 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "/mnt/c/Users/remo/Desktop/agent学习计划/PAOS-Libraries/skill/skill-independent-review/SKILL.md",
+-      "relative_path": "skill-independent-review/SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\skill-independent-review\\SKILL.md",
++      "relative_path": "skill-independent-review\\SKILL.md",
+       "stats": {
+-        "uses": 1,
+-        "uses_30d": 1,
+-        "last_used_at": "2026-09-20T07:40:26Z",
+-        "usefulness_total": 0.5,
+-        "usefulness_avg": 0.5,
+-        "project_count": 1,
+-        "agent_count": 1
++        "uses": 0,
++        "uses_30d": 0,
++        "last_used_at": "",
++        "usefulness_total": 0.0,
++        "usefulness_avg": null,
++        "project_count": 0,
++        "agent_count": 0
+       }
+     }
+   ]
+diff --git a/skill/CATALOG.md b/skill/CATALOG.md
+index e4648c0..2a9e697 100644
+--- a/skill/CATALOG.md
++++ b/skill/CATALOG.md
+@@ -5,6 +5,6 @@
+ 
+ | Skill | Title | Uses | 30d | Projects | Avg value | Last used | Path |
+ | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+-| clean-writing | Clean Writing | 0 | 0 | 0 |  |  | clean-writing/SKILL.md |
+-| skill-engineering-change | Engineering Change | 0 | 0 | 0 |  |  | skill-engineering-change/SKILL.md |
+-| skill-independent-review | Independent Review | 1 | 1 | 1 | 0.5 | 2026-09-20T07:40:26Z | skill-independent-review/SKILL.md |
++| clean-writing | Clean Writing | 0 | 0 | 0 |  |  | clean-writing\SKILL.md |
++| skill-engineering-change | Engineering Change | 0 | 0 | 0 |  |  | skill-engineering-change\SKILL.md |
++| skill-independent-review | Independent Review | 0 | 0 | 0 |  |  | skill-independent-review\SKILL.md |
+diff --git a/workflow/.paos/catalog.json b/workflow/.paos/catalog.json
+index 581c733..f9dac84 100644
+--- a/workflow/.paos/catalog.json
++++ b/workflow/.paos/catalog.json
+@@ -1,68 +1,220 @@
+ {
+   "schema": "paos-library-catalog/v1",
+   "kind": "workflow",
+-  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow",
+-  "generated_at": "2026-09-30T05:42:12Z",
++  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow",
++  "generated_at": "2026-10-01T09:02:47Z",
+   "items": [
+     {
+       "id": "guide-paos-cat-operations",
+-      "title": "PAOS 与 CAT 操作指南",
+-      "description": "从固定工位恢复上下文，读取责任，使用 Mail 与 CAT，并留下执行回执。",
++      "title": "PAOS/CAT 意图式操作",
++      "description": "忘记操作时按目的恢复、联系、提交与定位问题，不要求理解传输拼装。",
+       "tags": [
+         "paos",
+         "cat",
+-        "recovery",
++        "cli",
+         "operations"
+       ],
+       "status": "active",
+-      "version": "1",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-paos-cat-operations.md",
++      "version": "9",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-paos-cat-operations.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-paos-cat-operations.md"
+     },
+     {
+       "id": "guide-project-work-world",
+-      "title": "PAOS Project Work World Guide V1.1",
+-      "description": "Agent 与 Coordinator 维护 Project Vault、判断文件归属并保持唯一 current truth 的共享规范。",
++      "title": "Project 文件与 Git",
++      "description": "成果归项目、当前入口清楚、历史可读，文本版本使用现有 Git。",
+       "tags": [
+         "project",
+-        "vault",
+-        "canonical-truth",
+-        "workstation"
++        "files",
++        "git",
++        "current"
+       ],
+       "status": "active",
+-      "version": "1",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-project-work-world.md",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-project-work-world.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-project-work-world.md"
+     },
++    {
++      "id": "guide-rooter-installation",
++      "title": "Rooter 安装与例外循环",
++      "description": "取得项目组织意图，治理安装与跨项目运行，验证真实到达。",
++      "tags": [
++        "rooter",
++        "installation",
++        "recovery"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-rooter-installation.md",
++      "section": "Guides",
++      "relative_path": "Guides\\guide-rooter-installation.md"
++    },
++    {
++      "id": "guide-runtime-handoff",
++      "title": "Runtime 接班与在途外部写入",
++      "description": "换会话保持责任与成果连续，明确外部副作用的完成、停止或接管。",
++      "tags": [
++        "runtime",
++        "handoff",
++        "external-write"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-runtime-handoff.md",
++      "section": "Guides",
++      "relative_path": "Guides\\guide-runtime-handoff.md"
++    },
++    {
++      "id": "guide-upgrade-adoption",
++      "title": "当前升级说明与员工采用",
++      "description": "改进在整个当前安装统一采用并支持真实工作后完成，成员自改入口，Rooter 收口例外。",
++      "tags": [
++        "upgrade",
++        "adoption",
++        "recovery"
++      ],
++      "status": "active",
++      "version": "2",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-upgrade-adoption.md",
++      "section": "Guides",
++      "relative_path": "Guides\\guide-upgrade-adoption.md"
++    },
++    {
++      "id": "template-adoption-result",
++      "title": "采用汇总模板",
++      "description": "一张真实当前成员结果表，不要求逐人长报告。",
++      "tags": [
++        "template",
++        "adoption",
++        "evidence"
++      ],
++      "status": "active",
++      "version": "2",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\adoption-result.md",
++      "section": "Templates",
++      "relative_path": "Templates\\adoption-result.md"
++    },
++    {
++      "id": "template-project-agents",
++      "title": "Project AGENTS 入口模板",
++      "description": "Harness 实际入口中的两段共同工作规则。",
++      "tags": [
++        "template",
++        "harness",
++        "entry"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\project-agents.md",
++      "section": "Templates",
++      "relative_path": "Templates\\project-agents.md"
++    },
++    {
++      "id": "template-project-announcement",
++      "title": "项目采用公告模板",
++      "description": "Coordinator 发一封持久消息，成员按同一说明自行采用。",
++      "tags": [
++        "template",
++        "mail",
++        "adoption"
++      ],
++      "status": "active",
++      "version": "2",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\project-announcement.md",
++      "section": "Templates",
++      "relative_path": "Templates\\project-announcement.md"
++    },
++    {
++      "id": "template-release-guide",
++      "title": "共享发布说明模板",
++      "description": "一份发布说明供两项目公告引用，绑定一致版本。",
++      "tags": [
++        "template",
++        "release",
++        "adoption"
++      ],
++      "status": "active",
++      "version": "2",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\release-guide.md",
++      "section": "Templates",
++      "relative_path": "Templates\\release-guide.md"
++    },
++    {
++      "id": "template-team",
++      "title": "TEAM 模板",
++      "description": "当前人工成员目录，稳定联系与历史入口。",
++      "tags": [
++        "template",
++        "team",
++        "peers"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\team.md",
++      "section": "Templates",
++      "relative_path": "Templates\\team.md"
++    },
++    {
++      "id": "template-workstation-entry",
++      "title": "Workstation ENTRY 模板",
++      "description": "稳定身份与恢复入口，不存当前 Work 或临时连接。",
++      "tags": [
++        "template",
++        "workstation",
++        "entry"
++      ],
++      "status": "active",
++      "version": "2",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\workstation-entry.md",
++      "section": "Templates",
++      "relative_path": "Templates\\workstation-entry.md"
++    },
++    {
++      "id": "template-workstation-todo",
++      "title": "TODO v2 模板",
++      "description": "当前事实解释与个人动作，历史不影响 current。",
++      "tags": [
++        "template",
++        "todo",
++        "current"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\workstation-todo.md",
++      "section": "Templates",
++      "relative_path": "Templates\\workstation-todo.md"
++    },
+     {
+       "id": "wf-agent-work-cycle",
+-      "title": "Agent Work Cycle",
+-      "description": "员工长期工作循环：接单、执行、协作、证据、收尾与待机的通用协议。",
++      "title": "Agent 长期工作循环",
++      "description": "从固定工位恢复责任，自主执行、直接协作、交付与待机。",
+       "tags": [
+         "agent",
+-        "work-cycle",
++        "continuity",
++        "work",
+         "kernel"
+       ],
+       "status": "active",
+-      "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Workflows\\wf-agent-work-cycle.md",
++      "version": "4",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Workflows\\wf-agent-work-cycle.md",
+       "section": "Workflows",
+       "relative_path": "Workflows\\wf-agent-work-cycle.md"
+     },
+     {
+       "id": "wf-coordinator-governance-cycle",
+-      "title": "Coordinator Governance Cycle",
+-      "description": "Coordinator 项目治理循环：薄状态、派工、复核、收口与 Human 判断点的通用协议。",
++      "title": "Coordinator 项目治理循环",
++      "description": "维护目标与团队，派工、组织复核、验收和保持自治。",
+       "tags": [
+         "coordinator",
+         "governance",
++        "autonomy",
+         "kernel"
+       ],
+       "status": "active",
+-      "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Workflows\\wf-coordinator-governance-cycle.md",
++      "version": "4",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Workflows\\wf-coordinator-governance-cycle.md",
+       "section": "Workflows",
+       "relative_path": "Workflows\\wf-coordinator-governance-cycle.md"
+     }
+diff --git a/workflow/CATALOG.md b/workflow/CATALOG.md
+index 9c6e079..6fc71ad 100644
+--- a/workflow/CATALOG.md
++++ b/workflow/CATALOG.md
+@@ -1,11 +1,21 @@
+ <!-- PAOS GENERATED CATALOG: DO NOT EDIT -->
+ # Workflow Catalog
+ 
+-共 4 项。源文件是权威；本页可随时重建。
++共 14 项。源文件是权威；本页可随时重建。
+ 
+ | ID | Title | Section | Status | Tags | Path |
+ | --- | --- | --- | --- | --- | --- |
+-| guide-paos-cat-operations | PAOS 与 CAT 操作指南 | Guides | active | paos, cat, recovery, operations | Guides\guide-paos-cat-operations.md |
+-| guide-project-work-world | PAOS Project Work World Guide V1.1 | Guides | active | project, vault, canonical-truth, workstation | Guides\guide-project-work-world.md |
+-| wf-agent-work-cycle | Agent Work Cycle | Workflows | active | agent, work-cycle, kernel | Workflows\wf-agent-work-cycle.md |
+-| wf-coordinator-governance-cycle | Coordinator Governance Cycle | Workflows | active | coordinator, governance, kernel | Workflows\wf-coordinator-governance-cycle.md |
++| guide-paos-cat-operations | PAOS/CAT 意图式操作 | Guides | active | paos, cat, cli, operations | Guides\guide-paos-cat-operations.md |
++| guide-project-work-world | Project 文件与 Git | Guides | active | project, files, git, current | Guides\guide-project-work-world.md |
++| guide-rooter-installation | Rooter 安装与例外循环 | Guides | active | rooter, installation, recovery | Guides\guide-rooter-installation.md |
++| guide-runtime-handoff | Runtime 接班与在途外部写入 | Guides | active | runtime, handoff, external-write | Guides\guide-runtime-handoff.md |
++| guide-upgrade-adoption | 当前升级说明与员工采用 | Guides | active | upgrade, adoption, recovery | Guides\guide-upgrade-adoption.md |
++| template-adoption-result | 采用汇总模板 | Templates | active | template, adoption, evidence | Templates\adoption-result.md |
++| template-project-agents | Project AGENTS 入口模板 | Templates | active | template, harness, entry | Templates\project-agents.md |
++| template-project-announcement | 项目采用公告模板 | Templates | active | template, mail, adoption | Templates\project-announcement.md |
++| template-release-guide | 共享发布说明模板 | Templates | active | template, release, adoption | Templates\release-guide.md |
++| template-team | TEAM 模板 | Templates | active | template, team, peers | Templates\team.md |
++| template-workstation-entry | Workstation ENTRY 模板 | Templates | active | template, workstation, entry | Templates\workstation-entry.md |
++| template-workstation-todo | TODO v2 模板 | Templates | active | template, todo, current | Templates\workstation-todo.md |
++| wf-agent-work-cycle | Agent 长期工作循环 | Workflows | active | agent, continuity, work, kernel | Workflows\wf-agent-work-cycle.md |
++| wf-coordinator-governance-cycle | Coordinator 项目治理循环 | Workflows | active | coordinator, governance, autonomy, kernel | Workflows\wf-coordinator-governance-cycle.md |
+diff --git a/workflow/Guides/guide-paos-cat-operations.md b/workflow/Guides/guide-paos-cat-operations.md
+index 5c67200..5128fbd 100644
+--- a/workflow/Guides/guide-paos-cat-operations.md
++++ b/workflow/Guides/guide-paos-cat-operations.md
+@@ -1,212 +1,108 @@
+ ---
+ schema: paos-workflow/v1
+ id: guide-paos-cat-operations
+-title: PAOS 与 CAT 操作指南
+-description: 从固定工位恢复上下文，读取责任，使用 Mail 与 CAT，并留下执行回执。
+-tags: paos, cat, recovery, operations
++title: PAOS/CAT 意图式操作
++description: 忘记操作时按目的恢复、联系、提交与定位问题，不要求理解传输拼装。
++tags: paos, cat, cli, operations
+ status: active
+-version: 1
++version: 9
+ ---
+ 
+-# PAOS 与 CAT 操作指南
++# PAOS/CAT 意图式操作
+ 
+-适用于 Coordinator、执行 Agent 和 Rooter。忘记命令时从这里继续；身份、责任和权限仍以自己的工位及 PAOS 当前事实为准。命令按 2026-09-26 本机安装核对，安装迁移后先更新入口。
++从本人工位 ENTRY 取安装入口和长期身份。安装配置与源码 checkout 分开；Windows/WSL 各用安装描述提供的入口，不猜 Source 路径、端口或默认 cwd。
+ 
+-## 我现在要做什么
++本页命令对应 V1.2 Stage 2 候选的公开 CLI；当前生产仍是 V1.1，候选命令用于隔离验收。以当前安装的 help 和最终 manifest 为准；尚未生产切换的能力不得称已部署。
+ 
+-| 当前需要 | 先做 | 成功之后还要看 |
+-| --- | --- | --- |
+-| 压缩后继续原工作 | `ENTRY.md → TODO.md → paos session context <Project> <Agent>` | 当前 Work、执行凭据、Mail 与 TODO 是否一致；不因压缩新建 Assignment |
+-| 找同事讨论或请复核 | 从 Project 当前团队入口确认同事，再用本指南第 3–5 节选 Mail 或 CAT | 对方实际消费/回报；业务结论另落 PAOS/Project |
+-| 留信并请求对方处理 | `paos agent send ...` | `mail status`、Wake、原生回合与实际交付分开看 |
+-| 回复已有 CAT 消息 | 核对已有 binding，读 inbox，按第 5 节回复并由本 Runtime ACK | `Exchange saved` 与 ACK 只证明通信，不证明 Work 验收 |
+-| 交付或换 Runtime | 先更新 TODO、成果 locator、未决项和在途外部写入，再按第 6 节登记/交接 | 确认外部写入已结束，或下一 Runtime 已明确接管 |
+-
+-上述是当前**已存在**的入口。V1.2 正在设计更短的 Agent CLI；新命令实际可用前，仍以本指南下方的现行命令为准。
+-
+-## 1. 上下文压缩后，先恢复这些信息
+-
+-1. 读自己的固定 `ENTRY.md → TODO.md → mailbox/`，确定 Project、长期 Agent ID、当前责任、下一步和成果位置。
+-2. 读取 PAOS 当前 Session / Work / Request，核对责任是否仍有效。Coordinator 另读 control 视图。
+-3. 核对本 Runtime 获发的 execution cycle / context pack；CAT 消费者另核对既有 scope / binding 中的 participant、native session 和 ownership generation。
+-4. 处理新消息，更新自己的 TODO，然后继续原责任。单纯压缩上下文不需要新 Assignment、重新 Ack 或重新绑定。
+-
+-同一 Agent 更换 Runtime 必须走正式恢复入口。读取最新 cycle、context pack 或 generation 只能帮助发现冲突，不能让旧 Runtime 获得新写入权。新 Agent 也不能直接沿用旧 Agent 的执行凭据。
+-
+-## 2. 准备命令入口
+-
+-以下是 **Windows PowerShell** 示例。先按自己的工位设置 `$Project`、`$Agent` 和 `$Vault`；示例选择 2001，不代表你就是 s009。
+-
+-```powershell
+-$PaosSource = 'C:\Users\remo\Desktop\agent学习计划\PAOS-Projects\3002-Personal-Agent-OS\Source\personal-agent-os'
+-function paos { python -X utf8 "$PaosSource\scripts\paos.py" @args }
+-$Project = '2001'
+-$Agent = '<自己的长期 Agent ID>'
+-$Vault = 'C:\Users\remo\Desktop\OBSBOT-Projects\2001-LRC101'
+-paos health
+-paos session show $Project $Agent
+-paos session context $Project $Agent
+-paos session mailbox $Project $Agent
+-paos mail list $Project $Agent --root $Vault
+-```
+-
+-3002 的 Vault 是 `C:\Users\remo\Desktop\agent学习计划\PAOS-Projects\3002-Personal-Agent-OS`。Mail / Wake 的 `--root` 使用 **Project Vault**，不是 Source repo。WSL Runtime 使用自己入口给出的路径映射与可达服务地址，不直接复制 Windows 路径或假定其 localhost 与 Windows 相同。
++## 按目的工作
+ 
+-需要进一步展开时：
+-
+-```powershell
+-paos coordinator control $Project
+-paos project show $Project
+-paos authority --actor worker --allowed-only
+-```
++### OpenCode 模型设置
+ 
+-Coordinator / Rooter 分别查看 `coordinator` / `human` 权限。查询参数不会授予权限。Project 全量输出很大，平时优先读 Session 和 control。
++除非 Human 显式指定，不改变 OpenCode 的模型设置。自动调用省略 `model`，继承当前会话选择；执行者也不按任务复杂度自行切换模型。不另建选模状态库。
+ 
+-## 3. 选对通道
+-
+-| 目的 | 使用入口 | 结果代表什么 |
++| 目的 | 日常入口 | 看什么结果 |
+ | --- | --- | --- |
+-| 当前责任、Work、Request、Artifact、验收 | PAOS 语义操作 | 持久治理事实，以操作 receipt 为准 |
+-| 给某 Agent 留可恢复的工作消息 | Workstation Mail | 邮件已落盘，尚不等于已读 |
+-| 留信并请求 Runtime 处理 | `agent send` | Mail 与 activation 分阶段返回 |
+-| 同事讨论、追问、回报 | CAT Exchange | 通信记录；不自动改 Work 状态 |
+-| 配置及检查运行入口 | per-Agent Wake / Runtime adapter | 可达、触发与实际消费要分别确认 |
+-
+-相同责任可由 Mail / TODO 接续；责任发生实质变化时按 PAOS 正式路径处理。不要用聊天文本代替授权或验收事实。
+-
+-## 4. PAOS Mail：发送、读取和追踪
+-
+-普通 Agent 使用 `--sender-kind agent --sender-id $Agent`；Coordinator 使用自身 ID 与 `coordinator`；Rooter 在已授权范围使用 `human / rooter-001`。不得冒用其他 Agent。
+-
+-```powershell
+-$Recipient = '<目标长期 Agent ID>'
+-$MessageId = '<本次消息的唯一且稳定 ID>'
+-$BodyFile = '<已写好的 UTF-8 正文文件绝对路径>'
+-paos agent send $Project --root $Vault --to $Recipient --sender-kind agent --sender-id $Agent --message-id $MessageId --subject '责任接续' --body "@$BodyFile"
+-paos mail status $Project $MessageId --root $Vault
+-```
+-
+-只投递不唤醒时改用 `mail send`。正文写清当前责任、输入位置、期望动作、边界和回报位置；不要只写“继续”。已投递但需要再次提醒时复用现有邮件：
+-
+-```powershell
+-paos agent notify $Project --mail $MessageId --agent $Recipient --root $Vault
+-paos mail read $Project $Agent $MessageId --root $Vault
+-paos wake status $Project $Recipient --root $Vault
+-paos wake probe $Project $Recipient --root $Vault
+-```
+-
+-`mail read` 中的 `$Agent` 必须是对应收件者。同 message ID 重试保持原正文不变；新内容使用新 ID。`status` 的 probe 时间可能是历史值，当前可达性看本次 probe。`delivered`、`woken`、native turn started 都不等于对方完成工作；需要对方回读、自己的 TODO 更新或实际交付。Wake 返回 `uncertain` 时先查看**精确绑定的原生会话**是否已读 Mail、产生回合或仍在执行；超时不代表消息未被消费，不自动重投。
+-
+-## 5. CAT：找房间、收信、回复、ACK
+-
+-### 5.1 从自己的已绑定入口取身份
+-
+-从自己的 Runtime scope / binding 取得 CAT base、room ID、participant ID、ownership generation。不要从 Agent ID 拼 participant ID。Codex native thread ID 与 Stop-hook routing ID 不是同一概念。
+-
+-```powershell
+-$CatBase = 'http://127.0.0.1:8770'
+-$Room = '<已绑定 room ID>'
+-$Participant = '<自己的已绑定 participant ID>'
+-$GenerationText = Read-Host '本 Runtime 既有 scope/binding 的 ownership_generation；没有则留空'
+-$BoundGeneration = if ($GenerationText) { [int]$GenerationText } else { $null }
+-$RoomState = Invoke-RestMethod "$CatBase/api/rooms/$Room"
+-$Inbox = Invoke-RestMethod "$CatBase/api/rooms/$Room/inbox?participant_id=$Participant"
+-$Inbox.items
++| 新原生会话继续已有身份 | 固定 ENTRY → 当前 TODO → orient | 找回稳定身份与原责任，直接继续 |
++| 压缩后恢复 | orient（只读） | 身份、岗位、正式 Work、个人下一步、消息和方法入口 |
++| 找同事 | peers | TEAM 稳定联系入口与工具派生运行状态，来源分开 |
++| 看信与待处理责任 | inbox | 工位 Mail、正式 Requests、已配置 CAT 分源 |
++| 联系并让对方接续 | agent send；已有邮件用 agent notify --mail | 持久投递与激活分别回执，继续核本人消费 |
++| 仅留持久信/沿线程回复 | mail send / mail reply | 写入工位 Mail；本动作不自动激活接收者 |
++| 核当前运行与接力状态 | `status <project> <agent>` | CLI/Source 版本、PAOS 版本、当前责任、联系能力、投递/处理记录与明确阻碍；原生回合未观测时会标 `not_observed` |
++| 查看一封外发 Mail 是否落盘/送达 | `status <project> <agent> --message-id <id>` | 按收件人列持久投递状态；不代表对方已消费 |
++| 报进展 | `session report <project> <agent>` | 当前 Agent 的正式进展回执 |
++| 结束本人执行并留结果 | `session submit <project> <agent>` | 本人执行结束证词；不是 Work 成果验收 |
++| 留接班信息 | 当前 TODO 与成果链接 | 下一步、成果、未决外部写入，不必重复长报告 |
++| 治理 Work/成员 | coordinator 下的实际子命令 | Coordinator 的一次动作回执；Human/Rooter 入口随实现合同校准 |
++| 忘记参数/遇故障 | --help / install show / status 读面 | 当前安装版本、联系能力、消息消费、具体阻碍与下一步 |
++
++需要的参数从当前安装的 help 取，不从旧聊天猜。正常工作只用稳定 Project/Agent 身份和当前业务责任；不办理 owner、instance ID、必做 `enter` 或 Cycle/Context Pack claim。换会话时手动停止旧会话及消费者。
++
++## 已核对的命令结构
++
++以下 `paos` 代表 ENTRY 给出的安装调用入口；若采用 Python 脚本入口，在它后面接同样参数。占位值替换为本人 Project 与完整 Agent ID，不复制别人的身份。示例为 Stage 2 目标，须等集成候选 help 核对后使用。
++
++```text
++paos orient <project> <agent>
++paos inbox <project> <agent>
++paos peers <project> <agent>
++paos status <project> <agent>
++paos status <project> <agent> --message-id <stable-message-id>
++paos session report <project> <agent> --summary "进展"
++paos mail send <project> --to <peer-agent> --sender-kind agent --sender-id <self-agent> --subject "主题" --body @<message-file>
++paos agent send <project> --to <peer-agent> --sender-kind agent --sender-id <self-agent> --message-id <stable-message-id> --subject "交付接续" --body @<handoff-file>
++paos agent notify <project> --mail <already-delivered-message-id> --agent <peer-agent>
++paos mail reply <project> <agent> <received-message-id> --body @<reply-file>
++paos session submit <project> <agent> --result partial --summary "交接结果"
++paos coordinator --help
++paos install show
+ ```
+ 
+-核对房间是否 open、是否过期，以及 participant 的 native session 与自己的绑定是否一致。**有** ownership generation 的 Runtime 从自己获发的旧 scope/binding 取值并核对房间；**没有**该字段的 participant（本机 s014 WorkBuddy 即如此）留空。出现不一致先停止写入，交由正式恢复流程处理；不能把房间返回的新 generation 填回旧消费者继续 ACK。
+-
+-### 5.2 在 CAT 自身负责激活的房间回复
++安装 descriptor 默认 `~/.paos/installation.json`，全局 `--installation-file` 须放子命令前；连接地址另由 config 或 `PAOS_BASE_URL` 提供。`session report/submit` 的第二个参数在 help 中叫 Session ID；当前 Stage 2 CLI 使用与 `orient/status` 相同的稳定 Agent ID 定位该 Session。TODO 当前区异常时，`orient` 应显示仍可信的 PAOS live Work 和具体出错的读面，不从历史猜当前动作。
+ 
+-当前安装的既有房间未声明 `activation_owner` 时按 `cat` 处理。以下使用现有 CAT HTTP 通道；激活由该房间已有 Runtime adapter 负责。
+-
+-```powershell
+-$Peer = '<从房间实际参与者读取的目标 participant ID>'
+-$ReceivedExchange = '<实际收到的 exchange ID>'
+-$Payload = @{
+-  operation_id = '<本次发送的唯一且稳定 ID>'
+-  sender_id = $Participant
+-  target_id = $Peer
+-  reply_to = $ReceivedExchange
+-  content = '已读取。当前责任、执行结果或阻塞、证据位置、下一步。'
+-} | ConvertTo-Json -Depth 6
+-$Sent = Invoke-RestMethod -Method Post -Uri "$CatBase/api/rooms/$Room/exchanges" -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($Payload))
+-$Sent.exchange.exchange_id
+-```
++`session submit` 只结束本人执行，不将 Work 自动送审或验收。交付按项目责任把成果送正式验收人。Stage 2 的普通状态读面命令名以最终 CLI help 为准，不把本页意图词猜成已部署命令。
+ 
+-新话题移除 `reply_to`。Rooter 只有在已获通信授权时使用 `sender_id = 'human'`，不伪装 Project participant。同 operation ID 只重试相同载荷，否则会出现 `operation_conflict`。
++## 安装与共享方法入口
+ 
+-**Human 发来的 Exchange 不能在本 CAT 房间里直接回复 Human。** 当前 CAT 合同只允许把 `target_id` 设为房间现有 participant；`human` 仅可作为发送者，`target_id=human` 返回 422。此时先由自己 ACK 所收消息，再把业务回报写到自己的固定工位，并通过已有合法持久通道送给请求者：Project 内交给 Coordinator；给 Rooter 的安装治理回报可写入 `C:\Users\remo\Desktop\agent学习计划\PAOS-Rooter\rooter-001\mailbox\`（沿用 PAOS Workstation Mail Markdown 格式），或由 Coordinator 正式转交。不要为了能在 CAT 中回复而新建虚构 participant。
++Rooter用现有安装命令准备一份Source checkout之外的配置，Windows/WSL读取同一描述。以下路径来自已接受的安装manifest，不由员工各自复制或猜测。
+ 
+-完成本条收件处理后，由收件 Runtime 自己 ACK：
+-
+-```powershell
+-$AckFields = @{
+-  participant_id = $Participant
+-  exchange_id = $ReceivedExchange
+-}
+-if ($null -ne $BoundGeneration) { $AckFields.ownership_generation = $BoundGeneration }
+-$AckPayload = $AckFields | ConvertTo-Json
+-Invoke-RestMethod -Method Post -Uri "$CatBase/api/rooms/$Room/acknowledge" -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($AckPayload))
++```text
++paos --installation-file <descriptor> install configure --source-root <accepted-source> --library-roots-config <roots-config>
++paos library init skill --root <skill-root>
++paos library roots set --workflow-root <workflow-root> --skill-root <skill-root> --config <roots-config>
++paos --installation-file <descriptor> install show
+ ```
+ 
+-ACK 只确认该通信项，不表示任务验收。CAT 当前合同对有 generation 的 participant 强制校验本 Runtime 提交的整数；没有 generation 时允许省略。409 `stale_or_missing` 要保留原错误并停止该旧消费者，不拉取新 generation 绕过。
+-
+-### 5.3 只有 PAOS 已接管激活的房间才用 agent chat
++已有Library文件不等于完成安装初始化；例如Skill使用事件目录在Git副本中可能尚不存在。使用公开init入口补齐所缺安装结构，保留原内容和生产使用历史；随后roots登记成功才称方法库可用。WSL通过`--installation-file`或`PAOS_INSTALLATION_FILE`读取同一Windows描述，不在各会话另建不同默认配置。生产指向已发布Source与Library；隔离验收显式指向候选，不覆盖生产描述。
+ 
+-房间明确 `activation_owner=paos` 且 Agent 映射完整时：
++## 三种消息来源
+ 
+-```powershell
+-paos agent chat $Project --room $Room --to $Recipient --from-agent $Agent --body '消息正文' --root $Vault --cat-base $CatBase
+-```
++工位 Mail 是跨 Runtime 可找的持久信；正式 Requests 是 PAOS 的责任/复核/验收事项；CAT 是已有房间里的讨论。三者都可能有用，但不互相冒充。
+ 
+-普通 Agent 不省略 `--from-agent`，省略会走 Human 发送语义。`cat_activation_owner_conflict` 表示通道不匹配；先检查房间归属，回到该房间现有合法通道。不要手改 Store 或同时启动两套激活者来消除报错。
++没有配置 CAT 是“不适用”；CAT 或 Mail 读取失败是“未知/失败”，不是零消息。orient 的 Work 与 TODO 冲突时展示两处来源，不能把旧 next 拼到新 Work。有未读信不意味着必须放下当前任务，Agent 按目标判断优先级。
+ 
+-## 6. 记录工作与收尾
++## 送达不等于交付
+ 
+-每次报告前更新自己的 TODO：当前责任、已经完成的动作、证据、阻塞、下一步。Project 正文与成果落 canonical Vault；临时 Runtime 目录不成为第二个 current truth，参见 [Project Work World Guide](guide-project-work-world.md)。
++责任交付需要下一位马上接续时用 `agent send`，它先持久投递再沿已有绑定激活。已经用 `mail send` 交付的同一封信，可用 `agent notify --mail` 激活，不重投正文。普通留信用 `mail send`；单独调用它不会唤醒收件人。回复和旁证是否需要激活按实际协作判断，不给每封信息自动派任务。
+ 
+-若命令会在本轮结束后继续写飞书、文件或其他外部目标，先在 TODO 留下目标、进程/脚本入口、负责人、预计完成和停止方式。交接前查最终结果与 revision/回执；未结束则明确交给下一 Runtime，接班者先查在途写入再动同一目标。`本轮没有编辑` 不能证明旧后台命令已经停止。
++发任务或交成果的启动说明也必须采用同一语义：要求下一棒工作的结尾不能只写 `mail send`。发送者保持交接待办，核到下游实际读取并开始工作；等待前约定成果位置和回流通知方式。下游完成后持久回报并通知收口者接续。对应自动路径不支持时明确手动方法，不假报自动接续完成。
+ 
+-PAOS 写入使用本 Runtime 正式获发的 claim。下面变量不能靠读取最新 Session 临时“续权”：
++依次区分：持久消息存在、Runtime 可达/未知、本人消费/回复、业务成果/验收。`agent send` 返回 `woken` 只表示唤醒任务已被接收，不证明原生回合已经开始。对方未接续时，用 `paos wake probe <project> <agent>` 查看最近一次 worker 的实际状态，再核对对方的新回合或成果；`timed_out`、`uncertain` 交 Rooter 定位运行入口，保留原邮件，不重复派工。
+ 
+-```powershell
+-$IssuedCycle = '<本 Runtime 获发 cycle>'
+-$IssuedPack = '<本 Runtime 获发 context pack ID>'
+-paos session update $Project $Agent --status working --summary '本轮实际进展' --next-action '下一个动作' --execution-cycle $IssuedCycle --context-pack-id $IssuedPack
+-paos session artifact-add $Project $Agent --path '<持久成果路径>' --type '<成果类型>' --purpose '成果用途' --execution-cycle $IssuedCycle --context-pack-id $IssuedPack
+-```
++超时或 uncertain 不等于对方没有执行；任务长于观察窗口也会返回 uncertain。先查看同一条消息的状态、精确当前接收者、新原生回合和产物，保留已有消费证据；不盲目重发带副作用的指令。回复沿原线程，不为能回复而新建假 Participant。Rooter/Human 联系入口使用安装现有持久通道；不冒用同事身份。
+ 
+-需要新 intake 的 Agent 自己执行 `session ack`；结束执行由自己 `session close`；切到已明确的真实责任用 `session switch-work`，随后按新 intake 处理。具体必填参数先读各命令 `--help`。Close 是 Agent 自己的执行证词，不会自动把 Work 设为 done。
++## 问题定位
+ 
+-Coordinator 通过 `coordinator work-transition / assign / request / review-setup` 等正式路径治理 Project。长期 Coordinator grant 不随 cycle 自动失效；当前执行 claim 仍约束每次写入。Human-only 验收、恢复等动作按权限矩阵处理，不能用普通 Agent 命令替代。
+-
+-Rooter 先向 Coordinator 获得“谁应工作、做什么”的项目意图，然后直接处理 onboarding、工位、canonical path、Wake、可达性等安装治理。Rooter 不建立虚构的 Project Session，也不代别人 Ack / Close。
+-
+-## 7. 出错时按阻塞层定位
+-
+-| 现象 | 下一步 |
++| 现象 | 动作 |
+ | --- | --- |
+-| `workstation_missing` / 意外 unbound | 核对 Project Vault、Agent ID 与固定工位，再查正式配置；先排除误用 Source 作 root |
+-| Mail delivered，尚无回报 | 查 activation、当前 probe 与 native turn；保留 message ID，收实际消费证据 |
+-| CAT Exchange 已保存，但未消费 | 查房间 owner、精确 participant 的 adapter 与 native Runtime；不把 PAOS Wake 成功当成 CAT adapter 健康 |
+-| 同一 Agent 的 PAOS Wake 与 CAT 指向不同原生会话 | 对照两边的精确 native session ID、最近回合与当前工位；先确认哪个会话承担当前 Work。停用旧消费者，再按各自正式 stop / setup 合同对齐到同一个当前 Runtime；不向两个会话投同一任务，也不从 Room 读取新 generation 填给旧消费者 |
+-| OpenCode CAT `setup` 报 CAT 不可达，但 adapter 已启动 | 先运行 `status` 核对实际 binding、进程和 `runtime-evidence.json`。当前 service 的校验函数在 scope 未设 `cat_base` 时从调用环境的 `CAT_BASE` 取值，`setup` 的末尾参数只传给 adapter 环境；因此在 WSL 调用前给校验命令设置同一个 `CAT_BASE`，再确认 `EVIDENCE-OK`。不要把校验命令的默认 `127.0.0.1` 失败误报为 CAT 实际断线；该接口不一致应反馈 3002。|
+-| Wake `uncertain`，但原生会话仍活动 | 读取该 attempt 与原生回合，核对 Mail/TODO/Work 的实际消费；未判明在途回合前不重投、不替换绑定。接班前取得正式 stop 的 `safe_to_rebind` 回执 |
+-| OpenCode 工具一直显示 `running`，但无文件变化 | 查同一会话日志和待处理 permission；例如 `bash rm` 可能命中 `action=ask` 等待批准。未得到本次授权前不要改用等价删除路径绕过规则；保留未提交改动，继续其他已授权工作或报告准确阻塞。|
+-| execution claim / ownership 冲突 | 停止旧 Runtime 写入，记录绑定和原错误，走恢复/交接；不偷换最新凭据 |
+-| `blocked by policy` | 记录被拒绝的动作、执行层、是否已发出请求及原错误；区分 Runtime 执行限制、PAOS contract 拒绝、调用入口错误 |
+-| 服务不可达 | 检查本 Runtime 可达地址与健康状态，再定位服务或网络入口；不直接重启所有服务 |
+-
+-调用错误用现有正确通道修复；安装机械问题由 Rooter 处理；确认的 PAOS 产品缺口交 Project 3002。只有真实方向、偏好或授权决策才请求 Human。执行环境明确拒绝的动作不能换 shell / helper 绕过。
+-
+-停止一个 CAT Room 会影响全部参与者，并不等于撤销某个 Runtime 身份。单 Agent 的恢复、停止和撤销按 adapter 正式控制执行；全局 recovery watcher 可能重启已停止的 bridge，不能把全局启动/停止当成单 Agent 修复。
+-
+-## 8. 操作依据与维护
+-
+-- PAOS CLI：本机 `paos <command> --help`。
+-- [PAOS 权限矩阵](C:/Users/remo/Desktop/agent学习计划/PAOS-Projects/3002-Personal-Agent-OS/Source/personal-agent-os/docs/AUTHORITY-MATRIX.md)。
+-- [CAT Codex Event Bridge](C:/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/CODEX_EVENT_BRIDGE.md)。
+-- [CAT Runtime 接入说明](C:/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/AGENT_ONBOARDING_PROMPT.md)。
+-
+-具体 Agent 的 ID、claim、Room、端口和下一步保存在它自己的工位/Runtime 配置；本指南不保存易过期的个人绑定。接口或安装路径变化时更新本指南并重建 Workflow catalog；实际接手者报告“从哪个 ENTRY 找到、执行了什么、留下什么回执”，据此修正真正影响操作的缺口。
++| 本会话已被接替 | 停止执行并留未交成果与外部进程状态；新会话继续原责任 |
++| 工位/身份不符 | 查 ENTRY、Project、当前 cwd 与安装配置；旧 locator 仍指向旧工位时交 Rooter 收敛入口，不继续向旧 TODO/Mailbox 写当前结果 |
++| Library 缺失或损坏 | 展示具体配置路径和错误，交 Rooter修安装；不合成假 Source |
++| 消息有但对方无回应 | status 查看持久投递、最后一次 Wake/Probe 与 Mail 处理标记；再核实际原生会话或后续成果。`not_observed` 表示本 CLI 没有原生回合证据 |
++| Mail 返回 `mail_write_failed` / `Permission denied` | `status <project> <agent> --message-id <id>` 先查是否已持久落盘；未落盘时通过获准的 Runtime/OS 写入入口用相同 message ID 和正文重试。权限仍拒绝时交 Rooter 修当前运行环境；不手工写 dispatch/mailbox 文件 |
++| CAT locator 分裂 | 核 participant/scope/native binding/Wake 的一致性，修既有单消费者再验真实消息 |
++| OpenCode 在后台运行，桌面看不到会话 | 使用 `opencode attach <当前 server URL> --session <当前 session ID>` 展示既有会话；URL 与 ID 从当前安装联系信息取得。同一端口已由 serve 占用时，attach 连接该服务。回合结束后的 idle 表示本回合已结束，业务是否完成仍看 TODO 与成果 |
++| Harness 工具 ask/拒绝 | 报具体工具与限制，使用已有授权入口；PAOS 不能声称解除外部策略 |
++| CLI 参数不认 | 看当前版本 help，校准共享指南；不回源码考古或造新业务对象 |
++
++普通安装机械问题交 Rooter，项目责任与优先级交 Coordinator，真正产品语义冲突交 3002/网页主线。
+diff --git a/workflow/Guides/guide-project-work-world.md b/workflow/Guides/guide-project-work-world.md
+index a77c1da..b64c496 100644
+--- a/workflow/Guides/guide-project-work-world.md
++++ b/workflow/Guides/guide-project-work-world.md
+@@ -1,235 +1,63 @@
+ ---
+ schema: paos-workflow/v1
+ id: guide-project-work-world
+-title: PAOS Project Work World Guide V1.1
+-description: Agent 与 Coordinator 维护 Project Vault、判断文件归属并保持唯一 current truth 的共享规范。
+-tags: project, vault, canonical-truth, workstation
++title: Project 文件与 Git
++description: 成果归项目、当前入口清楚、历史可读，文本版本使用现有 Git。
++tags: project, files, git, current
+ status: active
+-version: 1
++version: 3
+ ---
+ 
+-# PAOS Project Work World Guide V1.1
++# Project 文件与 Git
+ 
+-## 1. Project Vault 是什么
++项目文件承载正文、输入、判断与成果；PAOS 保存正式责任与验收。文件整理服务下一位读者，不要求完整归档仪式。
+ 
+-Project Vault 是某个长期 Project 的主要工作语境。
++## 放在哪里
+ 
+-目标：
++| 内容 | 正常位置 |
++| --- | --- |
++| 当前正文、分析、复核、交付 | Project 的 Works / Decisions 或已有对应目录 |
++| 常用外部输入快照 | Materials，说明来源、版本与是否仍权威 |
++| 外部 live 飞书、共享源码/资料 | INDEX/成果中的直接引用，不冒充可写副本 |
++| 本人 ENTRY / TODO / Mail / 可选笔记 | 固定 Workstation |
++| 工具绑定、缓存、原生聊天 | Runtime/安装配置，不混进正文 |
++| 被取代的版本 | 原位历史标记或 Archive，退出当前导航 |
+ 
+-> Human 或 Agent 进入 Project 后，通常可以直接找到当前正文、常用材料、重要过程成果、Decisions 和工作入口，不需要去旧 workspace、Downloads 或 Runtime 目录考古。
++PROJECT 根的 INDEX 指当前正文，TEAM 指当前同事。目录按真实用途建，不为模板创建空树。Working Memory 有用内容成为普通文件；同一结论已经在报告里就引用它。
+ 
+-它不是：
++## 当前页与历史
+ 
+-- 外部文件索引；
+-- Runtime 数据仓库；
+-- 所有相关资料的无差别副本；
+-- PAOS governance Store。
++本人负责自己的当前入口。替换文稿时更新 INDEX/成果引用，让旧稿退出 current；长过程从 TODO 移到已有报告或历史。无法判断哪个正文生效时找 Coordinator，不按文件名或修改时间猜。
+ 
+-## 2. 最小结构
++正式状态在 PAOS，TODO 解释自己准备怎么继续。checkbox 完成不代表验收；提交记录不代表 Work 已接受。参考快照注明来源即可，不给普通资料增加逐文件哈希和必填 provenance 账本。
+ 
+-```text
+-<Project Root>/
+-├─ INDEX.md
+-├─ Inbox/
+-├─ Materials/
+-├─ Works/
+-├─ Decisions/
+-├─ Workstations/
+-└─ Archive/
+-```
++## 项目文本 Git
+ 
+-职责：
++2001/3002 的正文、INDEX、TEAM、工位 ENTRY/TODO、项目规则可进入本地 Git。Source 与 Library 保持独立仓库，不嵌成同一份历史。
+ 
+-- `INDEX.md`：当前主线与重要入口，不复制实时 PAOS 状态。
+-- `Inbox/`：暂时无法判断归属或状态的内容。
+-- `Materials/`：会议、调研、参考资料等工作输入。
+-- `Works/`：Project 自己产生的正文、过程成果、Review、交付物。
+-- `Decisions/`：已经形成并持续影响 Project 的决策内容。
+-- `Workstations/`：长期 Agent 的 `ENTRY / TODO / mailbox`，不是成果仓库。
+-- `Archive/`：已退出当前工作语境但需要保留的历史内容。
++排除 private-data、运行绑定、缓存、密钥配置、大媒体与原生聊天；Workstation mailbox/log 是否跟踪按安装隐私与真实恢复用途决定，不把整棵 Runtime 目录收进 Git。共享目录提交前读差异，只提交自己负责的路径或 hunk，不用 `git add .` 带走同事修改。
+ 
+-子目录按 Project 实际需要建立，不要求所有项目完全一致。
++在有意义的进展或交付处提交，给出做了什么。冲突查看双方新内容再合并；不会处理时请同事一起解决，不整文件覆盖。Git 提供版本、差异和恢复，不手抄 Git log，也不能回滚飞书的外部写入。
+ 
+-## 3. Agent 遇到新文件时怎么判断
++## V1.2 转换与回退演练
+ 
+-按下面顺序处理。
++`paos_v12_convert.py` 的输出是**需要叠加的变更文件集，不是完整 Project Vault**。不能用输出目录替换现有项目目录。
+ 
+-### A. Runtime / App state
++1. 同一时间冻结 Project JSON 与整个 `Workstations/`，放入同一个只读 fixture；Project JSON 的 revision 和工位文件都要能代表同一输入时点。
++2. 用 exact candidate 的 converter 对 fixture 执行 dry-run：
+ 
+-例如：
++   ```text
++   python <Source>/scripts/paos_v12_convert.py --project-json <fixture>/project.json --vault <fixture> --out <candidate-output> --json
++   ```
+ 
+-```text
+-Session / Cycle / TODO / mailbox / runtime log
+-.obsidian / .workbuddy / 临时执行状态
+-```
++   若当前 Runtime 的 Python 不在 PATH，使用该 Runtime 已配置的 Python 路径。先核 `errors`、Project JSON 不变和报告中的 Agent 清单；再逐份检查新 TODO 是否保留当前责任、等待、成果和本人 Ack 边界。`pending_ack` 只能保留为等待本人确认，转换不代表 Agent 已 Ack。
++3. 构造隔离候选时，先完整复制 fixture，再把 converter 输出中相同相对路径的文件叠加进去。保留未被输出提及的 Project 和 Workstation 文件。
++4. 演练回退时，对每份本轮生成的 `TODO.pre-v12.md` 将原字节恢复为同目录 `TODO.md`，删除本轮新增的备份文件，并恢复原始 `project.json`。逐项比较完整文件路径与内容，确认结果回到冻结输入；不要仅凭 `errors=[]` 宣布转换与回退通过。
+ 
+-→ 留在 Runtime，不进入 Project 内容层。
++Stage 2 只在隔离副本演练，不写生产 Project/Library/Store。只有明确进入 Stage 3 后，才按其正式切换指令操作生产目录。
+ 
+-但其中有长期价值的 Review、分析、总结、Handoff 等，可以提升进 Vault。
++## 归档与边界
+ 
+-### B. Project 自己产生、以后还会使用的内容
++Coordinator 判断项目内容与团队责任，Rooter处理安装、跨项目运行与旧项目退出。Human 明确保留的主稿或方向取舍仍遵循其要求。普通成果归位和个人当前页维护无需逐文件审批。
+ 
+-→ `MOVE-CANONICAL`
+-
+-放入 `Works/` 或 `Decisions/`，成为正常工作位置。
+-
+-### C. 与 Project 直接相关、日常经常读取的外部材料
+-
+-→ `COPY-LOCAL`
+-
+-放入 `Materials/`，同时记录来源。
+-
+-### D. 必须保持外部权威的内容
+-
+-例如：
+-
+-- live Feishu 文档；
+-- 其他 Project 的源码仓库；
+-- 集中维护的共享源。
+-
+-→ `REFERENCE-ONLY`
+-
+-不要制造第二个事实源。
+-
+-### E. 已被取代
+-
+-→ `Archive/` 或明确标记 `HISTORICAL`。
+-
+-### F. 无法可靠判断
+-
+-→ `Inbox/`
+-
+-不要靠文件名、mtime 或“final-v2-final”猜 canonical。
+-
+-## 4. 只有一个 Current Truth
+-
+-同一逻辑内容正常情况下只能有一个 current writable truth。
+-
+-允许同时存在：
+-
+-- historical copy；
+-- runtime evidence；
+-- staged candidate；
+-- Project-local reference snapshot。
+-
+-但它们不能冒充 current canonical。
+-
+-`STAGED` 在正式切换前也不能当成 canonical。
+-
+-## 5. COPY-LOCAL 的来源记录
+-
+-普通 Project-native 文件不要求额外 provenance。
+-
+-`COPY-LOCAL` 至少记录：
+-
+-```text
+-local_path
+-source_locator
+-source_owner
+-source_authority
+-captured_at
+-update_policy
+-canonical_status
+-```
+-
+-推荐统一写入：
+-
+-```text
+-Materials/_sources.jsonl
+-```
+-
+-COPY-LOCAL 默认是 snapshot，不代表自动同步。
+-
+-普通资料不要求 SHA-256。只有关键迁移、内容歧义或完整性风险时才做强校验。
+-
+-## 6. Agent 默认可以自主做什么
+-
+-普通 Agent 可以自行：
+-
+-- 将自己的 Project 成果写入合理的 `Works/`；
+-- 将有长期价值的 Runtime output 提升进 Project；
+-- 将常用外部资料 `COPY-LOCAL`；
+-- 创建 provenance；
+-- 更新自己新增内容对应的 INDEX 导航；
+-- 整理明确的历史版本。
+-
+-完成或替换成果时，顺手更新自己负责的当前入口：保留被替代版本的可追溯位置，并从 `Current/` 或 INDEX 中移除会误导下一位读者的旧入口。涉及 Project 主稿去留或多方事实冲突时，先请 Coordinator 判断；不要凭文件名批量归档。
+-
+-不需要 Coordinator 逐文件批准。
+-
+-## 7. 什么情况才升级
+-
+-### 找 Coordinator
+-
+-当出现：
+-
+-- 多个 Agent 产生 competing current truth；
+-- 跨 Work 成果需要整合；
+-- Project 内出现 split truth；
+-- 普通 Agent 无法判断 Project-level canonical。
+-
+-### 找 Human
+-
+-当出现：
+-
+-- Human 正在维护的文件需要移动、重命名、覆盖或改写；
+-- Project canonical 要正式从 A 切换到 B；
+-- ownership 涉及多个 Project 且无法确定；
+-- root / key_files / Artifact pointers 等 governance truth 需要改变。
+-
+-Agent 不应为了“整理得漂亮”擅自改写 Human 文件。
+-
+-## 8. Workstation 与 Project 成果的边界
+-
+-```text
+-Workstation
+-= Agent 当前办公桌
+-
+-Project Vault
+-= Project 长期工作世界
+-```
+-
+-`ENTRY / TODO / mailbox` 留在 Workstation。
+-
+-真正具有长期 Project 价值的：
+-
+-- 正文；
+-- Review；
+-- 分析；
+-- Handoff；
+-- 阶段总结；
+-- 交付物；
+-
+-应进入 `Works / Materials / Decisions`，不能只留在某个 Session 或 Cycle output 中。
+-
+-## 9. 与 PAOS 其他层的边界
+-
+-- **Project Vault**：Project 的正文、材料和长期工作成果。
+-- **PAOS registry**：Project / Work / Session / Request / Decision / Artifact 等治理事实和索引。
+-- **Artifact pointer**：重要成果的稳定 locator，不代表 Vault 中每个文件都要登记 Artifact。
+-- **Workflow Library**：Agent 如何组织和推进工作。
+-- **Skill Library**：可复用的执行能力。
+-- **Workstation**：长期 Agent 的稳定工作入口。
+-
+-不要把这些层合并成一个 Library。
+-
+-## 10. 默认原则
+-
+-Agent 只需记住：
+-
+-```text
+-Project 自己的成果 → 放进 Project
+-高频外部输入 → COPY-LOCAL + provenance
+-外部 live truth → REFERENCE-ONLY
+-Runtime state → 留 Runtime
+-旧版本 → Historical / Archive
+-不知道 → Inbox
+-Human 文件 → 不擅自改
+-真正事实冲突 → 再升级 Coordinator / Human
+-```
+-
+-规范的目标不是完美归档。
+-
+-目标是：
+-
+-> 新 Agent 进入 Project 后，可以自然找到当前事实和正常工作所需的主要上下文，同时不会把历史、Runtime 或外部副本误认为 current truth。
++旧 Project 退出 active/自动运行时保留历史与引用；2001/3002 仍使用的共享资料原位保留。归档不把旧 Work 改成 done，不重新 onboarding 历史成员，不为目录整齐搬整个 Vault。
+diff --git a/workflow/Guides/guide-rooter-installation.md b/workflow/Guides/guide-rooter-installation.md
+new file mode 100644
+index 0000000..dbb9b1c
+--- /dev/null
++++ b/workflow/Guides/guide-rooter-installation.md
+@@ -0,0 +1,57 @@
++---
++schema: paos-workflow/v1
++id: guide-rooter-installation
++title: Rooter 安装与例外循环
++description: 取得项目组织意图，治理安装与跨项目运行，验证真实到达。
++tags: rooter, installation, recovery
++status: active
++version: 3
++---
++
++# Rooter 安装与例外循环
++
++Rooter 使用 Human operational authority。Project meaning 由当前 Coordinator 判断，PAOS 产品代码由 3002 实现，Rooter负责安装与跨项目运行秩序。某阶段不碰生产 Store 是阶段边界，不是永久权限限制。
++
++## 保持当前责任
++
++从 Rooter Home 的稳定 ENTRY、TODO 当前区和消息恢复。当前只写目标、阶段、下一步、等待、成果和在途动作；旧证据移报告。派生故障不阻断当前交付时先记录，不拿它替换主线。
++
++先区分判断：工作是否继续、谁在当前团队、内容/优先级找 Coordinator；责任已经明确后的工位、配置、可达、旧 locator 和通信恢复由 Rooter直接处理，不逐项等批准。
++
++## 一条真实路径
++
++对已明确的当前成员核对：固定工位→正确 Project/安装入口→实际 Runtime 与消费者→持久 Mail→已支持 Wake/CAT 连接→原生消费。读取事实、修对应机械缺口、用实际消息或工作验证。
++
++组件 READY 不代表接班成功。`agent send` 回报 `woken` 后仍要用 `wake probe` 核最近 worker 状态，并观察目标原生回合是否消费；worker 超时或消息只被 ACK 都不能结案。CAT 修复核已有 participant、scope、native binding 和单消费者；不为通过验收自建第二 consumer。旧 ENTRY/TODO 若还把历史目录称为固定工位，先将已写的当前结果归回 canonical 工位，再让旧入口只指向 canonical，核对旧目录不再接收当前输出。工具无自动 Wake 支持时明确手动入口，不为待机成员造假任务。
++
++通信可用仍可能业务停滞：若消息已消费但 TODO 可执行责任未完，读最后原生回合判断为何停止，与 Coordinator 修接续提示或运行配置，并确认执行者开始实际实施。不要把“下一次提示再做”当作已交接；也不要反复唤醒忙碌实例。Rooter维护接续的运行条件，Coordinator维护目标与责任，执行者持续推进已授权工作。
++
++新 Runtime 从固定 ENTRY、当前 TODO 与 `orient` 恢复稳定 Agent 身份和原责任，不由 Rooter 分发 owner、instance ID 或 Cycle claim。切换时手动停止旧会话及旧消费者；revision 冲突、原子写入与幂等回执仍由 PAOS 处理。CAT 的 participant/generation 只用于 CAT 连接，不构成 PAOS 业务授权。
++
++遇 policy/权限错误先定位是 Runtime 工具策略、PAOS 合同或调用错误；不把所有执行问题都升级为 Human 方向 blocker。已有合法入口能解决就用它，产品缺口路由 3002，外部工具拒绝保留真实限制。
++
++## 版本与恢复核查
++
++分别核安装文件版本、正在运行的服务版本、绑定期望版本和会话创建时版本。文件已升级但进程仍运行旧二进制时，确认本人空闲与原会话持久可读，再按现有运行管理入口重启；重读服务版本并更新正式绑定。会话创建版本是历史事实，不为追齐版本重建长期身份。适配器精确HEAD改变也须同步所有引用该checkout的绑定，不能把实际运行入口误认为纯隔离候选。
++
++服务在线仍须核本人消息消费和产物。激活观察超时但已有新原生回合或文件时，保留这份消费证据；不要为了等完整回合而反复唤醒。真实长期稳定性在阶段验收中另外证明。
++
++更换绑定后，旧消息的notify可能因原attempt绑定旧fingerprint返回wake_attempt_id_conflict。保留旧尝试与持久正文；由Rooter按当前版本wake trigger --help，用该原消息source与新的明确恢复attempt做一次接续，禁止改旧记录或无界重试。普通Agent不必学习底层尝试账本，此摩擦提交3002改进正常CLI。
++
++外部workspace credits、上下文压缩和审批服务错误分别记录。具体动作被拒不能绕过；资源恢复后用正常入口接续授权工作，同时推进没有被拒的部分。不要把一次历史资源错误当永久业务审批层。
++
++## 公告式采用
++
++发布同一 Source/config/Library/converter 版本后，各项目 Coordinator 发一封持久公告。成员自改 ENTRY/TODO/TEAM、接入并消费消息，Rooter汇总采用/待机/具体阻塞并修例外。
++
++按 [统一采用完成标准](guide-upgrade-adoption.md) 核正在运行的实际安装。代码已push、已merge或隔离测试已通过时，总责任仍未完成；统一发布后再核所有当前入口及真实工作，不逐个长期留下旧配置。阶段禁止生产切换时保留这项等待与最终发布责任，完成候选可执行部分后交明确的切换计划。
++
++等待Coordinator或执行者时，告知结果应交Rooter Home哪份文件及哪个现有联系入口，并要求完成后通知Rooter接续。需要Rooter继续时，在获Human授权的既有Codex联系路径发送到当前Rooter聊天；若该Harness不支持自动回流，明确手动入口，不伪造PAOS Project Session或仅把文件落盘当作已通知。Rooter结束回合也遵守当前TODO有可执行未完事项就继续的规则。
++
++不为每位成员造升级 Work/Assignment，不代写本人消费或 Close，不替全员维护 TODO。真实需要换原生会话时由 Human 手动创建，PAOS不接管 Harness 生命周期。
++
++## 阶段与回退
++
++候选实现、演练、生产切换各按当前阶段合同推进。Stage 2 的转换只在副本，Stage 3 才按通过的切换计划停相关消费者、快照、转换与部署。回退代码、Store、入口和方法库同版，不用旧 Store 喂新代码。
++
++历史项目退出活动和自动运行但不改写过去；共享引用仍可达。不把清理数量当成功，完成看当前成员能否继续真实工作。
+diff --git a/workflow/Guides/guide-runtime-handoff.md b/workflow/Guides/guide-runtime-handoff.md
+new file mode 100644
+index 0000000..f9e88c7
+--- /dev/null
++++ b/workflow/Guides/guide-runtime-handoff.md
+@@ -0,0 +1,40 @@
++---
++schema: paos-workflow/v1
++id: guide-runtime-handoff
++title: Runtime 接班与在途外部写入
++description: 换会话保持责任与成果连续，明确外部副作用的完成、停止或接管。
++tags: runtime, handoff, external-write
++status: active
++version: 3
++---
++
++# Runtime 接班与在途外部写入
++
++消息唤醒后恢复的是员工已有责任，不是只完成一次收件动作。Runtime 提示应引导读取固定 ENTRY/TODO、处理消息、继续未完成且可执行的主线；只有没有后续责任、真实等待或阻碍才结束。不得用“只处理本次消息”把已经授权的原任务变成无关任务。
++
++同一会话压缩后从 ENTRY/orient 恢复。新会话由 Human 手动创建并给长期 Agent ID/Project/ENTRY，再用轻接入代表原成员；不新增责任或重新岗位授权。
++
++## 交给下一任什么
++
++当前 TODO 留：真实 Work/目标、做到哪、下一步、等谁、成果入口、在途动作。成果已有交付说明就链接它，不另写同义 Memory/Handoff。长期知识在普通 Project 文件，个人 notes 可选。
++
++新 Runtime 先读正式责任、当前页和消息，核对有无在途外部写入。换会话前由接班双方确认旧 Runtime 与旧消费者已停止；PAOS 不用 owner、instance ID、enter 或 Cycle claim 管接班资格。revision 冲突、原子提交与幂等用于保护事实一致性。本人执行结束证词和 Work 验收分开。
++
++## 只有跨回合的外部修改需要交代
++
++启动可能在本轮结束后继续改飞书、文件或其他外部目标的进程前，记录：
++
++- 写入目标与当前基线/版本；
++- 进程、脚本或任务入口，以及停止方法；
++- 控制人、结果/回执查看位置；
++- 任务范围和预期结束条件。
++
++普通同步命令和只读操作不登记任务对象，PAOS不扫描整台电脑。旧 PAOS 写入绑定失效不代表旧 Python 进程停止。
++
++## 交接结论
++
++只能明确写：已完成并核对结果；已停止并核对目标；仍在进行且由谁明确接管。状态未知就保留未知和最后可核结果，不用“本轮未编辑”掩盖上轮未决副作用。
++
++接手人先确认真实进程/任务与外部 revision，再决定继续、停止或修复；不盲接最后 block 序号，不与旧进程并发修改同一目标。停止需用该任务已知的精确入口，不能为了清理杀无关进程。
++
++批量外部写入先读清参数语义，限定范围；“每批数量”不等于总批数。外部结果验收与内容含义分别判断，Git 或 PAOS receipt 不能自动回滚外部文档。
+diff --git a/workflow/Guides/guide-upgrade-adoption.md b/workflow/Guides/guide-upgrade-adoption.md
+new file mode 100644
+index 0000000..5644056
+--- /dev/null
++++ b/workflow/Guides/guide-upgrade-adoption.md
+@@ -0,0 +1,55 @@
++---
++schema: paos-workflow/v1
++id: guide-upgrade-adoption
++title: 当前升级说明与员工采用
++description: 改进在整个当前安装统一采用并支持真实工作后完成，成员自改入口，Rooter 收口例外。
++tags: upgrade, adoption, recovery
++status: active
++version: 2
++---
++
++# 当前升级说明与员工采用
++
++适用 2001、3002 当前团队及 Rooter。当前生产仍运行 V1.1；V1.2 Stage 2 已获实施 PASS，尚未生产切换。收到候选消息不表示可以在生产使用新 CLI、转换 Store 或重绑 Runtime。
++
++## 现在就按此工作
++
++1. 从固定工位 ENTRY 恢复，读个人 TODO 顶部、工位 mailbox 与 PAOS 当前责任。历史聊天、旧 Work 和历史 Session 名单不决定现在谁应工作。
++2. 更新本人 TODO：当前目标、下一步、等待和成果链接清楚；长历史不挡住当前责任。普通协作直接找同事，日常可执行动作主动推进，不等 Coordinator 逐条转发。
++3. Coordinator 岗位不因换会话到期，同一人继续同一责任不为手续另建 Work/Assignment。V1.2 正常工作删除 owner、instance ID、enter 与 Cycle claim 门槛。当前 V1.1 工具若仍被旧执行合同挡住，留下具体失败交 Rooter/3002处理；按当前可用入口推进独立工作，不伪造凭据或无限停等。
++4. 核本人固定工位、实际 Harness/native session 与当前安装联系入口是否一致。配置由 Rooter/工具管理，不在个人文件手抄 generation。发现旧会话仍自认当前实例、定位分裂或无法消费消息，给 Rooter 精确目标与证据。
++5. 无当前工作可待机；已收到公告不等于采用完成。待入场者只读取通知、准备入口，仍由本人完成入场证词。
++
++方法按需读共享 [操作指南](guide-paos-cat-operations.md)、[Project 文件指南](guide-project-work-world.md) 与 Skill Library。缺文件、缺入口、方法库不可达或调用失败直接反馈 Rooter；共享指南由 Rooter 维护，成员不复制一本手册。
++
++## V1.2 候选将改变什么
++
++新 Runtime 从固定 ENTRY、当前 TODO 与 `orient` 接续长期 Agent 和原责任；普通工作不再维护 owner、instance ID、`enter`、Cycle/claim/Context Pack。换会话时手动停旧会话与消费者，PAOS 保留 revision、原子写入和幂等回执。Working Memory 独立机制退出，正式责任在 PAOS、当前动作在 TODO v2、长期知识在 Project 文件、个人笔记可选。TEAM 负责稳定成员与联系入口，工具负责运行绑定；Work 验收与成员存在分开。
++
++这些是候选目标。最终整包通过并发布后，本页提供 exact manifest、安装入口与转换说明，各 Project 发一封公告，成员按共享说明自行采用。Rooter主动处理例外，不为每个人制造升级任务。真实方向、责任或 Human 内容冲突才交相应负责人。
++
++## 本人回执
++
++沿收到的工位公告回复一条短消息即可：已读；固定 ENTRY/当前责任/TODO 已核对；本人 Runtime/通信可达与否；具体缺口或待机状态。遇阻碍也先回真实结果，不必完成一篇报告。
++
++Rooter按成员收口「已投递、本人已读、采用完成、仍有例外」。配置存在、Wake accepted 或公告发出都不能代替本人读取和实际工作。离线成员下次从固定工位恢复时先读 mailbox 和本页。
++
++## 统一采用的完成标准
++
++同一份升级说明链接 Source、Library、CLI/config、转换与回退版本以及当前团队入口。用既有 Project 文件保存这份清单，不另建升级状态库。由 Project 3002 交完整实现与复核结果，Coordinator 收拢项目采用，Rooter 收拢安装采用。
++
++只有以下事项都成立，才结束本次改进：
++
++1. 通过当前阶段验收的代码已正常合并到正式发布主线；本地安装、启动入口和正在运行的服务使用已接受的同一版本。
++2. Windows/WSL 调用入口、安装描述、Library roots、Wake绑定及实际消费者一致。旧locator退出当前路径，旧workspace不再接收当前输出；保留历史与回退入口。
++3. 2001、3002及Rooter的当前入口、短TODO、TEAM和共享指南采用同一合同。已归档项目退出活动与自动运行；离线或待入场成员有明确恢复入口，不代其本人入场或确认采用。
++4. 当前团队沿真实任务验证恢复、同事联系、交付、下游消费及成果回流；明确自动、手动和不支持的路径。配置存在、测试通过或忙碌标记不代替真实工作。
++5. 安装和成员例外已经修复，或由当前验收者明确接受其范围、责任人和下一步；未接受的例外继续留在当前TODO。
++
++Source push、PR merge、转换成功、公告送达分别只是过程证据。尚未获准生产切换时，成果称候选，统一采用事项仍保持未完成；不以阶段边界把它删出总目标。
++
++## 交接的完成标准
++
++需要下一位接续的成果，先持久交付，再通过已有Wake联系。交付者确认下游实际读取并开始相应工作；下一位把成果回给指定收口者并通知接续。没有自动路径就明确手动入口及联系责任。各方共用原成果、TODO与通信记录，不新增强制ACK或第二套任务账本。
++
++观察超时先核同一个执行句柄或原生会话，不能据此重启正在执行的任务。有限检查后发现确实未接续，就修具体运行断点或交给对应负责人；等待者保留依赖、结果位置与唤醒方式。全队发送后同时待机而没有具体外部依赖，属于未闭环。
+diff --git a/workflow/README.md b/workflow/README.md
+index 97c9d93..166168c 100644
+--- a/workflow/README.md
++++ b/workflow/README.md
+@@ -1,65 +1,27 @@
+ # Workflow Library
+ 
+-共享工作方法库。这里保存可复用的 **Workflow Kernel** 与支持文件；Project 正文、Agent 工位与 Agent Skill 不放在这里。
++V1.2 Stage 1 隔离候选。发布前由 s010 的 exact manifest 固定 Source、CLI、Library、模板和转换器版本；本目录尚未替换运行中的 V1.1 Library。
+ 
+-## 两层架构
++## 入口
+ 
+-```text
+-Workflow Kernel  = 通用工作管理协议：何时 / 谁 / 权限 / 持久事实 / 收口
+-Skill Library    = 可复用执行经验：怎么做 / 技法 / 启发式 / 质量
+-```
++常驻规则只需两段：从固定工位与 PAOS 当前事实恢复责任，自主执行并主动找同事；实质进展、交付和交接时保持当前页清楚。压缩后重新恢复，忘记命令查 help/指南，专业方法按需读 Skill。
+ 
+-- `Workflows/`：Workflow Kernel 定义。
+-- `Guides/`、`Templates/`：Layer-1 支持文件；按真实重复问题维护，不按内容配额扩充。
+-- `CATALOG.md`：PAOS 根据 Markdown 元数据生成的目录，可重建。
++| 需要 | 读取 |
++| --- | --- |
++| 执行、协作、收尾和待机 | [Agent 工作循环](Workflows/wf-agent-work-cycle.md) |
++| 团队、派工、复核、验收 | [Coordinator 治理循环](Workflows/wf-coordinator-governance-cycle.md) |
++| 安装与跨项目例外 | [Rooter 操作](Guides/guide-rooter-installation.md) |
++| 接入、消息、提交与诊断 | [PAOS/CAT 意图指南](Guides/guide-paos-cat-operations.md) |
++| 正文、当前入口与 Git | [Project 文件与 Git](Guides/guide-project-work-world.md) |
++| 接班与在途外部写入 | [Runtime 交接](Guides/guide-runtime-handoff.md) |
++| 工位、TEAM、发布与公告 | [模板](Templates/README.md) |
++| 当前升级说明与本人采用 | [升级与采用](Guides/guide-upgrade-adoption.md) |
+ 
+-## Canonical Workflow IDs
++## 分层
+ 
+-只有两个通用 Workflow：
++Workflow 规定谁在何时维护什么、怎样协作和收口；Skill 提供专业方法。正式责任、岗位、Work 状态和验收来自 PAOS，共享方法不另建治理状态。
+ 
+-```text
+-wf-agent-work-cycle           员工长期工作循环
+-wf-coordinator-governance-cycle  Coordinator 项目治理循环
+-```
++保留两个通用 Workflow ID：`wf-agent-work-cycle`、`wf-coordinator-governance-cycle`。Guide 支持真实重复问题，Template 支持确定的文件结构。项目知识进普通文件，个人笔记按需；不注册独立 Working Memory，不复制指南到各工位。
+ 
+-默认**不创建 task-class Workflow**。软件、研究、PRD、迁移等任务共用同一 Agent 工作循环，只有加载的 Skill 不同。
+-
+-## Workflow vs Skill 边界
+-
+-```text
+-Workflow = 何时 / 谁 / 权限 / 持久状态 / 收口
+-Skill    = 怎么做 / 技法 / 启发式 / 质量
+-```
+-
+-Workflow 不得复制或重定义权限矩阵、Work/Request/Session 生命周期、验收状态、ownership generation 或 Project 治理事实——这些属于 PAOS 治理，Workflow 只负责"读取当前权威事实再行动"。Skill 独立发现与加载（见 Skill Library），不拥有 PAOS Work 状态或验收权。
+-
+-## Promotion rules
+-
+-```text
+-真实 Run 观察
+-→ 通用 Work 管理规则   → Workflow Kernel 变更
+-→ 执行方法 / 技法      → Skill
+-→ 仅单 Project 成立    → Project-local
+-→ 偶然 / 一次性        → 不推广
+-```
+-
+-支持文件（Guide/Template）只有在真实 Run 证明"内联在 Workflow 中会反复产生歧义或重复"时才新增。
+-
+-被 PAOS 识别的 Workflow 文档使用扁平 frontmatter：
+-
+-```markdown
+----
+-schema: paos-workflow/v1
+-id: example-workflow
+-title: Example Workflow
+-description: One-line purpose.
+-tags: planning, review
+-status: active
+----
+-```
+-
+-## 日常操作与恢复
+-
+-- [PAOS 与 CAT 操作指南](Guides/guide-paos-cat-operations.md)：压缩上下文后的恢复、Mail、CAT 收发/ACK、Wake 和问题定位。
+-- [Project Work World Guide](Guides/guide-project-work-world.md)：工位、Project 正文与成果归位。
++文档与 CLI 同版发布。新增共享规则先说明它替代哪份维护；临时尝试留项目，不为目录完整增加规则。`CATALOG.md` 和 `.paos/catalog.json` 从 Markdown 元数据生成，发布时使用 manifest 指定的 Library commit。
+ 
+diff --git a/workflow/Templates/README.md b/workflow/Templates/README.md
+new file mode 100644
+index 0000000..5ec5ed1
+--- /dev/null
++++ b/workflow/Templates/README.md
+@@ -0,0 +1,13 @@
++# V1.2 模板
++
++只复制所需正文，不复制本模板库的 catalog 元数据。共享规则留 Library，工位只留定位与链接。
++
++- [项目 AGENTS 入口](project-agents.md)：短共同规则，不写某位成员身份。
++- [长期工位 ENTRY](workstation-entry.md)：稳定身份、工位和安装入口。
++- [TODO v2](workstation-todo.md)：唯一当前区与待办区。
++- [TEAM](team.md)：当前成员与历史入口，按本人小节局部维护。
++- [共享发布说明](release-guide.md)：发布版本、操作入口和采用步骤。
++- [项目公告](project-announcement.md)：引用同一发布说明。
++- [采用汇总](adoption-result.md)：一张表，待机不造假工作。
++
++Source 内生成模板由 s027/s031 对齐同一版本。本候选的 CLI 参数示例待真实接口校准后填入；模板中的占位符发布前替换，不留虚构路径。
+diff --git a/workflow/Templates/adoption-result.md b/workflow/Templates/adoption-result.md
+new file mode 100644
+index 0000000..efb5dcd
+--- /dev/null
++++ b/workflow/Templates/adoption-result.md
+@@ -0,0 +1,19 @@
++---
++schema: paos-workflow/v1
++id: template-adoption-result
++title: 采用汇总模板
++description: 一张真实当前成员结果表，不要求逐人长报告。
++tags: template, adoption, evidence
++status: active
++version: 2
++---
++
++# 采用汇总
++
++manifest：<exact-version>；TEAM：<current-member-source>。
++
++| Agent | 当前责任/待机 | 入口与消息来源 | 本人采用/消费证据 | 真实动作或具体阻塞 |
++| --- | --- | --- | --- | --- |
++| <id> | <responsibility-or-standby> | <locator> | <receipt/link-or-unknown> | <result-or-blocker> |
++
++Rooter 汇总，不代本人 Ack/Close。待机不造假任务；不支持自动 Wake 的 Harness 明确手动方式。新 Codex/OpenCode 真机接班另覆盖完整场景，不强迫全员废弃健康原生会话。
+diff --git a/workflow/Templates/project-agents.md b/workflow/Templates/project-agents.md
+new file mode 100644
+index 0000000..e6719d1
+--- /dev/null
++++ b/workflow/Templates/project-agents.md
+@@ -0,0 +1,19 @@
++---
++schema: paos-workflow/v1
++id: template-project-agents
++title: Project AGENTS 入口模板
++description: Harness 实际入口中的两段共同工作规则。
++tags: template, harness, entry
++status: active
++version: 3
++---
++
++# 项目 AGENTS 模板
++
++从固定工位与 PAOS 当前事实恢复责任，按已明确目标自主执行，并主动联系相关同事。实质进展、交付或交接时更新 TODO 当前区；成果归项目，旧详情归历史，仍运行的外部动作必须交代。派生问题不阻断交付时先记录，不任意替换主线。
++
++压缩上下文或更换 Runtime 后重新从入口恢复。忘记操作查 CLI help 与共享 Workflow，专业方法按需读 Skill；不凭旧聊天猜命令，不为同一责任重复派工或角色授权。新原生会话按接入流程继续原身份，同一会话恢复只需只读 orient。
++
++结束回合前读 TODO 当前与待办：有可执行的未完成事项就继续；真实等待时写明依赖、成果入口和回流通知路径，并告诉提供者完成后持久交付及唤醒收口者。发送任务不是交接完成，下一位实际接住并推进才成立。改进需合并并在整个当前安装统一采用、验证真实工作后收口，不能只交候选或测试结果。
++
++使用说明：共同规则放 Harness 实际读取的项目说明，或由启动 Prompt 明确要求读取。具体 Agent 身份由短注入指定，不从此文件猜当前员工。不得声称任意 ENTRY 自动进入所有 Harness 上下文。
+diff --git a/workflow/Templates/project-announcement.md b/workflow/Templates/project-announcement.md
+new file mode 100644
+index 0000000..9063c70
+--- /dev/null
++++ b/workflow/Templates/project-announcement.md
+@@ -0,0 +1,20 @@
++---
++schema: paos-workflow/v1
++id: template-project-announcement
++title: 项目采用公告模板
++description: Coordinator 发一封持久消息，成员按同一说明自行采用。
++tags: template, mail, adoption
++status: active
++version: 2
++---
++
++# 项目公告正文
++
++主题：<Project> V1.2 采用
++共享发布说明：<single-release-guide>
++当前团队：<TEAM-current-members>
++反馈入口：<coordinator-contact>
++
++请读共享说明，更新本人工位 ENTRY/TODO 与 TEAM 本人小节，通过新安装入口继续既有身份。正常会话可以继续使用；Human 手动创建的新会话按轻接入流程接班。不要新增升级 Work/Assignment，不为续任重 grant。
++
++有真实责任者消费实际消息并继续一个原责任动作；待机者确认入口/通信即可。简短回报：已采用/待机/具体阻塞、成果或消费入口、仍在途外部写入。安装问题交 Rooter，责任和内容问题交本项目 Coordinator。公告本身不代表全员采用。
+diff --git a/workflow/Templates/release-guide.md b/workflow/Templates/release-guide.md
+new file mode 100644
+index 0000000..232bafe
+--- /dev/null
++++ b/workflow/Templates/release-guide.md
+@@ -0,0 +1,38 @@
++---
++schema: paos-workflow/v1
++id: template-release-guide
++title: 共享发布说明模板
++description: 一份发布说明供两项目公告引用，绑定一致版本。
++tags: template, release, adoption
++status: active
++version: 2
++---
++
++# V1.2 发布说明正文
++
++版本：<exact-manifest-link>；状态：<candidate/deployed>。
++安装描述：<stable-installed-config>。
++生效项目：2001、3002；Rooter Home 同版方法。
++
++## 怎样继续
++1. 从固定 ENTRY、当前 TODO 与 `orient` 恢复；新原生会话直接继续原责任。
++2. 读取工位 Mail、正式 Requests 与已配置 CAT；更新个人 TODO 当前区和 TEAM 本人小节。
++3. 有真实责任就继续并留正式写入/消息回执；待机成员确认入口与通信，无需假 Work。
++4. 把实际问题与证据送项目反馈入口。Rooter处理安装例外，Coordinator 判断责任。
++
++## 可复制命令
++按 [PAOS/CAT 意图指南](../Guides/guide-paos-cat-operations.md) 的已核对结构，填入以下安装值：
++
++- Windows 的 Python 和 `scripts/paos.py` 绝对路径；WSL 的对应可达路径。
++- 共用安装 descriptor 的绝对路径与连接配置。
++- 本人 Project、完整 Agent ID 与固定工位位置。
++
++发布人将这些值组成可复制的完整示例，覆盖 `orient`、`inbox`、`mail reply`、`session report` 与状态读取。命令不要求 owner、instance ID、必做 `enter` 或 Cycle claim。`session submit` 仅在本人确实结束执行时使用，不作为成果验收按钮。
++
++参考接口：s031 PR #113 `323c63ea07d301d5ecab77ee2351ad4613db205b`；待集成后替换为最终 exact manifest，完成 Harness 实际调用验证后发布。
++
++## 变化
++<简述旧 owner/instance/enter/Cycle/Memory 正常路径退出、责任持续、当前区和消息分源；链接指南，不另写一本操作手册>
++
++反馈：<project-coordinator-contact>；安装例外：<rooter-contact>。
++回退：<同版回退入口>。代码合并、部署和成员采用分别记录，未部署不宣称已升级。
+diff --git a/workflow/Templates/team.md b/workflow/Templates/team.md
+new file mode 100644
+index 0000000..0ce3a26
+--- /dev/null
++++ b/workflow/Templates/team.md
+@@ -0,0 +1,33 @@
++---
++schema: paos-workflow/v1
++id: template-team
++title: TEAM 模板
++description: 当前人工成员目录，稳定联系与历史入口。
++tags: template, team, peers
++status: active
++version: 3
++---
++
++# TEAM 正文模板
++
++```markdown
++# Team
++
++## 当前成员
++
++### <stable-agent-id>
++- 成员状态：在队
++- 职责/专长：<由 Coordinator 确认职责，本人补充专长>
++- Harness：<本人使用偏好>
++- 工位：Workstations/<agent-id>/ENTRY.md
++- 当前动作：Workstations/<agent-id>/TODO.md
++- 联系：PAOS <agent-id>；已有 CAT 讨论沿原线程回复
++
++## 历史与变化
++- 历史成员与交接：<已有历史入口>
++- 版本变化：本文件 Git 历史
++```
++
++Coordinator 维护成员归属/职责，本人局部维护介绍、Harness、工位和稳定联系方式。不手抄当前 Work、原生会话 ID、generation、端口或在线状态。读最新文件后只更新负责的小节；冲突不整表覆盖。TEAM 不是授权文件，在队不等于在线。
++
++同事状态读面从正式绑定和实际 Harness 派生当前在线/忙碌/离线/未知、服务端口、会话与检查时间，提供可复制的打开/attach命令，并链接成员 TODO。当前任务、下一步和阻塞从该 TODO 派生，不维护第二份进度。修改时间仅表明文件更新；不据此断言 Agent 正在执行。离线时单独展示已知的手动服务启动方法，不自动启动 Harness。
+diff --git a/workflow/Templates/workstation-entry.md b/workflow/Templates/workstation-entry.md
+new file mode 100644
+index 0000000..b86902c
+--- /dev/null
++++ b/workflow/Templates/workstation-entry.md
+@@ -0,0 +1,24 @@
++---
++schema: paos-workflow/v1
++id: template-workstation-entry
++title: Workstation ENTRY 模板
++description: 稳定身份与恢复入口，不存当前 Work 或临时连接。
++tags: template, workstation, entry
++status: active
++version: 2
++---
++
++# ENTRY 正文模板
++
++- 长期 Agent：<agent-id>
++- Project：<project-id>；根：<absolute-project-root>
++- 固定工位：<absolute-workstation-root>
++- 当前执行页：TODO.md
++- 当前同事：<project-root>/TEAM.md
++- 持久消息：mailbox/
++- 安装入口：<stable-installed-cli-entry>
++- Workflow/Skill：<stable-installation-library-locator>
++
++新原生会话先按安装 help 的接入流程代表此 Agent，再 orient；本会话压缩后只需 orient。正式责任在 PAOS，个人下一步在 TODO。命令忘记了读共享 PAOS/CAT 意图指南；未配置的功能如实显示。
++
++不要写当前 Work、原生 Session ID、Cycle、文档 revision 或端口。Rooter Home 使用 Human/Rooter 管理入口，不生成 Project Session；角色由正式岗位事实展开。
+diff --git a/workflow/Templates/workstation-todo.md b/workflow/Templates/workstation-todo.md
+new file mode 100644
+index 0000000..ed223ec
+--- /dev/null
++++ b/workflow/Templates/workstation-todo.md
+@@ -0,0 +1,40 @@
++---
++schema: paos-workflow/v1
++id: template-workstation-todo
++title: TODO v2 模板
++description: 当前事实解释与个人动作，历史不影响 current。
++tags: template, todo, current
++status: active
++version: 3
++---
++
++# 复制下方正文
++
++```markdown
++---
++schema: paos-todo/v2
++project_id: <project-id>
++agent_id: <agent-id>
++---
++
++# 当前工作
++
++## 当前
++Work：<exact-work-id-or-empty>
++目标：<本次目标>
++阶段：<正在执行/等待验收/待机>
++下一步：<一个有意义动作>
++等待：<谁应提供什么、结果入口与回流通知方式，或无>
++成果：<交付说明或当前成果入口>
++在途：<无，或目标/控制人/查看与停止入口>
++
++## 待办
++- [ ] T-001 <个人下一项动作>
++
++## 继续阅读
++- <已存在的成果/历史/指南链接>
++```
++
++Work 只写精确 ID，描述在目标；无当前 Work 可为空。当前与待办块只各有一份，历史/示例不置入当前块。勾完个人动作不表示 Work 已验收；已交报告直接链接，不再复制长过程。Rooter Home 不虚构 Work，使用自己的目标与待办。
++
++已发消息而下游还未接续的事项保留未完成；真实等待不能写成“全部完成、无当前责任”。历史勾选、旧计划与长过程放普通 Project 文件并链接，不让恢复工具扫描它们为 current。每个命令不要求更新 TODO，责任、成果或下一步有实质变化时更新。
+diff --git a/workflow/Workflows/wf-agent-work-cycle.md b/workflow/Workflows/wf-agent-work-cycle.md
+index 63a466f..77821ff 100644
+--- a/workflow/Workflows/wf-agent-work-cycle.md
++++ b/workflow/Workflows/wf-agent-work-cycle.md
+@@ -1,101 +1,57 @@
+ ---
+ schema: paos-workflow/v1
+ id: wf-agent-work-cycle
+-title: Agent Work Cycle
+-description: 员工长期工作循环：接单、执行、协作、证据、收尾与待机的通用协议。
+-tags: agent, work-cycle, kernel
++title: Agent 长期工作循环
++description: 从固定工位恢复责任，自主执行、直接协作、交付与待机。
++tags: agent, continuity, work, kernel
+ status: active
+-version: 2
++version: 4
+ ---
+ 
+-# wf-agent-work-cycle
++# Agent 长期工作循环
+ 
+-PAOS 员工的通用长期工作循环。它只规定"何时、谁、权限、持久事实、收口"，不规定任何专业任务的执行方法（那属于 Skill）。
++你是长期团队成员，对自己的执行、当前页与成果负责。正式责任由 PAOS 保存，专业方法按需读 Skill。换对话不重新派工，同一会话压缩上下文不重新入职。
+ 
+-## Outcome
++## 恢复
+ 
+-在明确的责任与权限内持续推进 Work：形成可复核的证据，保持自己的 TODO 为当前真值，并在该收尾时干净收尾、该待机时零空转待机。
++1. 从固定 ENTRY 确认身份、Project、安装入口与共享指南。
++   版本不清楚时先读 [升级与采用](../Guides/guide-upgrade-adoption.md)，区分已部署与候选。
++2. 新原生会话从固定 ENTRY、当前 TODO 和 `orient` 恢复已有 Agent 与原责任；压缩上下文时走同一入口。正常工作不办理 `enter`、Runtime instance ID、owner 或 Cycle/claim 手续。
++3. 分别读当前 Work、TODO 当前区、工位 Mail、正式 Requests；CAT 已配置时读讨论。来源冲突不能把旧 next 套到新 Work。
++4. 先确认有没有未决外部写入，再推进原目标。没有可执行的未完成责任时才待机；没有新消息或新派工不取消原任务。
+ 
+-## Role / Boundary
++收到消息先处理新增事实，再回到 TODO 的未完成主线。澄清、版本提醒和 ACK 不替换原任务；inbox 清空也不代表无工作。已有责任尚可执行时，在当前回合继续下一项，不等第二条“开始工作”消息，不在完成一个子项后提前结束整阶段实施。
+ 
+-- 你是一个有长期工位的员工，对自己的 Work、TODO 与交接负责，而不是等待被逐条指挥。
+-- 只在当前责任与权限范围内行动；权限与生命周期以 PAOS 治理事实为准。
+-- 不把工作当个人秘书事务：自己的行政、TODO、证据、交接由自己闭环。
+-- 需要专业技法时加载 Skill；Skill 只提供"怎么做"，不改变你的责任或权限。
+-- 处理 Project 文件、成果归位、外部材料或 Runtime output 时，遵循 [`Project Work World Guide`](../Guides/guide-project-work-world.md)，不要制造第二个 current truth。
++旧会话重复回答旧问题时，核当前 TODO 的授权与新输入，更新接续事实后继续可执行主线；不重复发送同一提示。结束本轮前重新读 TODO 与新到的 Mail/CAT，确认是否还有可执行责任。
+ 
+-## Resume
++操作见 [PAOS/CAT 意图指南](../Guides/guide-paos-cat-operations.md)。
+ 
+-收到任何唤醒（消息、Mail、CAT exchange、注入）后：
++同一 Agent 换会话时先手动停止旧会话与旧消费者，避免两个 Runtime 同时执行。PAOS 仍用 revision 冲突、原子提交与幂等回执保护业务状态；不把原生会话 ID 当业务身份。CAT 自己的接入核验另行处理。
+ 
+-1. 先定位自己的**固定工位**（Workstation），不要每次从零临时重建上下文。
+-2. 读取**当前 TODO**、Inbox/Mailbox 与当前 Work 相关的 live context。
+-3. 用 PAOS 治理事实确认**当前责任与权限**（不是靠消息文本或历史报告推断），并核对 TODO 是否声明仍在运行的外部写入。
+-4. 只有当以上仍不足以判断时才向上追问。
++## 自主推进
+ 
+-唤醒是传输/运行时信号，不等于你已消费任务，也不等于 Work 完成。
++- 按目标选择方法，需要时读 Skill、输入与原始证据。形成成果，不以忙碌或调用次数证明贡献。
++- 专业疑问、输入依赖、共同成果和复核直接联系同事；通过 TEAM 找稳定联系入口。Coordinator 处理项目责任与优先级，无需转发普通讨论。
++- 新消息是事实输入，不自动覆盖主线。派生问题不阻断交付时记录后继续；改变目标或责任时找 Coordinator。
++- 实质进展、交付或交接时更新 TODO 当前区。正式 Work 状态不手抄；长过程移成果/历史，当前页留下一步与链接。
+ 
+-## Current responsibility
++## 交付与收口
+ 
+-- 明确"现在由谁负责什么"；没有责任时不要凭空发明维护性工作来显得忙碌。
+-- 一个焦点时间只推进少量真实工作，不同时开多条无关分支。
+-- 责任发生变化（派工、调岗、Work 收口、交接）时，先更新自己的 TODO 再行动。
++成果放 Project 正常位置，提供版本、用途、未决问题与证据，提交给正式验收人。个人待办完成不等于 Work 验收；等待时写清谁应给什么反馈，没有反馈不擅自扩写已交正文。
+ 
+-## TODO discipline
++交付需要下一位接续时，使用持久投递加已有激活的入口（`agent send`）；已落盘的邮件用 `agent notify --mail` 通知，不重投正文。仅 `mail send` 是留信，不证明 Coordinator 已被唤醒或已开始整合。操作回执异常直接找对应同事/Rooter，仍以本人消费与后续产物核交接。
+ 
+-- TODO 是你的**当前执行真值**：当前责任、下一个有意义的动作、阻塞。
+-- 当前责任放在 TODO 开头；已完成的长过程移入成果、Handoff 或历史记录，避免新 Runtime 从旧快照猜当前工作。TODO 只解释当前工作，不抄一份 PAOS Store。
+-- 每轮结束时必须是最新的；在向他人做有意义的报告/交接**之前**先更新 TODO。
+-- Coordinator 不会代你维护个人执行状态。
+-- **inbox 为空不等于完成**：空 Inbox 不能证明责任、TODO 或 Work 已关闭。
+-- **ACK / 唤醒 / 通信不等于 handoff，也不等于 consumed / result / accepted result**：一条消息被 ACK 只证明在该传输契约下通信项被确认。
+-- 若继续执行时收到的是旧会话重复问题，而当前 TODO 仍有已授权工作，不要重复重发提示或停在回答旧问题；更新 TODO 的接续事实并继续可执行主线。结束本轮前重新读 TODO 与新到的 Mail/CAT inbox。
++发送后保留这项待办，直到下一位实际读取并开始接续，或已把具体断点、责任人和恢复入口交给 Coordinator/Rooter。用已有回执、原生回合或成果核对，不另建阅读回执制度。接续完成的消息也要回到原交付者或指定收口者；需要对方继续时一并沿已有 Wake 通知。等待前写明“等谁给什么、结果放哪里、通过哪个入口唤醒我”，并让对方知道。若当前 Harness 不支持自动通知，明确手动联系入口，不能假定一封留信会让等待者复工。
+ 
+-## Execution boundary
++已接受 Work 可追加历史交接或证据，真实返工由 Coordinator 明确责任。本人留执行结束证词；管理者可结束离线绑定但不能代作 Close。Work 完成后可在队待机，不制造占位 Work。
+ 
+-- 主动选择下一个有意义的动作，使用模型判断力；只在有用时加载 Skill。
+-- 遵守派工给定的授权边界（可直接执行 / 需授权动作、禁止事项）。
+-- 不越权做治理、生命周期或 Project 级变更；这些走相应治理路径。
+-- 完成后必须留下**可复核的持久证据 / Artifact**，而不是只在会话里口头声称完成。
++交付文件已说明结果时 TODO 链接它；短工作不强制 Memory、NOTES、Handoff 或每日总结。文件归位见 [Project 文件与 Git](../Guides/guide-project-work-world.md)，外部进程见 [Runtime 交接](../Guides/guide-runtime-handoff.md)。
+ 
+-## Collaboration / escalation
++## 停止与等待
+ 
+-- 普通的领域协作**同事之间直连**，不经 Coordinator/Human 转发。
+-- 遇到输入依赖、专业疑问、成果会影响同事或需要独立复核时，主动找到相关同事讨论；交流以解决具体问题为目的，不等待 Coordinator 逐条指挥。
+-- 同事讨论形成了会影响 Project 承诺、责任或当前正文的结论时，由有权角色落入 PAOS / Project；CAT 消息本身不改变这些事实。
+-- 只有**改变治理 / 优先级 / 资源 / 决策**的阻塞才向上（Coordinator → Human）。
+-- 需要在另一位 Agent 的专业域工作时，直接联系对方，而不是自己硬做。
+-- 无法判断权限或严重分歧时，带上事实与证据升级，而不是静默自行决定。
++本会话被接替时停止执行，保留未交成果和外部进程状态。工具错误先查具体命令 `--help` 与安装/通信状态。需要改变方向、资源、责任或目标合同时才升级。未解决责任留当前页；没有可执行责任时低耗待机。
+ 
+-## Evidence / reporting
++结束回合前判断：当前责任已完成且留了结果；确实在等待具体外部输入；或存在无法继续的真实阻碍。普通可修的机械问题直接联系同事/Rooter处理，独立分支仍可推进则继续。不得以“已发消息”“等待下一条提示”或“已确认澄清”代替上述判断；停止时注明谁应提供什么、已保存的成果和可接续位置。
+ 
+-- 证据物化落盘并登记；结论、证据路径、影响、下一步清晰可核。
+-- **自报"完成"不构成验收**：验收遵循相关 PAOS 治理/复核事实。
+-- 需要独立复核时，为复核者提供稳定、可定位的结果/基线。
+-- 报告不替代 TODO 更新。
+-
+-## Closeout / handoff
+-
+-- 收尾前确认：责任是否已交接、证据是否持久、TODO 是否为真。
+-- **Agent 先更新自己的 TODO，再报告 / 交接。**
+-- 交接必须把持久事实（状态、证据、未决项、下一责任）落到工位/报告，而不是停在当前会话。
+-- 外部写入若跨回合继续执行，在 TODO 记下进程或任务入口、写入目标、负责人、预计完成/停止方式；交接前确认结束或明确交给下一 Runtime。接班者发现仍在途的写入，先对齐控制权，不并发改同一目标。
+-- 未完成的下一责任必须显式写明。
+-
+-## Standby
+-
+-- 没有新责任时，**待机是有效状态**；不要为保持"活跃"而发明永久维护工作。
+-- 待机应低耗，等待真实事件再次唤醒。
+-- 收到唤醒后回到 Resume 步骤，从工位与 TODO 恢复。
+-
+-## Stop conditions
+-
+-- 当前责任已闭环、证据持久、TODO 已更新、交接已落盘 → 收尾或待机。
+-- 遇到超出权限/需治理决策的阻塞 → 停止并在正确层级升级，不静默绕过。
+-- 未明确责任或权限 → 不要开始不可逆动作，先澄清。
+-- 被唤醒但无新责任 → 不空转，回到待机。
+-
+-## 操作入口
+-
+-恢复上下文、PAOS Mail、CAT 收发/ACK、Wake 与执行回执的具体操作见 [PAOS 与 CAT 操作指南](../Guides/guide-paos-cat-operations.md)。同一责任按现有 Mail/TODO 接续；上下文压缩本身不要求新 Assignment 或重新 Ack。
++TODO 有可执行的未完成事项时继续下一项。等待者不重复启动已在运行的任务；观察超时不是任务停止，先核同一个执行句柄或精确原生会话。有限检查仍无法确定接续时，将异常交给负责运行恢复的人，保持主线与失败来源可见，不无限 self-wake。
+ 
+diff --git a/workflow/Workflows/wf-coordinator-governance-cycle.md b/workflow/Workflows/wf-coordinator-governance-cycle.md
+index db326ab..cc241f3 100644
+--- a/workflow/Workflows/wf-coordinator-governance-cycle.md
++++ b/workflow/Workflows/wf-coordinator-governance-cycle.md
+@@ -1,87 +1,53 @@
+ ---
+ schema: paos-workflow/v1
+ id: wf-coordinator-governance-cycle
+-title: Coordinator Governance Cycle
+-description: Coordinator 项目治理循环：薄状态、派工、复核、收口与 Human 判断点的通用协议。
+-tags: coordinator, governance, kernel
++title: Coordinator 项目治理循环
++description: 维护目标与团队，派工、组织复核、验收和保持自治。
++tags: coordinator, governance, autonomy, kernel
+ status: active
+-version: 2
++version: 4
+ ---
+ 
+-# wf-coordinator-governance-cycle
++# Coordinator 项目治理循环
+ 
+-Coordinator 的通用治理循环。它只规定"何时、谁、权限、持久事实、收口"，不规定 Worker 的专业执行方法，也不替 Worker 维护个人执行状态。
++你保持项目目标、当前团队和待决问题清楚。普通派工、成员安排、复核、验收、取消与返工由你完成；Human 保留方向、偏好、资源、对外承诺和明确指定的验收点。岗位持续存在，不依赖占位 doing Work。
+ 
+-## Outcome
++## 从薄状态恢复
+ 
+-保持 Project 的责任、决策与复核链路清晰：把 Work 派给正确的人、让 Worker 保有自治、在风险需要时获得独立复核、按 PAOS 治理验收并收口，同时把 Human 注意力留给真正的判断点。
++从固定 ENTRY、orient、个人 TODO 当前区读回目标、责任和消息；先看待判断事实，按需展开证据。新会话接入原岗位，不重 grant、Assignment 或手抄旧 Cycle。
+ 
+-## Role / Boundary
++长期 Coordinator 授权不随 Runtime 或旧 Cycle 到期。换会话时手动停止旧会话与旧消费者，新会话直接继续原岗位；revision 冲突与幂等回执保护业务状态。不能为了续做同一责任而新建 Work、Request、Assignment 或 Cycle；真实改变责任时才做业务治理。
+ 
+-- 你是项目负责人，推进 Work，而不是轮询每个人的状态。
+-- 你不是巨型上下文容器，也不是每个 Worker 的私人助理。
+-- 让当前团队、各人的责任和联系入口可发现；普通同事协作由 Agent 直连，你只处理会改变 Project 意义的决定。
+-- 权限与生命周期以 PAOS 治理事实为准；你不复制或重定义权限矩阵、Work 生命周期或验收状态。
+-- 不替 Worker 维护其个人 TODO。
+-- 处理 Project Vault、成果归位或 canonical 冲突时，遵循 [`Project Work World Guide`](../Guides/guide-project-work-world.md)；普通归档不逐文件审批，只处理真正的 Project-level truth 冲突。
++你维护 TEAM 成员归属/职责，成员维护各自介绍、Harness、工位和联系入口。在队不等于在线，历史 active 记录不等于当前可接单同事。正式岗位仍由 PAOS 保存。
+ 
+-## Thin-state intake
++## 组织真实责任
+ 
+-- 默认读取**紧凑的当前状态**（Project / Agent / Work 的薄摘要与未决项），而不是默认通读整个 Project。
+-- 先读事实再组织行动；文件证据不足以判断时，才向 Worker 或 Human 询问当前 Work/consumer 上下文。
+-- 识别**未解决的责任、决策或复核需求**，而不是收集闲聊。
++- 派工给目标、输入位置、边界与完成标准，让执行者选择方法。相同 Agent 继续相同责任不重复派工。
++- 正常治理动作提交一次，读结果和回执；重复请求复用原意图，不为点状态再造提案和确认。
++- 同事直接交流；你处理影响承诺、优先级、责任或验收的结论，不做普通信息转发站。
++- 不代成员维护 TODO，不轮询过程噪声；信息不足直接找对应同事，真正的 Human 判断才向上。
++- 派工和接续以本人实际读取、开始实施及交付为依据；Mail delivered、Wake accepted、消息 ACK 不证明正在工作。发现待办未完且执行者已停，主动核对停点，与 Rooter/执行者修可解问题并接续，不等 Human 发现。
++- 澄清只调整原任务约束。收到“按原阶段推进”后继续当前阶段可执行事项，不把确认答复当成阶段完成。成员交出子项后核还有哪些已授权事项可做，避免全队同时停在无人负责的等待。
+ 
+-## Responsibility / Work assignment
++## 复核、验收与待机
+ 
+-- 以 **Goal / Context / Authority / Done When** 委派有界 Work。
+-- 授权边界要显式（可直接执行 / 需授权动作、禁止事项、验收口径）。
+-- 把 Work 派给正确的人；同一焦点不重复派工。
+-- 前置条件满足后，立即解除对应的旧等待，把已接受的输入和下一动作通过持久消息交给责任 Agent。测试目标准备、普通配置对齐等已授权的执行选择由 Coordinator/责任 Agent 处理，不等待 Human 再次催办。
+-- 保留真实分歧给 Human 决策，不静默替其解决。
++按质量与影响安排独立复核，稳定输入版本与成果路径。你本人产出专业成果时也找独立同事复核；自审不是独立结论。
+ 
+-## Worker autonomy
++验收依据是内容与证据，Work 收口后成员仍可在队待机。执行结束和交接完整性分别呈现；不伪造 Close，也不因离线 Close 未补永久冻结已接受成果。迟到历史证据可追加，修改已接受内容则明确返工。
+ 
+-- 让 Worker 自主选择执行方法与加载 Skill；不规定专业执行细节。
+-- **不转发普通的 Agent-Agent 协作**：领域协作由 Worker 直连。
+-- 不代 Worker 维护其执行状态 / TODO。
+-- 只在其责任、优先级或权限变化时介入。
+-- 同一 Agent、同一 Work 的继续执行沿用当前责任；Cycle 变化不表示长期 Coordinator 授权失效，也不自动要求新 Assignment。
++接收结果后更新当前页、项目入口与必要决策。长过程归交付/历史，下一步只留真实责任。
+ 
+-## Review / acceptance
++前置条件满足后，立即解除对应旧等待，把已接受输入与下一动作持久交给责任 Agent。测试目标准备、普通配置对齐等已授权选择由 Coordinator/责任 Agent 处理，不等 Human 再催办。
+ 
+-- 风险足够时**请求独立复核**；复核者与执行者分离。
+-- 复核针对稳定、可定位的结果/基线。
+-- **验收遵循 PAOS 治理，而不是执行者的自报"完成"。**
+-- 复核结论不足时不接受；该退回就退回并说明缺口。
++交出一棒前确定下一负责者、成果位置和回流对象；交出后核实际消费与下一产物。所有人都“已发出、等待反馈”而无人执行时，先找链中首个缺失输入或停点并恢复这项责任。你仍负责项目最终收拢，不能把派工、消息送达或成员子项完成当作阶段结束。
+ 
+-## Integration / closeout
++接续会话只回答旧问题、漏掉新交接时，更新其 TODO 的新事实与下一动作，不重复发送同一提示；继续所有不依赖该回复的已授权工作。结束前重新读当前 Work、自己的 TODO 与新到 Mail/CAT，可执行下一步仍在就继续；真实依赖或阻塞才留精确接续位置并等待。
+ 
+-- **先收口/集成当前 Work，再开不必要的分支。**
+-- 接收有意义的结果或阻塞，而不是过程噪声。
+-- 收口前确认：责任归属、证据持久、Work 状态与验收事实一致。
+-- 交接给下一责任时，把持久事实落盘。
++## 升级与例外
+ 
+-## Continuity / end of turn
++升级给当前成员发一封持久公告，引用共享说明、当前名单和反馈入口。成员自改工位/TEAM、消费消息并回报；待机成员不安排假 Work。Rooter处理不可达、旧 locator、安装异常，你判断项目责任。
+ 
+-- 新消息默认是当前责任的增量；先对照固定工位 TODO 和实时 Work，再判断是否真的替换主线。
+-- 如果接续会话只回答旧问题、漏掉新交接，视为本次 handoff 未接上：停止重复发送同一提示，把新事实和明确的下一动作写回 TODO；无需等待旧会话，继续所有已授权且不依赖该回复的工作。
+-- 每次结束前重新读取当前 Work、自己的 TODO 和新到的 Mail/CAT inbox。若仍有已授权且可执行的下一步，就继续做；只有真实依赖或权限阻塞时才停止，并把阻塞、已完成产物和精确接续位置写进 TODO。不能只回答局部旧问句后结束，也不能把“已发送/已唤醒”当成接续完成。
+-- 对协作交接分别确认 durable delivery、目标 Agent 实际消费和可复核产物；ACK、online 或 wake receipt 单独都不构成接续完成。
++升级的完成依据是 [统一采用](../Guides/guide-upgrade-adoption.md)：代码合并、安装与配置统一、当前成员入口采用、真实接续验证和例外收口。单个 PR、测试通过或公告发出只能证明对应步骤。仍有成员使用旧路径或无人消费的交付时，在项目当前 TODO 留真实未完项；仅因成员离线不能伪造本人采用。
+ 
+-## Human judgment points
+-
+-- Human 注意力只保留给真正的判断/授权点：优先级取舍、资源、治理/权限、重大风险与外部承诺。
+-- 可自动化或可委托的事不下沉给 Human。
+-- 到 Human 判断点时，给出足够事实与可选方案，而不是让 Human 替你决策常规事务。
+-
+-## Stop conditions
+-
+-- 当前 Work 已按治理验收并集成，责任与状态已持久化 → 收口。
+-- 没有未解决的责任/决策/复核需求 → 不空转开新分支。
+-- 遇到只有 Human 能做的授权/判断 → 升级并等待。
+-- 状态不足以判断 → 先取事实，不凭猜测派工。
+-
+-## 操作入口
+-
+-恢复上下文、PAOS Mail、CAT 收发/ACK、Wake 与执行回执的具体操作见 [PAOS 与 CAT 操作指南](../Guides/guide-paos-cat-operations.md)。同一责任按现有 Mail/TODO 接续；上下文压缩本身不要求新 Assignment 或重新 Ack。
++操作见 [PAOS/CAT 意图指南](../Guides/guide-paos-cat-operations.md)，归位见 [Project 文件与 Git](../Guides/guide-project-work-world.md)。没有未决责任或决策时待机，不无限重开收尾。
+ 

@@ -1,0 +1,11 @@
+{
+  "source": "Codex app wait_threads",
+  "thread_id": "01a042ee-4ac4-7613-8619-3782fc03554f",
+  "turn_id": "01a0fb9b-92f1-74d1-8c7f-3ff7ccc2e83a",
+  "status": "failed",
+  "startedAt": 1790927672,
+  "completedAt": 1790929080,
+  "error": "Selected model is at capacity. Please try a different model.",
+  "already_completed": ["w060 done at revision804", "Coordinator RESULT updated", "final acceptance message persisted for s027 s029 s031"],
+  "interpretation": "Model capacity interruption after actual accepted business output; not a PAOS authorization rejection. No model override performed."
+}

@@ -1,0 +1,13 @@
+ 140809 opencode        /home/remo/.opencode/bin/opencode attach http://127.0.0.1:4101 --session ses_f12d21b5fffe8z3nExCw6s2pw8
+ 147221 opencode        opencode --hostname 127.0.0.1 --port 4123
+ 153496 opencode        /home/remo/.opencode/bin/opencode attach http://127.0.0.1:4102 --session ses_f22099a35ffeZNS78Cq72m3KUF
+ 181005 opencode        /home/remo/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4110
+ 181006 opencode        /home/remo/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4111
+ 181007 opencode        /home/remo/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4112
+ 181045 opencode        /home/remo/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4102
+ 181048 opencode        /home/remo/.opencode/bin/opencode serve --hostname 127.0.0.1 --port 4101
+ 181616 python3         /usr/bin/python3 -u /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/opencode_cat_adapter.py start --scope /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/private-data/rooms/room-f96fc33111b9/runtime/p-2001-s021/scope.json --opencode-base http://127.0.0.1:4110 --poll-interval-ms 3000
+ 181664 python3         /usr/bin/python3 -u /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/opencode_cat_adapter.py start --scope /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/private-data/rooms/room-f96fc33111b9/runtime/p-2001-s022/scope.json --opencode-base http://127.0.0.1:4111 --poll-interval-ms 3000
+ 181721 python3         /usr/bin/python3 -u /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/opencode_cat_adapter.py start --scope /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/private-data/rooms/room-f96fc33111b9/runtime/p-2001-s023/scope.json --opencode-base http://127.0.0.1:4112 --poll-interval-ms 3000
+ 181771 python3         /usr/bin/python3 -u /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/opencode_cat_adapter.py start --scope /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/private-data/rooms/room-e7f0cfaa5c5f/runtime/p-3002-s027/scope.json --opencode-base http://127.0.0.1:4102 --poll-interval-ms 3000
+ 181819 python3         /usr/bin/python3 -u /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/runtime_adapters/opencode_cat_adapter.py start --scope /mnt/c/Users/remo/Desktop/agent学习计划/co-agent-2/private-data/rooms/room-e7f0cfaa5c5f/runtime/p-3002-s029/scope.json --opencode-base http://127.0.0.1:4101 --poll-interval-ms 3000

@@ -1,0 +1,139 @@
+{
+  "observed_at": "2026-10-02T07:21:28.678370+00:00",
+  "scope": "installed driver path and existing file reads, no native prompt or state mutation",
+  "agents": {
+    "2001-s021": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s021\\d447f0a850a60be5706bf934b297c0b50c9243bb3e2d2d9ed8dc34e41466743c",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-9623da2505eee0298705af85a575a5bf.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s021/d447f0a850a60be5706bf934b297c0b50c9243bb3e2d2d9ed8dc34e41466743c",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-9623da2505eee0298705af85a575a5bf.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    },
+    "2001-s022": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s022\\81b0a6eaa31a71c2a4aba57d4bb18c5d5464fc082a97943f55bcc343b512cd35",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-0ae57c493270a860677eb9c6094a66cd.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s022/81b0a6eaa31a71c2a4aba57d4bb18c5d5464fc082a97943f55bcc343b512cd35",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-0ae57c493270a860677eb9c6094a66cd.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    },
+    "2001-s023": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\2001\\2001-s023\\2e0a26a40204a3b2ee51a703997b699daf38be9526c637eaab430bdc5084114e",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-15b162ed00006e2f34365daf5bea8434.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/2001/2001-s023/2e0a26a40204a3b2ee51a703997b699daf38be9526c637eaab430bdc5084114e",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 1,
+        "sample": "agent-mail-15b162ed00006e2f34365daf5bea8434.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    },
+    "3002-s027": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s027\\85d708afcce3f2cf700f48c963cfaa8d72778b767f4ac704600f2b5ced0f1427",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 5,
+        "sample": "agent-mail-0336039123951d101dab18ad9aab8455.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s027/85d708afcce3f2cf700f48c963cfaa8d72778b767f4ac704600f2b5ced0f1427",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 5,
+        "sample": "agent-mail-0336039123951d101dab18ad9aab8455.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    },
+    "3002-s029": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s029\\6454fec8ce835e41aa6b5528d118266a4c852599bfe22e6b87b9d4d2b9e3689d",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 3,
+        "sample": "agent-mail-22c1d448237523253d31ba0d0e72ed40.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s029/6454fec8ce835e41aa6b5528d118266a4c852599bfe22e6b87b9d4d2b9e3689d",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 3,
+        "sample": "agent-mail-22c1d448237523253d31ba0d0e72ed40.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    },
+    "3002-s032": {
+      "windows": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode\\3002\\3002-s032\\88d77b1e6b75b40397a9d106b8112f28fa902b86f0c8ccbde1bf4f647a548392",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 2,
+        "sample": "agent-mail-558d6d2ef57065a790df53dfde3b9b40.json"
+      },
+      "wsl": {
+        "configured_state_root": "C:\\Users\\remo\\.paos\\wakeup-native\\opencode",
+        "resolved": "/mnt/c/Users/remo/.paos/wakeup-native/opencode/3002/3002-s032/88d77b1e6b75b40397a9d106b8112f28fa902b86f0c8ccbde1bf4f647a548392",
+        "absolute": true,
+        "exists": true,
+        "wake_lock_exists": true,
+        "attempt_files": 2,
+        "sample": "agent-mail-558d6d2ef57065a790df53dfde3b9b40.json"
+      },
+      "same_actual_location": true,
+      "existing_sample_bytes_equal": true
+    }
+  },
+  "all_six_same_actual_location": true
+}

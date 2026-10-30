@@ -1,0 +1,555 @@
+diff --git a/skill/.paos/catalog.json b/skill/.paos/catalog.json
+index 25e03fd..31f7bf0 100644
+--- a/skill/.paos/catalog.json
++++ b/skill/.paos/catalog.json
+@@ -1,8 +1,8 @@
+ {
+   "schema": "paos-library-catalog/v1",
+   "kind": "skill",
+-  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill",
+-  "generated_at": "2026-09-30T15:41:50Z",
++  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill",
++  "generated_at": "2026-10-01T10:46:51Z",
+   "items": [
+     {
+       "id": "clean-writing",
+@@ -15,7 +15,7 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\clean-writing\\SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\clean-writing\\SKILL.md",
+       "relative_path": "clean-writing\\SKILL.md",
+       "stats": {
+         "uses": 0,
+@@ -38,7 +38,7 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\skill-engineering-change\\SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\skill-engineering-change\\SKILL.md",
+       "relative_path": "skill-engineering-change\\SKILL.md",
+       "stats": {
+         "uses": 0,
+@@ -61,16 +61,16 @@
+       ],
+       "status": "active",
+       "version": "1",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\skill\\skill-independent-review\\SKILL.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\skill-independent-review\\SKILL.md",
+       "relative_path": "skill-independent-review\\SKILL.md",
+       "stats": {
+-        "uses": 0,
+-        "uses_30d": 0,
+-        "last_used_at": "",
+-        "usefulness_total": 0.0,
+-        "usefulness_avg": null,
+-        "project_count": 0,
+-        "agent_count": 0
++        "uses": 1,
++        "uses_30d": 1,
++        "last_used_at": "2026-09-20T07:40:26Z",
++        "usefulness_total": 0.5,
++        "usefulness_avg": 0.5,
++        "project_count": 1,
++        "agent_count": 1
+       }
+     }
+   ]
+diff --git a/skill/CATALOG.md b/skill/CATALOG.md
+index 2a9e697..c60239c 100644
+--- a/skill/CATALOG.md
++++ b/skill/CATALOG.md
+@@ -7,4 +7,4 @@
+ | --- | --- | ---: | ---: | ---: | ---: | --- | --- |
+ | clean-writing | Clean Writing | 0 | 0 | 0 |  |  | clean-writing\SKILL.md |
+ | skill-engineering-change | Engineering Change | 0 | 0 | 0 |  |  | skill-engineering-change\SKILL.md |
+-| skill-independent-review | Independent Review | 0 | 0 | 0 |  |  | skill-independent-review\SKILL.md |
++| skill-independent-review | Independent Review | 1 | 1 | 1 | 0.5 | 2026-09-20T07:40:26Z | skill-independent-review\SKILL.md |
+diff --git a/workflow/.paos/catalog.json b/workflow/.paos/catalog.json
+index f9dac84..006e6c6 100644
+--- a/workflow/.paos/catalog.json
++++ b/workflow/.paos/catalog.json
+@@ -1,8 +1,8 @@
+ {
+   "schema": "paos-library-catalog/v1",
+   "kind": "workflow",
+-  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow",
+-  "generated_at": "2026-10-01T09:02:47Z",
++  "root_path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow",
++  "generated_at": "2026-10-02T08:05:03Z",
+   "items": [
+     {
+       "id": "guide-paos-cat-operations",
+@@ -15,8 +15,8 @@
+         "operations"
+       ],
+       "status": "active",
+-      "version": "9",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-paos-cat-operations.md",
++      "version": "11",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-paos-cat-operations.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-paos-cat-operations.md"
+     },
+@@ -32,7 +32,7 @@
+       ],
+       "status": "active",
+       "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-project-work-world.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-project-work-world.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-project-work-world.md"
+     },
+@@ -46,8 +46,8 @@
+         "recovery"
+       ],
+       "status": "active",
+-      "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-rooter-installation.md",
++      "version": "4",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-rooter-installation.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-rooter-installation.md"
+     },
+@@ -62,7 +62,7 @@
+       ],
+       "status": "active",
+       "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-runtime-handoff.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-runtime-handoff.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-runtime-handoff.md"
+     },
+@@ -76,11 +76,26 @@
+         "recovery"
+       ],
+       "status": "active",
+-      "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Guides\\guide-upgrade-adoption.md",
++      "version": "4",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-upgrade-adoption.md",
+       "section": "Guides",
+       "relative_path": "Guides\\guide-upgrade-adoption.md"
+     },
++    {
++      "id": "guide-v12-installed-release",
++      "title": "V1.2 已安装版本与采用",
++      "description": "当前安装入口、恢复方式和成员采用要求。",
++      "tags": [
++        "paos",
++        "release",
++        "adoption"
++      ],
++      "status": "active",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Guides\\guide-v12-installed-release.md",
++      "section": "Guides",
++      "relative_path": "Guides\\guide-v12-installed-release.md"
++    },
+     {
+       "id": "template-adoption-result",
+       "title": "采用汇总模板",
+@@ -92,7 +107,7 @@
+       ],
+       "status": "active",
+       "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\adoption-result.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\adoption-result.md",
+       "section": "Templates",
+       "relative_path": "Templates\\adoption-result.md"
+     },
+@@ -107,7 +122,7 @@
+       ],
+       "status": "active",
+       "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\project-agents.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\project-agents.md",
+       "section": "Templates",
+       "relative_path": "Templates\\project-agents.md"
+     },
+@@ -122,7 +137,7 @@
+       ],
+       "status": "active",
+       "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\project-announcement.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\project-announcement.md",
+       "section": "Templates",
+       "relative_path": "Templates\\project-announcement.md"
+     },
+@@ -136,8 +151,8 @@
+         "adoption"
+       ],
+       "status": "active",
+-      "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\release-guide.md",
++      "version": "3",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\release-guide.md",
+       "section": "Templates",
+       "relative_path": "Templates\\release-guide.md"
+     },
+@@ -152,7 +167,7 @@
+       ],
+       "status": "active",
+       "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\team.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\team.md",
+       "section": "Templates",
+       "relative_path": "Templates\\team.md"
+     },
+@@ -167,7 +182,7 @@
+       ],
+       "status": "active",
+       "version": "2",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\workstation-entry.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\workstation-entry.md",
+       "section": "Templates",
+       "relative_path": "Templates\\workstation-entry.md"
+     },
+@@ -181,8 +196,8 @@
+         "current"
+       ],
+       "status": "active",
+-      "version": "3",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Templates\\workstation-todo.md",
++      "version": "4",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Templates\\workstation-todo.md",
+       "section": "Templates",
+       "relative_path": "Templates\\workstation-todo.md"
+     },
+@@ -198,7 +213,7 @@
+       ],
+       "status": "active",
+       "version": "4",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Workflows\\wf-agent-work-cycle.md",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Workflows\\wf-agent-work-cycle.md",
+       "section": "Workflows",
+       "relative_path": "Workflows\\wf-agent-work-cycle.md"
+     },
+@@ -213,8 +228,8 @@
+         "kernel"
+       ],
+       "status": "active",
+-      "version": "4",
+-      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Rooter\\rooter-001\\candidate\\Library-v12-stage1\\workflow\\Workflows\\wf-coordinator-governance-cycle.md",
++      "version": "5",
++      "path": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\workflow\\Workflows\\wf-coordinator-governance-cycle.md",
+       "section": "Workflows",
+       "relative_path": "Workflows\\wf-coordinator-governance-cycle.md"
+     }
+diff --git a/workflow/CATALOG.md b/workflow/CATALOG.md
+index 6fc71ad..695fb93 100644
+--- a/workflow/CATALOG.md
++++ b/workflow/CATALOG.md
+@@ -1,7 +1,7 @@
+ <!-- PAOS GENERATED CATALOG: DO NOT EDIT -->
+ # Workflow Catalog
+ 
+-共 14 项。源文件是权威；本页可随时重建。
++共 15 项。源文件是权威；本页可随时重建。
+ 
+ | ID | Title | Section | Status | Tags | Path |
+ | --- | --- | --- | --- | --- | --- |
+@@ -10,6 +10,7 @@
+ | guide-rooter-installation | Rooter 安装与例外循环 | Guides | active | rooter, installation, recovery | Guides\guide-rooter-installation.md |
+ | guide-runtime-handoff | Runtime 接班与在途外部写入 | Guides | active | runtime, handoff, external-write | Guides\guide-runtime-handoff.md |
+ | guide-upgrade-adoption | 当前升级说明与员工采用 | Guides | active | upgrade, adoption, recovery | Guides\guide-upgrade-adoption.md |
++| guide-v12-installed-release | V1.2 已安装版本与采用 | Guides | active | paos, release, adoption | Guides\guide-v12-installed-release.md |
+ | template-adoption-result | 采用汇总模板 | Templates | active | template, adoption, evidence | Templates\adoption-result.md |
+ | template-project-agents | Project AGENTS 入口模板 | Templates | active | template, harness, entry | Templates\project-agents.md |
+ | template-project-announcement | 项目采用公告模板 | Templates | active | template, mail, adoption | Templates\project-announcement.md |
+diff --git a/workflow/Guides/guide-paos-cat-operations.md b/workflow/Guides/guide-paos-cat-operations.md
+index 5128fbd..35be70d 100644
+--- a/workflow/Guides/guide-paos-cat-operations.md
++++ b/workflow/Guides/guide-paos-cat-operations.md
+@@ -5,14 +5,14 @@ title: PAOS/CAT 意图式操作
+ description: 忘记操作时按目的恢复、联系、提交与定位问题，不要求理解传输拼装。
+ tags: paos, cat, cli, operations
+ status: active
+-version: 9
++version: 11
+ ---
+ 
+ # PAOS/CAT 意图式操作
+ 
+ 从本人工位 ENTRY 取安装入口和长期身份。安装配置与源码 checkout 分开；Windows/WSL 各用安装描述提供的入口，不猜 Source 路径、端口或默认 cwd。
+ 
+-本页命令对应 V1.2 Stage 2 候选的公开 CLI；当前生产仍是 V1.1，候选命令用于隔离验收。以当前安装的 help 和最终 manifest 为准；尚未生产切换的能力不得称已部署。
++V1.2 Source 已生产切换。当前版本、Windows/WSL 可复制入口及采用进展见 [安装发布说明](guide-v12-installed-release.md)。本页命令对应当前公开 CLI；具体参数用 --help，不使用不存在的 paos help 子命令。
+ 
+ ## 按目的工作
+ 
+@@ -33,14 +33,15 @@ version: 9
+ | 报进展 | `session report <project> <agent>` | 当前 Agent 的正式进展回执 |
+ | 结束本人执行并留结果 | `session submit <project> <agent>` | 本人执行结束证词；不是 Work 成果验收 |
+ | 留接班信息 | 当前 TODO 与成果链接 | 下一步、成果、未决外部写入，不必重复长报告 |
+-| 治理 Work/成员 | coordinator 下的实际子命令 | Coordinator 的一次动作回执；Human/Rooter 入口随实现合同校准 |
++| 验收完成的 Work | `coordinator work-transition <project> <work> --coordinator-session-id <self> --status done --reason "验收依据"` | Work 状态回执；不要求先结束成员 Session，不自动移出团队 |
++| 调整成员责任 | coordinator 下的实际子命令 | 按当前业务意图处理，参数查对应 --help |
+ | 忘记参数/遇故障 | --help / install show / status 读面 | 当前安装版本、联系能力、消息消费、具体阻碍与下一步 |
+ 
+ 需要的参数从当前安装的 help 取，不从旧聊天猜。正常工作只用稳定 Project/Agent 身份和当前业务责任；不办理 owner、instance ID、必做 `enter` 或 Cycle/Context Pack claim。换会话时手动停止旧会话及消费者。
+ 
+ ## 已核对的命令结构
+ 
+-以下 `paos` 代表 ENTRY 给出的安装调用入口；若采用 Python 脚本入口，在它后面接同样参数。占位值替换为本人 Project 与完整 Agent ID，不复制别人的身份。示例为 Stage 2 目标，须等集成候选 help 核对后使用。
++以下 `paos` 代表 ENTRY 给出的安装调用入口；若采用 Python 脚本入口，在它后面接同样参数。占位值替换为本人 Project 与完整 Agent ID，不复制别人的身份。以下结构已与生产 CLI help 核对。
+ 
+ ```text
+ paos orient <project> <agent>
+@@ -55,12 +56,13 @@ paos agent notify <project> --mail <already-delivered-message-id> --agent <peer-
+ paos mail reply <project> <agent> <received-message-id> --body @<reply-file>
+ paos session submit <project> <agent> --result partial --summary "交接结果"
+ paos coordinator --help
++paos coordinator work-transition <project> <work> --coordinator-session-id <self-agent> --status done --reason "已满足完成标准及验收依据"
+ paos install show
+ ```
+ 
+ 安装 descriptor 默认 `~/.paos/installation.json`，全局 `--installation-file` 须放子命令前；连接地址另由 config 或 `PAOS_BASE_URL` 提供。`session report/submit` 的第二个参数在 help 中叫 Session ID；当前 Stage 2 CLI 使用与 `orient/status` 相同的稳定 Agent ID 定位该 Session。TODO 当前区异常时，`orient` 应显示仍可信的 PAOS live Work 和具体出错的读面，不从历史猜当前动作。
+ 
+-`session submit` 只结束本人执行，不将 Work 自动送审或验收。交付按项目责任把成果送正式验收人。Stage 2 的普通状态读面命令名以最终 CLI help 为准，不把本页意图词猜成已部署命令。
++`session submit` 只结束本人执行，不将 Work 自动送审或验收。交付按项目责任把成果送正式验收人。普通状态读面使用 status；参数以当前 CLI --help 为准。
+ 
+ ## 安装与共享方法入口
+ 
+@@ -106,3 +108,4 @@ paos --installation-file <descriptor> install show
+ | CLI 参数不认 | 看当前版本 help，校准共享指南；不回源码考古或造新业务对象 |
+ 
+ 普通安装机械问题交 Rooter，项目责任与优先级交 Coordinator，真正产品语义冲突交 3002/网页主线。
++
+diff --git a/workflow/Guides/guide-rooter-installation.md b/workflow/Guides/guide-rooter-installation.md
+index dbb9b1c..47701aa 100644
+--- a/workflow/Guides/guide-rooter-installation.md
++++ b/workflow/Guides/guide-rooter-installation.md
+@@ -5,7 +5,7 @@ title: Rooter 安装与例外循环
+ description: 取得项目组织意图，治理安装与跨项目运行，验证真实到达。
+ tags: rooter, installation, recovery
+ status: active
+-version: 3
++version: 4
+ ---
+ 
+ # Rooter 安装与例外循环
+@@ -22,7 +22,7 @@ Rooter 使用 Human operational authority。Project meaning 由当前 Coordinato
+ 
+ 对已明确的当前成员核对：固定工位→正确 Project/安装入口→实际 Runtime 与消费者→持久 Mail→已支持 Wake/CAT 连接→原生消费。读取事实、修对应机械缺口、用实际消息或工作验证。
+ 
+-组件 READY 不代表接班成功。`agent send` 回报 `woken` 后仍要用 `wake probe` 核最近 worker 状态，并观察目标原生回合是否消费；worker 超时或消息只被 ACK 都不能结案。CAT 修复核已有 participant、scope、native binding 和单消费者；不为通过验收自建第二 consumer。旧 ENTRY/TODO 若还把历史目录称为固定工位，先将已写的当前结果归回 canonical 工位，再让旧入口只指向 canonical，核对旧目录不再接收当前输出。工具无自动 Wake 支持时明确手动入口，不为待机成员造假任务。
++组件 READY 不代表接班成功。`agent send` 回报 `woken` 后核实际正文消费、下一动作和产物；证据已成立就沿业务链收口，不为每次交接追加必做 probe。消费证据缺失且激活状态不明时，再按同一原生句柄有限 probe；worker 超时或消息只被 ACK 都不能结案。CAT 修复核已有 participant、scope、native binding 和单消费者；不为通过验收自建第二 consumer。旧 ENTRY/TODO 若还把历史目录称为固定工位，先将已写的当前结果归回 canonical 工位，再让旧入口只指向 canonical，核对旧目录不再接收当前输出。工具无自动 Wake 支持时明确手动入口，不为待机成员造假任务。
+ 
+ 通信可用仍可能业务停滞：若消息已消费但 TODO 可执行责任未完，读最后原生回合判断为何停止，与 Coordinator 修接续提示或运行配置，并确认执行者开始实际实施。不要把“下一次提示再做”当作已交接；也不要反复唤醒忙碌实例。Rooter维护接续的运行条件，Coordinator维护目标与责任，执行者持续推进已授权工作。
+ 
+@@ -40,6 +40,8 @@ Rooter 使用 Human operational authority。Project meaning 由当前 Coordinato
+ 
+ 外部workspace credits、上下文压缩和审批服务错误分别记录。具体动作被拒不能绕过；资源恢复后用正常入口接续授权工作，同时推进没有被拒的部分。不要把一次历史资源错误当永久业务审批层。
+ 
++Coordinator Runtime 因额度或服务错误终止时，先保留实际原生失败和已接受产物。已有方向、版本及阶段授权明确，Rooter继续自己的安装/发布治理，可用执行者继续现有责任；不把整队挂在一个已终止的回合上。真正需要新的Project优先级、责任或验收判断时，记录具体待决点，由Coordinator的合法接续Runtime或Human处理。Rooter不冒充其身份/审批、不擅自新建原生会话，也不重放已有副作用。
++
+ ## 公告式采用
+ 
+ 发布同一 Source/config/Library/converter 版本后，各项目 Coordinator 发一封持久公告。成员自改 ENTRY/TODO/TEAM、接入并消费消息，Rooter汇总采用/待机/具体阻塞并修例外。
+diff --git a/workflow/Guides/guide-upgrade-adoption.md b/workflow/Guides/guide-upgrade-adoption.md
+index 5644056..50dc678 100644
+--- a/workflow/Guides/guide-upgrade-adoption.md
++++ b/workflow/Guides/guide-upgrade-adoption.md
+@@ -5,28 +5,28 @@ title: 当前升级说明与员工采用
+ description: 改进在整个当前安装统一采用并支持真实工作后完成，成员自改入口，Rooter 收口例外。
+ tags: upgrade, adoption, recovery
+ status: active
+-version: 2
++version: 4
+ ---
+ 
+ # 当前升级说明与员工采用
+ 
+-适用 2001、3002 当前团队及 Rooter。当前生产仍运行 V1.1；V1.2 Stage 2 已获实施 PASS，尚未生产切换。收到候选消息不表示可以在生产使用新 CLI、转换 Store 或重绑 Runtime。
++适用2001、3002当前团队及Rooter。V1.2 Stage2已接受、Stage3已授权；Source已生产切换，成员采用正在执行。实际版本和可复制入口见[安装发布说明](guide-v12-installed-release.md)，当前责任继续，不重新办理接班手续。
+ 
+ ## 现在就按此工作
+ 
+ 1. 从固定工位 ENTRY 恢复，读个人 TODO 顶部、工位 mailbox 与 PAOS 当前责任。历史聊天、旧 Work 和历史 Session 名单不决定现在谁应工作。
+ 2. 更新本人 TODO：当前目标、下一步、等待和成果链接清楚；长历史不挡住当前责任。普通协作直接找同事，日常可执行动作主动推进，不等 Coordinator 逐条转发。
+-3. Coordinator 岗位不因换会话到期，同一人继续同一责任不为手续另建 Work/Assignment。V1.2 正常工作删除 owner、instance ID、enter 与 Cycle claim 门槛。当前 V1.1 工具若仍被旧执行合同挡住，留下具体失败交 Rooter/3002处理；按当前可用入口推进独立工作，不伪造凭据或无限停等。
++3. Coordinator 岗位不因换会话到期，同一人继续同一责任不为手续另建 Work/Assignment。V1.2 正常工作删除 owner、instance ID、enter 与 Cycle claim 门槛。若已安装入口仍被旧执行合同挡住，记录具体失败交Rooter/3002处理，继续独立可执行事项；不伪造凭据或无限停等。
+ 4. 核本人固定工位、实际 Harness/native session 与当前安装联系入口是否一致。配置由 Rooter/工具管理，不在个人文件手抄 generation。发现旧会话仍自认当前实例、定位分裂或无法消费消息，给 Rooter 精确目标与证据。
+ 5. 无当前工作可待机；已收到公告不等于采用完成。待入场者只读取通知、准备入口，仍由本人完成入场证词。
+ 
+ 方法按需读共享 [操作指南](guide-paos-cat-operations.md)、[Project 文件指南](guide-project-work-world.md) 与 Skill Library。缺文件、缺入口、方法库不可达或调用失败直接反馈 Rooter；共享指南由 Rooter 维护，成员不复制一本手册。
+ 
+-## V1.2 候选将改变什么
++## V1.2 已部署的工作方式
+ 
+ 新 Runtime 从固定 ENTRY、当前 TODO 与 `orient` 接续长期 Agent 和原责任；普通工作不再维护 owner、instance ID、`enter`、Cycle/claim/Context Pack。换会话时手动停旧会话与消费者，PAOS 保留 revision、原子写入和幂等回执。Working Memory 独立机制退出，正式责任在 PAOS、当前动作在 TODO v2、长期知识在 Project 文件、个人笔记可选。TEAM 负责稳定成员与联系入口，工具负责运行绑定；Work 验收与成员存在分开。
+ 
+-这些是候选目标。最终整包通过并发布后，本页提供 exact manifest、安装入口与转换说明，各 Project 发一封公告，成员按共享说明自行采用。Rooter主动处理例外，不为每个人制造升级任务。真实方向、责任或 Human 内容冲突才交相应负责人。
++当前 Source/Library 版本只看共享安装发布说明及 `health`，本页不手抄第二份版本。各Project的定向公告保留发送时事实，后续窄修不要求重复入场或重投公告。Rooter主动处理例外，不为每个人制造升级任务。真实方向、责任或Human内容冲突才交相应负责人。
+ 
+ ## 本人回执
+ 
+@@ -53,3 +53,4 @@ Source push、PR merge、转换成功、公告送达分别只是过程证据。
+ 需要下一位接续的成果，先持久交付，再通过已有Wake联系。交付者确认下游实际读取并开始相应工作；下一位把成果回给指定收口者并通知接续。没有自动路径就明确手动入口及联系责任。各方共用原成果、TODO与通信记录，不新增强制ACK或第二套任务账本。
+ 
+ 观察超时先核同一个执行句柄或原生会话，不能据此重启正在执行的任务。有限检查后发现确实未接续，就修具体运行断点或交给对应负责人；等待者保留依赖、结果位置与唤醒方式。全队发送后同时待机而没有具体外部依赖，属于未闭环。
++
+diff --git a/workflow/Guides/guide-v12-installed-release.md b/workflow/Guides/guide-v12-installed-release.md
+new file mode 100644
+index 0000000..2c50ce1
+--- /dev/null
++++ b/workflow/Guides/guide-v12-installed-release.md
+@@ -0,0 +1,81 @@
++---
++schema: paos-workflow/v1
++id: guide-v12-installed-release
++title: V1.2 已安装版本与采用
++description: 当前安装入口、恢复方式和成员采用要求。
++tags: paos, release, adoption
++status: active
++version: 3
++---
++
++# V1.2 当前安装
++
++Source 已生产切换；团队自行采用正在执行。当前业务责任继续，不新建升级 Work，不重新申请任期或接班许可。
++
++| 发布项 | 版本 |
++| --- | --- |
++| 已审 Source | e4f0189bd04a9a48b5594d4c000611e97cc75ad4 |
++| 初次合并 Source | 819b642ee7ec6378c72694bc6645c16ef538f517（与 e4 候选代码树一致） |
++| 已审窄修 / PR115 | ca2660002dcf47c059fb5f41b7378aadeb634eb3；s029 独审及 Rooter Windows 受影响检查各 10/10 |
++| PR115 合并 | 82959713ec567a32a1183abb618f3767b2be400e（与 PR115 候选代码树一致） |
++| 已审窄修 / PR116 | 384f8d0f7154bd52aee7a1fba57886b089830c28；Rooter Windows 23/23，s029 WSL 独审 PASS |
++| 当前生产 Source | de27c07cb80c09e6066ae8cd6d9204aca58b7f91（与 PR116 候选代码树一致） |
++| 已审 Library 基线 | b55c5c53076ae12b41fe8fd335542c486ee19f49 |
++| 安装调整 | 本页、实际入口、由生产使用记录重建的 Catalog；不改产品代码 |
++
++安装描述：Windows `C:/Users/remo/.paos/installation.json`；WSL `/mnt/c/Users/remo/.paos/installation.json`。共用一份文件，Source 位于正式发布 checkout。连接地址由安装入口提供。
++
++PR115 让 `orient` 先给出 live Work 和可信 TODO 的下一步，旧 Request 仅显示相关性提醒。PR116 让 Windows 与 WSL 的 OpenCode Wake 使用同一实际状态目录；六个现有绑定已经从两端读到同一目录和已有记录。历史公告中的版本保留为发送时事实，当前运行版本以 `health` 为准；无需重复采用公告或重新入场。
++
++## 忘了怎样继续
++
++读本人工位 `ENTRY.md` → `TODO.md` 当前区 → `orient`。Windows 现有窗口的 PATH 可能尚未刷新，直接使用下面的完整入口。WSL 使用已安装的 `paos`，未载入登录环境时用 `/home/remo/.local/bin/paos`。
++
++Windows（把示例身份替换为本人）：
++
++```powershell
++& 'C:\Users\remo\.paos\bin\paos.cmd' orient 3002 3002-s027
++& 'C:\Users\remo\.paos\bin\paos.cmd' inbox 3002 3002-s027
++& 'C:\Users\remo\.paos\bin\paos.cmd' peers 3002 3002-s027
++& 'C:\Users\remo\.paos\bin\paos.cmd' status 3002 3002-s027
++```
++
++WSL：
++
++```sh
++/home/remo/.local/bin/paos orient 2001 2001-s021
++/home/remo/.local/bin/paos inbox 2001 2001-s021
++/home/remo/.local/bin/paos status 2001 2001-s021
++```
++
++`health` 查看运行 Source；`install show` 查看安装配置；参数用 `--help` 或 `<子命令> --help`，当前没有 `paos help` 子命令。具体操作读 [PAOS/CAT 指南](guide-paos-cat-operations.md)。不用查源码来回复消息。
++
++## 自行采用
++
++1. 确认本人身份、正式责任和当前 TODO 相符；把过期等待移出当前区，把长过程稿放 Project Works 后链接回来。
++2. 在 TEAM 本人小节确认 Harness、联系方式、工位和 TODO；运行状态由 CLI 派生，不手抄一份。
++3. 继续已有可执行事项。待机成员核入口和联系即可；pending_ack 成员由本人决定正确入场并作证，Rooter 不代 Ack。
++4. 给 Coordinator 持久回报实际动作、产物位置和剩余问题。交接时核下一位消费并开工；有可执行责任就继续，没有新邮件不等于任务结束。
++
++需要下一位接续：
++
++```sh
++paos agent send 3002 --to 3002-s029 --sender-kind agent --sender-id 3002-s027 --message-id <本次稳定消息ID> --subject "交付接续" --body @<已落盘成果说明>
++paos agent notify 3002 --mail <已送达消息ID> --agent 3002-s029
++paos status 3002 3002-s027 --message-id <本次稳定消息ID>
++paos session report 3002 3002-s027 --summary "实际进展"
++```
++
++`mail send/reply` 只落信，不自动唤醒；`agent send/notify` 使用既有绑定激活。`woken`、送达和已处理各有含义，最终看实际产物与接受。遇 uncertain，先查同一封信及实际产物，不重复副作用。
++
++## 当前联系边界
++
++OpenCode 服务已统一到 1.18.33，保留原生会话与当前模型选择；自动调用省略 model。Codex Wake 使用既有原生线程。跨 Runtime 调用若缺 Codex app-tools 原生入口，读面应明确人工路径，不能复制别人的调用者身份。
++
++s014 为 WorkBuddy 人工入口；待机或人工未接入如实回报。OpenCode 打开现有会话的端口与命令读 TEAM。Rooter 不创建 Project Session：安装问题交 rooter-001，项目责任交 s009/s010，产品语义问题交 3002。
++
++## 故障与恢复
++
++报告命令、当前身份、真实错误和已保存成果，不先造 Work 或新会话。Rooter 的同一恢复点为 `PAOS-Rooter/rooter-001/restore-points/V12-STAGE3-20261001-183554`；只撤销本次变更，保留切换后业务成果。该恢复点的 `rooter-home` 子目录因递归复制错误标为 INVALID，禁止用它回退；以 SNAPSHOT.json 指定的有效部分为准。
++
++生产部署、本人采用、下游交付和 Coordinator 接受分别记录，尚未完成的采用不写成 PASS。
+diff --git a/workflow/Templates/release-guide.md b/workflow/Templates/release-guide.md
+index 232bafe..677d210 100644
+--- a/workflow/Templates/release-guide.md
++++ b/workflow/Templates/release-guide.md
+@@ -5,7 +5,7 @@ title: 共享发布说明模板
+ description: 一份发布说明供两项目公告引用，绑定一致版本。
+ tags: template, release, adoption
+ status: active
+-version: 2
++version: 3
+ ---
+ 
+ # V1.2 发布说明正文
+@@ -23,16 +23,17 @@ version: 2
+ ## 可复制命令
+ 按 [PAOS/CAT 意图指南](../Guides/guide-paos-cat-operations.md) 的已核对结构，填入以下安装值：
+ 
+-- Windows 的 Python 和 `scripts/paos.py` 绝对路径；WSL 的对应可达路径。
++- Windows/WSL 的稳定安装 CLI 入口；入口从安装描述读取 Source，不把各开发 checkout 固化到工位。
+ - 共用安装 descriptor 的绝对路径与连接配置。
+ - 本人 Project、完整 Agent ID 与固定工位位置。
+ 
+ 发布人将这些值组成可复制的完整示例，覆盖 `orient`、`inbox`、`mail reply`、`session report` 与状态读取。命令不要求 owner、instance ID、必做 `enter` 或 Cycle claim。`session submit` 仅在本人确实结束执行时使用，不作为成果验收按钮。
+ 
+-参考接口：s031 PR #113 `323c63ea07d301d5ecab77ee2351ad4613db205b`；待集成后替换为最终 exact manifest，完成 Harness 实际调用验证后发布。
++生产示例见 [V1.2 安装说明](../Guides/guide-v12-installed-release.md)；发布时记录已审候选、合并版本和实际运行版本。
+ 
+ ## 变化
+ <简述旧 owner/instance/enter/Cycle/Memory 正常路径退出、责任持续、当前区和消息分源；链接指南，不另写一本操作手册>
+ 
+ 反馈：<project-coordinator-contact>；安装例外：<rooter-contact>。
+ 回退：<同版回退入口>。代码合并、部署和成员采用分别记录，未部署不宣称已升级。
++
+diff --git a/workflow/Templates/workstation-todo.md b/workflow/Templates/workstation-todo.md
+index ed223ec..ad8b4e6 100644
+--- a/workflow/Templates/workstation-todo.md
++++ b/workflow/Templates/workstation-todo.md
+@@ -5,7 +5,7 @@ title: TODO v2 模板
+ description: 当前事实解释与个人动作，历史不影响 current。
+ tags: template, todo, current
+ status: active
+-version: 3
++version: 4
+ ---
+ 
+ # 复制下方正文
+@@ -38,3 +38,6 @@ Work：<exact-work-id-or-empty>
+ Work 只写精确 ID，描述在目标；无当前 Work 可为空。当前与待办块只各有一份，历史/示例不置入当前块。勾完个人动作不表示 Work 已验收；已交报告直接链接，不再复制长过程。Rooter Home 不虚构 Work，使用自己的目标与待办。
+ 
+ 已发消息而下游还未接续的事项保留未完成；真实等待不能写成“全部完成、无当前责任”。历史勾选、旧计划与长过程放普通 Project 文件并链接，不让恢复工具扫描它们为 current。每个命令不要求更新 TODO，责任、成果或下一步有实质变化时更新。
++
++修改当前页后，用已安装CLI执行 `orient <project> <agent>` 回读新文件：确认 `todo.trusted`、原Work与当前下一步。旧格式不可回写；不要用修改前的检查结果证明修改后已采用。重复任务ID先合并，产物存在后再写完成。
++
+diff --git a/workflow/Workflows/wf-coordinator-governance-cycle.md b/workflow/Workflows/wf-coordinator-governance-cycle.md
+index cc241f3..b625508 100644
+--- a/workflow/Workflows/wf-coordinator-governance-cycle.md
++++ b/workflow/Workflows/wf-coordinator-governance-cycle.md
+@@ -5,7 +5,7 @@ title: Coordinator 项目治理循环
+ description: 维护目标与团队，派工、组织复核、验收和保持自治。
+ tags: coordinator, governance, autonomy, kernel
+ status: active
+-version: 4
++version: 5
+ ---
+ 
+ # Coordinator 项目治理循环
+@@ -35,6 +35,8 @@ version: 4
+ 
+ 验收依据是内容与证据，Work 收口后成员仍可在队待机。执行结束和交接完整性分别呈现；不伪造 Close，也不因离线 Close 未补永久冻结已接受成果。迟到历史证据可追加，修改已接受内容则明确返工。
+ 
++已满足完成标准时，用 `paos coordinator work-transition <project> <work> --coordinator-session-id <本人ID> --status done --reason "验收依据"` 登记验收并读取回执。V1.2 不要求先关闭仍关联该 Work 的成员 Session；成员下一责任或待机安排另按实际业务处理，不为结束 Work 伪造个人提交。
++
+ 接收结果后更新当前页、项目入口与必要决策。长过程归交付/历史，下一步只留真实责任。
+ 
+ 前置条件满足后，立即解除对应旧等待，把已接受输入与下一动作持久交给责任 Agent。测试目标准备、普通配置对齐等已授权选择由 Coordinator/责任 Agent 处理，不等 Human 再催办。

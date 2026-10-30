@@ -1,0 +1,69 @@
+{
+  "observed_at": "2026-10-02T08:23:11.852531+00:00",
+  "windows_source": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+  "wsl_source": "de27c07cb80c09e6066ae8cd6d9204aca58b7f91",
+  "todo": {
+    "3002-s010": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "3002-w007",
+      "issues": []
+    },
+    "3002-s027": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "",
+      "issues": []
+    },
+    "3002-s029": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "",
+      "issues": []
+    },
+    "3002-s031": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "3002-w060",
+      "issues": []
+    },
+    "3002-s032": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "3002-w027",
+      "issues": []
+    },
+    "2001-s009": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "2001-w001",
+      "issues": []
+    },
+    "2001-s014": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "2001-w043",
+      "issues": []
+    },
+    "2001-s021": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "2001-w043",
+      "issues": []
+    },
+    "2001-s022": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "2001-w043",
+      "issues": []
+    },
+    "2001-s023": {
+      "trusted": true,
+      "schema": "paos-todo/v2",
+      "work_id": "2001-w043",
+      "issues": []
+    }
+  },
+  "legacy_consumer_process_matches": [],
+  "scope": "public installed CLI reads; no claim of indefinite stability"
+}

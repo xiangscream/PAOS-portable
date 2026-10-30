@@ -1,0 +1,7 @@
+C:\Users\remo\Desktop\agent学习计划\PAOS-Projects\3002-Personal-Agent-OS\Source-v12-integrated-release\attention-dashboard-v1-static\tests\test_wake_opencode_b2b2.py:339: SyntaxWarning: invalid escape sequence '\.'
+  宿主绝对路径——POSIX/WSL 侧为 /mnt/c/...，Windows 侧为 C:\... 本机绝对
+.......................
+----------------------------------------------------------------------
+Ran 23 tests in 9.867s
+
+OK

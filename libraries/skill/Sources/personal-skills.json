@@ -1,0 +1,97 @@
+[
+  {
+    "id": "build-teaching-slides",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\build-teaching-slides",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\build-teaching-slides"
+  },
+  {
+    "id": "clean-writing",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\clean-writing",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\clean-writing"
+  },
+  {
+    "id": "daily-work-summary",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\daily-work-summary",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\daily-work-summary"
+  },
+  {
+    "id": "dispatching-parallel-agents",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\dispatching-parallel-agents",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\dispatching-parallel-agents"
+  },
+  {
+    "id": "docx-safe-editing",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\docx-safe-editing",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\docx-safe-editing"
+  },
+  {
+    "id": "extract-report-essence",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\extract-report-essence",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\extract-report-essence"
+  },
+  {
+    "id": "feishu-cli",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\feishu-cli",
+    "source": "C:\\Users\\remo\\.workbuddy\\skills\\feishu-cli"
+  },
+  {
+    "id": "feishu-doc-edit",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\feishu-doc-edit",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\feishu-doc-edit"
+  },
+  {
+    "id": "ffmpeg-video-clip",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\ffmpeg-video-clip",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\ffmpeg-video-clip"
+  },
+  {
+    "id": "grill-me",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\grill-me",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\grill-me"
+  },
+  {
+    "id": "product-definition-research",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\product-definition-research",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\product-definition-research"
+  },
+  {
+    "id": "product-definition-workbench",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\product-definition-workbench",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\product-definition-workbench"
+  },
+  {
+    "id": "product-feature-mining",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\product-feature-mining",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\product-feature-mining"
+  },
+  {
+    "id": "skill-engineering-change",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\skill-engineering-change",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\skill-engineering-change"
+  },
+  {
+    "id": "skill-independent-review",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\skill-independent-review",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\skill-independent-review"
+  },
+  {
+    "id": "software-business-process-analysis",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\software-business-process-analysis",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\software-business-process-analysis"
+  },
+  {
+    "id": "technical-research",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\technical-research",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\technical-research"
+  },
+  {
+    "id": "vault-scribe",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\vault-scribe",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\vault-scribe"
+  },
+  {
+    "id": "write-prd",
+    "canonical": "C:\\Users\\remo\\Desktop\\agent学习计划\\PAOS-Libraries\\skill\\write-prd",
+    "source": "C:\\Users\\remo\\Desktop\\skill库\\write-prd"
+  }
+]

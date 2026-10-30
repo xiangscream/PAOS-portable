@@ -1,0 +1,23 @@
+# ---- 本地安装事实与业务数据：不入公开仓库 ----
+data/
+Works/
+libraries/Rooter/
+libraries/Works/
+config/installation.json
+config/library-roots.json
+config/AGENT-NUMBERS.json
+config/AGENT-NUMBERS.md
+
+# ---- 运行时与缓存 ----
+.paos/
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+build/
+dist/
+*.log
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
