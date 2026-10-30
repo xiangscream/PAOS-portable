@@ -1,138 +1,172 @@
-# PAOS Portable
+# PAOS
 
-**以项目事实为核心的轻量硬基座，配合可复用方法库和可替换的 Agent 运行环境。**
+> **给 Agent 一份不会随对话消失的工作。**
 
-这个仓库发布的是**代码与共享方法资产**，不是某台电脑的已运行安装。克隆不会带来原机的项目、工位、登记数据、登录状态或已启动的接收器。
+大多数多 Agent 框架关心的是"**让几个 Agent 协作把活干完**"。
+PAOS 关心的是另一件事：**对话关了、模型换了、电脑重启了，那份工作还在不在。**
 
-## 仓库里有什么
+PAOS（Personal Agent OS）是一套运行在自己电脑上的 **CLI 与文件约定**：
+它把跨会话的工作事实——项目、工位、当前责任、消息、决策、证据——保存成 JSON 和 Markdown，
+让 Agent 可以被替换、暂停、接力、唤醒，而**工作本身一直连续**。
 
-| 路径 | 内容 | 是否随 Git 发布 |
-|---|---|---|
-| `code/personal-agent-os/` | CLI、服务模块、Runtime 适配代码及保留的测试 | 是；常用工位、输入与 Library 入口已改为文件直连 |
-| `libraries/` | Workflow、Skill、参考范例、Tool Catalog | 是；Catalog 是索引，不是原文替代品 |
-| `config/*.example.json` | 安装定位模板 | 是；占位模板不能直接作为有效安装使用 |
-| `config/local/` | 本机生成的安装描述与 Library 定位 | 否；换电脑重新生成 |
-| `data/`、Rooter 工位、项目库 | 私有安装事实与业务资料 | 否；按需要单独迁移 |
+## 它跟别的多 Agent 系统有什么不同
 
-首次接续采用**一个安装级 Rooter + 每个迁入项目一个现任 Coordinator**。其他工位不默认恢复运行，但不删除原工位与业务历史。具体边界只有一份：[架构与资产边界](ARCHITECTURE.md)。
+| 维度 | 常见多 Agent 框架 | PAOS |
+| --- | --- | --- |
+| 关注点 | Agent 怎么协作干活（对话、编排、角色分工） | **工作怎么活过对话、活过运行时更换** |
+| 状态在哪 | 内存、数据库、某个服务的会话里 | **你电脑上的 JSON / Markdown 文件**，人和 Agent 都能直接读改 |
+| Runtime | 通常绑定某个模型或框架 | **可换**：Codex、OpenCode、Claude…换 Runtime，工位与责任不变 |
+| Agent 是什么 | 一次性的任务执行者 | **长期员工**：固定工位、持续责任、可被唤醒接续 |
+| 部署形态 | 给开发者用的库或平台 | **本机单用户**，Python 标准库，无重型依赖 |
+| 前端 | 需要专门的服务与界面 | **一张画板**（节点 + 连线），直接反映工位与联系表 |
 
-## 从新克隆开始
+一句话：**别的框架让 Agent 更像一个团队，PAOS 让工作更像一份资产。**
 
-在仓库根目录，使用 Python 3.10 或更高版本：
+## 为什么这件事值得做
 
-```text
+多 Agent 协作最容易出问题的不是"Agent 不够聪明"，而是**状态断裂**：
+
+- 派了一个活，Agent 干到一半，对话关了——下次它不记得自己是谁、在做什么。
+- 换了个 Runtime，之前的任务上下文、责任边界全没了。
+- 消息"发出去了"，但没人真正消费——你却以为已经交接完成。
+
+PAOS 把这些问题拆成几件可验证的事：**留信（Mail）→ 登记（Notice）→ 唤醒（Wake）→ 消费（Handle）→ 归档**。
+每一步独立成立，**"发出去了"永远不等于"做完了"**。
+
+## 核心概念
+
+**硬基座 · 项目事实与工作流**
+项目资料按库组织（可复用的方法、流程、工具目录），稳定、可迁移。
+
+**软约束 · 工位与协作**
+每个长期 Agent 有一个固定工位（`Workstations/<agent>/`）：
+`ENTRY.md`（身份入口）、`TODO.md`（当前责任）、`mailbox/`（持久消息）、`notices/`（待读与处理记录）。
+**这些是 Markdown，你可以直接打开改**，不需要经过 PAOS 的工具。
+
+**Runtime 可换**
+Agent 的思考与执行交给 Codex / OpenCode 等 Harness；PAOS 只保存能活过它们的状态。
+换会话、换模型、换电脑，**工位和责任不丢**。
+
+**唤醒与接续**
+原生会话可以关，Agent 可以离线。目标 Runtime 在线且本机接收入口就绪时，可以请求原生提醒；
+离线时消息仍持久保存，下次从自己的 ENTRY / TODO 恢复身份与当前责任，接着干。
+
+**CAT 圆桌**
+Agent 之间（以及人和 Agent）围绕主题的临时讨论空间。
+讨论是自由的，但只有显式登记的结论才进入项目正式事实——**CAT 可以自由，PAOS 必须清楚。**
+
+## 画板前端
+
+一个轻量网页画板（原生 JS + SVG，无框架）：
+
+- 从本机五字段项目登记读取成员和 Coordinator，节点显示 TODO v4 当前行动、待处理与邮件数。
+- **Ctrl 多选**后点击“围绕主题沟通”，使用已配置的独立 CAT 建立圆桌。
+- **右键节点**：从 workflow / skill / tool 库里选范例，提示该 Agent 按范例参考。
+- 点进工位看 TODO 全文、邮件、成果；点进 CAT 房间看完整对话、发言。
+- **项目口径**直接展示项目库的 `INDEX.md`（唯一映射指南）。
+
+![PAOS 画板](front/board-polished.png)
+
+上图为 WorkBuddy 原型。当前接入版读取 Portable 的登记和工位原件；界面与 CAT 的现场操作仍需在目标电脑验收。
+
+## 快速开始
+
+克隆本仓库后，在仓库根目录（Python 3.10+）：
+
+```bash
+# 查看将生成的配置（只读，不写文件）
 python portable.py plan
+
+# 生成本机安装配置（config/local/），并建好必要空目录
 python portable.py init
+
+# 只读核对配置与路径是否一致
 python portable.py doctor
 ```
 
-`plan` 只显示按当前仓库位置展开的两个配置；`init` 生成 `config/local/` 中的配置对，并创建空的数据根与 Library 元数据目录。它不覆盖已有配置，不导入项目，不创建工位，不修改 Runtime、不启动服务。遇到已有安装、损坏配置或旧路径，明确报错，不猜测修复。
+`init` 不覆盖已有配置、不导入项目、不创建工位、不启动服务；`doctor` 只读检查，**配置通过 ≠ 业务/唤醒已验证**。
 
-`doctor` 是**只读定位检查**：即使 `configuration_ok: true`，也不代表 CLI、项目接续或唤醒已经通过测试。输出分别保留 `cli_verified`、`business_verified`、`runtime_verified` 为 `false`。
-
-选用本机生成的配置后，再核查 CLI。以下入口已用完整源码、隔离项目与真实文件调用验证；不是生产工位采用记录：
+然后按你的系统设置环境变量，验证 CLI：
 
 ```powershell
+# Windows PowerShell
 $env:PAOS_INSTALLATION_FILE = (Resolve-Path .\config\local\installation.json).Path
 $env:PAOS_LIBRARY_ROOTS_CONFIG = (Resolve-Path .\config\local\library-roots.json).Path
 $env:PYTHONIOENCODING = "utf-8"
-python .\code\personal-agent-os\scripts\paos.py --help
 python .\code\personal-agent-os\scripts\paos.py health
 ```
 
-Linux 对应设置：
-
 ```sh
+# Linux / WSL
 export PAOS_INSTALLATION_FILE="$PWD/config/local/installation.json"
 export PAOS_LIBRARY_ROOTS_CONFIG="$PWD/config/local/library-roots.json"
 export PYTHONIOENCODING=utf-8
-python code/personal-agent-os/scripts/paos.py --help
 python code/personal-agent-os/scripts/paos.py health
 ```
 
-已有 Rooter 或编号登记文件时，首次 `init` 可以用 `--rooter-home <绝对目录>` 与 `--agent-numbers-config <绝对文件>` 显式绑定；没有提供时保持未绑定，不伪造身份，也不重置编号。之后的安装变更继续使用核心已有的配置入口，而不是反复运行初始化来覆盖。
+**说明**：克隆本仓库得到的是**代码与共享方法资产**，不是某台电脑的已运行安装——项目、工位、登录态、接收器都需要在你自己的机器上另行准备或登记。
 
-### 登记一个项目，而不是创建项目管理对象
-
-在目标电脑准备好一个现有的 OB 项目根目录，显式登记项目路径和现任 Coordinator：
+准备好一个现有的项目根后，显式登记其位置和现任 Coordinator：
 
 ```powershell
 python .\code\personal-agent-os\scripts\paos.py project register 3002 --root "D:\OB\3002-Personal-Agent-OS" --coordinator 3002-s010
 python .\code\personal-agent-os\scripts\paos.py project show 3002
 ```
 
-`project register` 只建立一条 **`paos-project-registry/v1`** 机器定位记录，字段固定为 `schema/id/root_path/homes/coordinator_home_id`；无须 `human`、`generated`、`next_items`、`key_files`、Session 周期和项目报告。重复同值登记不写入；不同值或已有旧 Project JSON 则拒绝覆盖。
+登记只保存 `schema/id/root_path/homes/coordinator_home_id`，不创建或覆盖真实工位。
+Rooter 是独立的安装级入口，不算项目成员。项目当前口径由 `INDEX.md` 导航，行动保存在工位 TODO v4。
+迁移边界见 [MIGRATION-NOTES.md](MIGRATION-NOTES.md)，组件职责见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
-初次只登记 Coordinator 即可。Rooter 由安装描述单独定位，不算项目成员。将来需要其他 Agent 时可在首次登记使用重复的 `--home`，实际 Home 文件仍需通过相应合法入口建立。最新口径由项目 `INDEX.md` 指向一篇现有正文，不生成第二份项目概览；当前行动在工位 TODO。**登记成功不代表目标工位已经存在或 Runtime 已经绑定。**
+启动画板前端：
 
-## 换电脑与最小接续
-
-[迁移说明](MIGRATION-NOTES.md) 区分三件事：重新取得代码和库、迁入选定的耐久业务资料、在目标机器重新建立运行绑定。项目 `root_path` 不会因为安装路径更新而自动变化；不要直接搜索替换 Project JSON。
-
-公开 Git 仓库不等于完整备份。尤其 `.paos/usage-events/` 中的使用事件不是可重建缓存，Rooter/Coordinator 引用的 Works、决策与消息也不能按目录名整批丢弃。
-
-## Agent 工作底座：已收敛的调用链
-
-```text
-CLI → 本地项目登记 → 工位 TODO / Mail / Notice
-CLI → 登记的 Workflow / Skill / Tool 文件
-显式 remind / cat → 对应外部 Runtime / CAT（不作为本地读写前置）
-```
-
-`orient`、`inbox`、`status`、`attention`、`agent send`、`mail`、`peers/team`、
-`wake` 的项目定位和 `library search/tools` 不再查询旧 Core。
-`project show` 只回 `paos-project-registry/v1` 的五个机器字段；项目最新口径按原文维护，不填 human/generated。
-旧 Session 管理、项目进度填报、Dashboard/Workbench 和旧 Tips HTTP 代理已从 CLI 退出。
-命令用途见[共享接口参考](libraries/workflow/Guides/guide-paos-interface-reference.md)。
-
-对话、日会和 Tips 增量整理复用[已有工作流](libraries/workflow/Workflows/wf-meeting-audio-package.md)：
-保留原件，按需更新唯一口径、TODO 或方法；不是新增状态服务，也没有自动启动采集任务。
-
-## 可选画板
-
-完成安装初始化、项目登记和工位准备后，可以启动 WorkBuddy 原型适配的无依赖画板：
-
-```text
+```bash
 python portable.py serve
+# 浏览器打开 http://127.0.0.1:8780/
 ```
 
-打开 `http://127.0.0.1:8780/`，拖动登记的 Agent、查看其 TODO v4、Mail/Notice 和项目入口。
-前端从本安装配置读取路径，不需要原机器的盘符、WorkBuddy Python 或旧 Core。
-它只是可选读面；关闭画板不影响 CLI 文件操作。未登记项目时显示准备入口，不加载原机数据。
+画板是可选进程，关闭后 CLI 文件操作照常可用。默认读取此 checkout 的 `config/local/installation.json`，
+不依赖原机器盘符或 WorkBuddy 自带 Python。CAT 需显式连接：
+`python portable.py serve --cat-url http://127.0.0.1:8870`。
+未配置 CAT 时工位与共享方法仍可读，页面不会自动启动 Runtime 或接收器。详见[画板说明](front/README.md)。
 
-CAT 使用独立的显式连接：`python portable.py serve --cat-url http://127.0.0.1:8870`。
-未配置 CAT 时工位与库仍可读；页面不会自动启动 CAT、Runtime 或接收器。
-操作和边界见 [画板说明](front/README.md)。
+## 这套系统怎么组成
 
-## 验证
-
-```text
-python code/personal-agent-os/scripts/verify.py
+```
+硬侧（代码，可重建）
+  PAOS CLI + 本地文件读写模块 · 可选独立 CAT
+软侧（Markdown，人与 Agent 共改）
+  PAOS 库：workflow / skill / tool 方法资产
+  项目库：工位 + INDEX + TEAM + 材料与成果
+运行状态（机器读写）
+  data/（项目定位登记） + config/local/（本机安装配置）
 ```
 
-当前验证器检查初始化与真实文件接续、接收器/安装合同、保留的扫描管道及 Python 语法；
-不再依赖已剥离的 Node/Dashboard。原无效 Core 测试按退出接口退役，仍有用的数据根/备份
-断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
+一句话：**硬侧给机器，软侧给人；代码管"能跑"，库管"怎么跑"，项目库管"在跑什么"。**
 
-本包尚未自动迁入真实项目；TODO v4 已使用原生 Markdown 任务列表。
-每台目标电脑仍须独立验收自己的项目登记、Home 接续和 Runtime/CAT；本仓库测试不代表这些机器均已切换。
-保留的旧非入口模块按实际调用继续裁减，不作为文件工作底座的部署前置。
+## 它站在哪些项目的肩膀上
 
-## TODO v4 — Agent 与 Obsidian 共用一份原件
+PAOS 借鉴但不复制：
 
-Portable 现行 Home 使用 `paos-todo/v4`，参照 [模板与写入边界](libraries/workflow/Templates/workstation-todo.md)。`Pinned` 用普通 Markdown 表达持续有效要求或来源；`Current` 只含当前目标、下一步、等待、在途和引用；`Tasks` 用 Markdown checkbox 的单一状态标记。旧 TODO v3 不在运行时自动兼容、也不自动覆盖原始业务资料。
+- **AutoGen / CrewAI** 的多 Agent 消息协作 → CAT 圆桌，但 PAOS 把"讨论"与"正式事实"分开。
+- **LangGraph** 的状态思想 → 但 PAOS 更轻，不强制图结构，用文件合同代替编排。
+- **MetaGPT** 的角色 SOP → workflow 库，但 PAOS 是"软约束"（方法与范例），不是强制流程。
 
-本轮只改候选代码和模板。真实 Home 转换与本机 Runtime 采用仍须分别验证。
+最大的不同仍是：**那些框架优化"怎么让 Agent 干活"，PAOS 在意"工作本身能不能持续、可迁移、被人看懂"。**
 
-### TODO v3 原件的离线候选转换
+## 适合谁
 
-只在确实迁入原工位时使用 [`tools/convert_todo_v3.py`](tools/convert_todo_v3.py)，它不是运行时兼容层，不扫描全部项目，也不会修改生产 `TODO.md`。先用准确的 Rooter 或 Coordinator 原件运行只读规划：
+- 你在用多个 Agent（Codex / OpenCode / Claude 等）做**长期、有连续性的事**，而不是一次性问答。
+- 你希望**工作状态不寄生在某段对话、某个模型、某次运行上**。
+- 你偏好**轻量、可读、可自己掌控**的本机工具，而不是又一个重型平台。
 
-```powershell
-python .\tools\convert_todo_v3.py --source "<旧工位绝对路径>/TODO.md" --output "<独立审核目录>/TODO.v4.md" --expect-home-id "<该工位真实ID>"
-# 人工确认来源和报告的 source_sha256；需要时再重复命令，加 --expected-source-sha256 <实际SHA> --write
-```
+## 当前状态
 
-`--write` 只会创建**尚不存在**的候选文件，输出源/目标 SHA、任务数量和迁移保留字段名；不会覆盖原件或已有候选。旧 `approved_scope`、`stage` 等非现行字段如非空会放在 Pinned 的“v3 遗留 Current（待核现行性）”部分；不会伪装成最新项目口径。任务 `source_refs`、`acceptance_refs`、`notify_after` 及 ID/状态逐项回读核对。不能无损表示、未知的手写文本或损坏结构直接拒绝转换。**该工具不安装候选、不搬 Mail/Notice/ENTRY、不替代新的 Project 登记或 Runtime 绑定。**
+PAOS-portable 是从一个真实使用中的 PAOS 系统**抽离、收敛出的可迁移单元**：
+代码与业务资料分离、数据根从代码里抽出、历史依赖与可重建物剔除。
+画板是可选的 Python 标准库后端与原生 JS；工位与库为 Markdown / JSON。
+正常文件接续不要求旧 Core、Work/Session 状态机、Dashboard 或画板在线。
 
-Rooter 和项目 Coordinator 分别在私有工位来源上执行；项目 Coordinator 的真实身份由当前登记/原件确认，不要把示例 `3002-s010` 当作必然现任。完整接续顺序见 [迁移说明](MIGRATION-NOTES.md)。
+开发检查：`python code/personal-agent-os/scripts/verify.py`。
+画板显示辅助测试使用 `node --test tests/board-ui.test.mjs`；运行产品不需要 Node。
+
+它不是一个"功能大而全"的框架，而是一个**正在持续收敛、追求简单与可解释**的个人工作内核。
