@@ -5,7 +5,7 @@ title: 操作入口：按目的找命令
 description: 本地工位、持久输入、方法库与显式运行通道。
 tags: ops, operations, entry
 status: active
-version: 29
+version: 30
 ---
 
 # 操作入口
@@ -19,6 +19,7 @@ version: 29
 | 接手与更新 | `attention takeover` / `todo-update` / `todo-write` / `handle` |
 | 找同事与联系状态 | `peers` / `team` / `status` / `wake status` |
 | 方法复用与工具 | `library search` / `library tools` |
+| 项目定位 / 首次登记 | `project show` / `project register --root --coordinator`；不创建项目管理状态 |
 | 本项目经验 | `project experience`；正文按文件/Git维护 |
 | 安装定位 | `install show` / `install configure` / `health` |
 | 对话、日会、Tips 归位 | [日常输入整理](../Workflows/wf-meeting-audio-package.md) |

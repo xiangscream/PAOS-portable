@@ -18,11 +18,15 @@ def problems():
         if 'attention-dashboard-v1-static' in text:
             failures.append(f'{name}: removed UI/server tree still on normal path')
     tree=ast.parse((SCRIPTS/'paos_registry.py').read_text(encoding='utf-8'))
+    # Explicit register may create the first locator. Reads and validation
+    # must never repair missing state or mutate the underlying Project record.
     for node in ast.walk(tree):
-        if isinstance(node,ast.Call):
-            name=node.func.attr if isinstance(node.func,ast.Attribute) else ''
-            if name in {'write_text','write_bytes','dump','mkdir','replace','rename','unlink'}:
-                failures.append(f'paos_registry.py:{node.lineno}: registry reader must not write')
+        if isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)) and node.name in {'read','read_record','_path','_check'}:
+            for child in ast.walk(node):
+                if isinstance(child,ast.Call):
+                    name=child.func.attr if isinstance(child.func,ast.Attribute) else ''
+                    if name in {'write_text','write_bytes','dump','mkdir','replace','rename','unlink','link'}:
+                        failures.append(f'paos_registry.py:{child.lineno}: read/validate must not write')
     return failures
 
 

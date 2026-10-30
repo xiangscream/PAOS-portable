@@ -6,7 +6,7 @@
 ## 实现
 
 `paos.py` 删除旧 Core HTTP 业务命令及其无人调用的辅助函数。
-ProjectRegistry 复用原 data_root/project-registry/projects，不写入、不新建状态库；
+ProjectRegistry 复用 data_root/project-registry/projects，只显式创建五字段最小登记（旧文件绝不覆盖）；
 `orient/inbox/status/attention/agent/mail/peers/team/workstation/wake` 直接读取登记。
 Library search/tools 调用既有文件模块。只有显式 CAT/原生提醒仍依赖外部通道。
 
@@ -33,7 +33,7 @@ Mail/Notice/TODO 写者。接收器原测试使用临时 localhost 服务和假 
 ## 没有完成的部分
 
 TODO v3 和部分历史 helper 仍在；没有完整替换成 Obsidian 原生任务/自由置顶。
-没有新项目登记写 API、数据迁移、真实日会自动消费任务或生产 Windows/WSL 采用。
+已增加 `project register` 新项目定位入口；没有旧 Project JSON 的批量迁移、真实日会自动消费任务或生产 Windows/WSL 采用。
 旧通用 Skill 中的报告模板仍是按需方法，不是硬基座必经流程；继续按真实使用精简。
 
 部署判断以真实新机业务闭环为准，不把此处的测试/CI当成已部署。
@@ -43,3 +43,13 @@ TODO v3 和部分历史 helper 仍在；没有完整替换成 Obsidian 原生任
 解耦不是只拆文件。旧链是“读工位先依赖服务、服务又依赖旧业务对象”；本片直接减少
 这条依赖，把定位归本地登记，把工作归既有 Home 写者，把解释信息归 Workflow。
 不再恢复整套旧平台来满足一个 Agent 读取自己 TODO 的需求。
+
+## 下一片：Project 结构真正退役（本轮）
+
+- 唯一持久新 schema：`paos-project-registry/v1`；仅 `schema`、`id`、`root_path`、`homes`、`coordinator_home_id`。
+- 不再接受项目管理 `human/generated/next_items/key_files` 与旧 Session/Work 负载。原 v3 JSON 是另需保留的历史原件，不在新文件读/写链兼容。
+- 新 CLI `project register` 从已存在的 OB 目录登记 Coordinator/可选 Homes；同值不改字节，不同值不覆盖；不创建空业务文档或 Runtime 身份。
+- 旧 `paos_coordinator.py` 的无消费 Work 前置检查和 `paos_workstation.py` 的 `key_files` 预检/周期材料化已退出源码；`paos_v12_convert`、`paos_v13_convert`、`migrate_workless_installation` 及不再被 CLI 调用的兼容/渲染脚本也已退出。真实 Home 写者和跨项目持久消息仍复用。
+- `ProjectRegistry.read()` 的短期内存适配仅为调用现有 Home/Mail 接口，**不持久化** Session status、项目摘要或 revision；名册“active”只指登记，不证明进程在线。
+
+保留未完成：Obsidian 自由 TODO/置顶仍未实现；生产项目迁移需先独立保留原旧文件，再准确登记和回读；并未真实操作用户本机。

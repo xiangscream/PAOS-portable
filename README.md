@@ -52,6 +52,19 @@ python code/personal-agent-os/scripts/paos.py health
 
 已有 Rooter 或编号登记文件时，首次 `init` 可以用 `--rooter-home <绝对目录>` 与 `--agent-numbers-config <绝对文件>` 显式绑定；没有提供时保持未绑定，不伪造身份，也不重置编号。之后的安装变更继续使用核心已有的配置入口，而不是反复运行初始化来覆盖。
 
+### 登记一个项目，而不是创建项目管理对象
+
+在目标电脑准备好一个现有的 OB 项目根目录，显式登记项目路径和现任 Coordinator：
+
+```powershell
+python .\code\personal-agent-os\scripts\paos.py project register 3002 --root "D:\OB\3002-Personal-Agent-OS" --coordinator 3002-s010
+python .\code\personal-agent-os\scripts\paos.py project show 3002
+```
+
+`project register` 只建立一条 **`paos-project-registry/v1`** 机器定位记录，字段固定为 `schema/id/root_path/homes/coordinator_home_id`；无须 `human`、`generated`、`next_items`、`key_files`、Session 周期和项目报告。重复同值登记不写入；不同值或已有旧 Project JSON 则拒绝覆盖。
+
+初次只登记 Coordinator 即可。Rooter 由安装描述单独定位，不算项目成员。将来需要其他 Agent 时可在首次登记使用重复的 `--home`，实际 Home 文件仍需通过相应合法入口建立。最新口径由项目 `INDEX.md` 指向一篇现有正文，不生成第二份项目概览；当前行动在工位 TODO。**登记成功不代表目标工位已经存在或 Runtime 已经绑定。**
+
 ## 换电脑与最小接续
 
 [迁移说明](MIGRATION-NOTES.md) 区分三件事：重新取得代码和库、迁入选定的耐久业务资料、在目标机器重新建立运行绑定。项目 `root_path` 不会因为安装路径更新而自动变化；不要直接搜索替换 Project JSON。
@@ -68,7 +81,7 @@ CLI → 登记的 Workflow / Skill / Tool 文件
 
 `orient`、`inbox`、`status`、`attention`、`agent send`、`mail`、`peers/team`、
 `wake` 的项目定位和 `library search/tools` 不再查询旧 Core。
-`project show` 只回登记与成员；项目最新口径按原文维护，不填 human/generated。
+`project show` 只回 `paos-project-registry/v1` 的五个机器字段；项目最新口径按原文维护，不填 human/generated。
 旧 Session 管理、项目进度填报、Dashboard/Workbench 和旧 Tips HTTP 代理已从 CLI 退出。
 命令用途见[共享接口参考](libraries/workflow/Guides/guide-paos-interface-reference.md)。
 
@@ -86,5 +99,5 @@ python code/personal-agent-os/scripts/verify.py
 断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
 
 本包尚未自动迁入真实项目，也未重写 TODO v3 为原生 Markdown 任务列表。
-初次项目登记写入口、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
+目标电脑的真实项目登记/接续验收、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
 这是草稿候选，不是生产安装已切换。

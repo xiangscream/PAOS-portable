@@ -27,7 +27,6 @@ from paos_registry import ProjectRegistry, RegistryProblem
 from paos_library import search_library_resources, _validate_tool_catalog_file
 
 from paos_workstation import posix_windows_drive_locator, WorkstationProblem, ensure_fixed_workstation, read_fixed_workstation
-from paos_coordinator import session_from_project  # noqa: E402
 from paos_guide import GuideProblem, build_guide_diff
 from paos_mail import (  # noqa: E402
     MailProblem,
@@ -389,8 +388,8 @@ def todo_text_arg(value: str | None, label: str, *, required: bool = False) -> s
 
 def get_session_detail(registry, project_id, session_id):
     project = registry.read(project_id)
-    session = session_from_project(project, session_id)
-    if not session:
+    session = next((item for item in project["sessions"] if item["id"] == session_id), None)
+    if session is None:
         raise CliError("工位成员未登记。", error_code="home_agent_unknown")
     return {"session": session, "project_revision": project.get("revision")}
 
@@ -2648,14 +2647,19 @@ def execute(
 
 
     if args.command == "project":
-        project = registry.read(args.project_id)
+        if args.project_command == "register":
+            result = registry.register(
+                args.project_id, root_path=args.root,
+                coordinator_home_id=args.coordinator,
+                homes=args.home or (),
+            )
+            return {"ok": True, **result}
         if args.project_command == "experience":
+            project = registry.read_record(args.project_id)
             path = Path(posix_windows_drive_locator(project["root_path"])) / "Materials" / "TIPS.md"
             return {"ok": True, "path": str(path), "raw_markdown": path.read_text(encoding="utf-8")}
-        # 返回登记所需字段；项目最新口径与任务不是另一个 JSON 概览。
-        return {"ok": True, "project": {k: project.get(k) for k in
-                ("id", "name", "root_path", "organization")},
-                "homes": [{"id": h["id"]} for h in project["sessions"]]}
+        # Project is a locator, not an alternative TODO / Human / progress model.
+        return {"ok": True, "project": registry.read_record(args.project_id)}
 
 
     raise CliError("unsupported command", error_code="unsupported_command")
@@ -3310,6 +3314,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     pr = sub.add_parser("project", help="Read local project registration or project experience")
     prs = pr.add_subparsers(dest="project_command", required=True)
+    x = prs.add_parser("register", help="Register one existing OB project root and Coordinator Home; never overwrite")
+    x.add_argument("project_id")
+    x.add_argument("--root", required=True, help="Existing absolute project vault directory")
+    x.add_argument("--coordinator", required=True, help="Current Coordinator Home ID, e.g. 3002-s010")
+    x.add_argument("--home", action="append", help="Additional registered Home ID; repeatable")
     for name in ("show", "experience"):
         x = prs.add_parser(name)
         x.add_argument("project_id")

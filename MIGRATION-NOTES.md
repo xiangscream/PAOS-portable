@@ -26,13 +26,27 @@ Workflow / Skill / Tool 定义以及 `references/` 中的范例随库保留。Ca
 
 Tool Catalog 中的原机安装位置、可用性和验证日期也是待核信息，不能因为文档已复制就宣称工具已安装。
 
-## 4. 分别登记安装位置与项目位置
+## 4. 首次显式登记新的最小 Project 记录
 
-安装描述定位代码、data_root 和共享库；Project 的 `root_path` 定位业务库。前者变化不会自动更新后者。
+安装描述定位代码、data_root 和共享库，Project 登记只定位 OB 根目录、Home IDs 和 Coordinator。迁入一篇当前生效的项目口径，从该库 `INDEX.md` 指到此原文，不强制另建项目概览。Rooter 由安装级定位单独登记，不进入 Project 成员列表。
 
-项目登记和 Coordinator 身份通过现有合法写入入口处理，保留原有 revision、账本、回执和恢复约束。不要用一次性脚本直接搜索替换 Project JSON，也不要猜测当前 Coordinator 的 ID。当前包的项目写入依赖尚需核清，缺少对应能力时停在明确缺口，不旁路补写。
+新登记文件位于 `<data_root>/project-registry/projects/<id>.json`，schema 为 `paos-project-registry/v1`，准确只有：
 
-编号登记需要保留稳定身份与分配状态；助手接受已有编号文件的显式绑定，但不创建空表来冒充原安装、不重置分配器。Rooter 工位同样只显式绑定已有目录，不合成旧责任。
+```json
+{
+  "schema": "paos-project-registry/v1",
+  "id": "3002",
+  "root_path": "<目标电脑上已存在的绝对项目目录>",
+  "homes": ["3002-s010"],
+  "coordinator_home_id": "3002-s010"
+}
+```
+
+上面的路径是**解释性占位符**，不能直接作为有效登记。先确认实际 Coordinator Home ID 与现有 OB 根，再由 CLI `project register <id> --root <真实绝对目录> --coordinator <Home ID>` 建立；不会生成缺失的业务目录或猜测成员。不要把原机 Rooter、PID、Runtime UUID、旧安装路径或 Session 作为新机器的有效身份。
+
+**不保留旧 Project JSON 运行兼容。** 如目标数据根已有原版 `paos-project/v3`，CLI 会拒绝读取/覆盖；先单独留好原件和项目证据，再使用独立的空数据根或在已核实的迁移位置重新登记。`project register` 不会自行搬走、裁切或替换任何旧字节，也不把迁移当成项目重新验收。原 Ledger/receipt 等若有历史证明价值，按原件归档，不重建假事件。
+
+这一步只建立 Project locator，不能证明 TODO 原件、所有引用、Mail 或 native binding 已迁入；须分别回读并做新输入闭环测试。
 
 ## 5. 最后建立本机运行绑定
 

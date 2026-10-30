@@ -10,8 +10,8 @@
 
 ## 代码边界
 
-- `paos_registry.py`：只读既有 `<data_root>/project-registry/projects/<id>.json`，定位项目及成员；不写项目、不创建替代状态库。
-- `paos.py`：参数、调用既有模块、输出结果。仅 CAT 使用本文件的 HTTP 客户端。
+- `paos_registry.py`：唯一 `paos-project-registry/v1` 项目定位原件；显式 `project register` 只创建五字段登记，不覆盖、不合成旧项目管理状态。正常读取始终只读。
+- `paos.py`：参数、调用既有模块、输出结果。仅 CAT 使用本文件的 HTTP 客户端。Project 登记写入只经 registry，Home 写入仍经各自 writer。
 - `paos_home.py`、`paos_workstation.py`：固定工位定位和文件；Rooter 是安装级工位。
 - `paos_todo_v3.py`：现有 TODO 解析与写入；本片没有改成自由 Markdown 格式。
 - `paos_mail.py`、`paos_notice.py`、`paos_attention_service.py`：持久输入与处理事实；不再生成第二份 Workbench 当前页。

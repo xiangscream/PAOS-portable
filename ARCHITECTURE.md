@@ -22,7 +22,7 @@ flowchart TB
     Config[本机定位配置] --> CLI
 ```
 
-图表示职责关系，不意味着所有箭头已在新机器验收。常用工位与库命令已脱离旧 HTTP 服务。ProjectRegistry 只读原登记文件，Home 写者继续维护工作；本片不恢复旧服务和全部 ProjectStore 管理接口。
+图表示职责关系，不意味着所有箭头已在新机器验收。常用工位与库命令已脱离旧 HTTP 服务。ProjectRegistry 用五字段最小登记定位项目与工位，允许显式首次登记而不覆盖已有文件；Home 写者继续维护工作。本片不恢复旧服务和全部 ProjectStore 管理接口。
 
 ## 2. 不把三个维度混在一起
 
@@ -58,7 +58,7 @@ Rooter 是安装级角色，不硬塞进某个项目的人员表。每个迁入�
 
 ## 5. 写入和投递边界
 
-现有核心约定区分 Project 状态写者与 Home 文件写者。本片只读现有 Project 登记，不写机器状态，也不为历史 HTTP 接口恢复完整业务对象。代码裁减不删除用户真实记录。Portable 初始化助手只生成安装定位，不处理这两类业务写入。
+Portable 的新项目登记仅有 `schema/id/root_path/homes/coordinator_home_id`，用 `project register` 首次原子建立；无 Dashboard、User Requirement、generated summary、Project TODO 或历史 Session 模型。登记以外的业务内容仍由唯一最新口径、正常项目文件与工位承担。HOME 的 TODO、Mail、Notice 各有写者；其源原件不是登记文件。用户旧 Project JSON 不能通过新注册命令被覆盖。`portable.py init` 只建立安装配置，不创建项目。
 
 持久留信、生成 Notice、接受唤醒、Agent 实读、交付、验收是不同事实。保持原有区分，不新增第二套任务生命周期或自动重试器；尤其不得因投递结果不确定就在新机器盲目重发旧输入。
 
@@ -71,7 +71,7 @@ Rooter 是安装级角色，不硬塞进某个项目的人员表。每个迁入�
 ## 7. 当前片已验证与下一片
 
 常用 CLI 无 Core 的文件链已接通；保留已有 Mail/Notice/TODO 写者，不造第二套实现。
-ProjectRegistry 是一个小的只读模块，不是更名重建 ProjectStore。
+ProjectRegistry 是小型定位模块：唯一新写动作是显式创建五字段登记，不是更名重建 ProjectStore；其余 Home 读写不经它写 Project 数据。
 
 日常信息整理放 Workflow：原件只保存一次；有效变化进入已有最新口径/工位/方法。
 没有新信息不制造日报、任务或“空成功”。人可用 Obsidian 看同一份原件，系统不依赖人类界面。

@@ -14,10 +14,7 @@ import re
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any, Iterable
-
-# 键值标记：PAOS key_files 现有格式 `说明：<absolute local path or URL>`（全角冒号）。
-# ENTRY 必须同时保留 label（说明标记）与解析后的 locator，不得靠任意字符串猜路径。
+from typing import Any
 
 _TODO_V3_PATH = Path(__file__).resolve().with_name("paos_todo_v3.py")
 _TODO_V3_SPEC = importlib.util.spec_from_file_location(
@@ -28,17 +25,6 @@ if _TODO_V3_SPEC is None or _TODO_V3_SPEC.loader is None:
     raise RuntimeError(f"无法加载 TODO v3 helper：{_TODO_V3_PATH}")
 _TODO_V3_HELPER = importlib.util.module_from_spec(_TODO_V3_SPEC)
 _TODO_V3_SPEC.loader.exec_module(_TODO_V3_HELPER)
-
-
-CANONICAL_GUIDE_TEMPLATE = """# Workflow Guide（项目工作方法副本）
-
-- PAOS 保存正式事实；本文件是本地工作方法副本，不改变权限、责任或验收。
-- 进入新 Cycle 前先读取当前事实：`paos session context <project> <agent>`。
-- 在本 Cycle 目录内工作：`inputs/` 只读材料、`outputs/` 交付、`review/` 审查意见。
-- 遇到 tenure 过期、责任冲突或材料不可达时停止，并把摩擦写回 Session Update 或 CAT。
-- 本指南可被本工位编辑；`review/GUIDE-SEED.md` 保留本 Cycle 的精确 seed 基线。
-- 改进是否晋升到 canonical Practice 必须经过 diff 审阅与显式 promotion。
-"""
 
 
 class WorkstationProblem(Exception):
@@ -100,222 +86,10 @@ def posix_windows_drive_locator(locator: str) -> str:
     return f"/mnt/{drive}/{rest}"
 
 
-def parse_key_file_entry(raw: str) -> dict[str, str]:
-    """`<label>：<locator>` 仅在 locator 明确像 locator（盘符/UNC/http(s)）
-    时拆为 label+locator；否则整条按原 locator 处理并正常失败，不能猜。"""
-    text = raw.strip()
-    mark = text.find("：")
-    if mark > 0:
-        candidate = text[mark + 1 :].strip()
-        if candidate and locator_like(candidate):
-            return {"label": text[: mark + 1], "locator": candidate}
-    return {"label": "", "locator": text}
-
-
-def _readable_file_problem(path: Path) -> str:
-    if not path.exists():
-        return "not_found"
-    if path.is_dir():
-        return "is_directory"
-    if not os.access(path, os.R_OK):
-        return "not_readable"
-    return ""
-
-
-def _readable_entry_problem(path: Path) -> str:
-    """key_file 引用定位符的检查：目录存在可读即通过。"""
-    if not path.exists():
-        return "not_found"
-    if path.is_dir():
-        if not os.access(path, os.R_OK):
-            return "not_readable"
-        return ""
-    if not os.access(path, os.R_OK):
-        return "not_readable"
-    return ""
-
-
-def preflight_workspace(
-    root: Path,
-    key_files: Iterable[str],
-    materials: Iterable[str],
-) -> dict[str, Any]:
-    """Best-effort runtime checks for the selected Project workspace root.
-
-    Project ``key_files`` are navigation references, not an implicit list of
-    mandatory inputs for every Work. Their reachability is reported honestly
-    but does not fail the Workstation preflight. Explicit ``materials`` are
-    task-scoped inputs and remain fail-closed.
-    """
-    checks: list[dict[str, Any]] = []
-    issues: list[dict[str, Any]] = []
-
-    def record(
-        kind: str,
-        raw: str,
-        path: Path,
-        problem: str,
-        extra: dict[str, Any] | None = None,
-        *,
-        blocking: bool = True,
-    ) -> None:
-        entry = {
-            "kind": kind,
-            "raw": raw,
-            "path": str(path),
-            "ok": not problem,
-            "reason": problem,
-            "blocking": bool(problem and blocking),
-        }
-        if extra:
-            entry.update(extra)
-        checks.append(entry)
-        if problem and blocking:
-            issues.append(entry)
-
-    root_problem = ""
-    if not root.exists():
-        root_problem = "not_found"
-    elif not root.is_dir():
-        root_problem = "not_a_directory"
-    elif not os.access(root, os.R_OK):
-        root_problem = "not_readable"
-    elif not os.access(root, os.W_OK):
-        root_problem = "not_writable"
-    record("root", str(root), root, root_problem)
-
-    for raw in key_files:
-        entry = parse_key_file_entry(raw)
-        locator = entry["locator"]
-        if locator.lower().startswith(("http://", "https://")):
-            # Remote reference：保留为引用、明确 not_checked，
-            # 不宣称已访问，也不阻断本地材料化。
-            checks.append(
-                {
-                    "kind": "key_file",
-                    "raw": raw,
-                    "label": entry["label"],
-                    "locator": locator,
-                    "type": "remote_reference",
-                    "path": locator,
-                    "ok": True,
-                    "reason": "not_checked",
-                    "blocking": False,
-                }
-            )
-            continue
-        mapped = posix_windows_drive_locator(locator)
-        path = resolve_path(root, mapped)
-        problem = _readable_entry_problem(path)
-        record(
-            "key_file",
-            raw,
-            path,
-            problem,
-            extra={
-                "label": entry["label"],
-                "locator": locator,
-                "type": "directory" if path.is_dir() else "file",
-            },
-            blocking=False,
-        )
-    for raw in materials:
-        path = resolve_path(root, raw)
-        record("material", raw, path, _readable_file_problem(path))
-
-    return {
-        "ready": not issues,
-        "root_path": str(root),
-        "checks": checks,
-        "issues": issues,
-    }
-
-
-
-
-def _read_or_seed_canonical_guide(canonical_guide: Path, guide_seed_text: str) -> bytes:
-    """Return canonical Guide bytes, creating it atomically only when absent.
-
-    A complete temporary file is hard-linked into place. ``os.link`` is an
-    atomic create-if-absent operation on the supported Windows/WSL filesystems:
-    if another Human/Runtime wins the race, FileExistsError leaves those bytes
-    untouched and this attempt reads the winner instead. We fail closed on a
-    filesystem that cannot provide this non-overwrite primitive rather than
-    falling back to ``os.replace``.
-    """
-    try:
-        return canonical_guide.read_bytes()
-    except FileNotFoundError:
-        pass
-
-    canonical_guide.parent.mkdir(parents=True, exist_ok=True)
-    staged = canonical_guide.parent / f".WORKFLOW-GUIDE.seed-{uuid.uuid4().hex}"
-    try:
-        staged.write_text(guide_seed_text, encoding="utf-8")
-        try:
-            os.link(staged, canonical_guide)
-        except FileExistsError:
-            pass
-        except OSError as exc:
-            raise WorkstationProblem(
-                "canonical_guide_atomic_publish_failed",
-                f"无法安全播种 canonical Guide：{canonical_guide}",
-                {"canonical_guide_path": str(canonical_guide), "os_error": str(exc)},
-            ) from exc
-        return canonical_guide.read_bytes()
-    finally:
-        staged.unlink(missing_ok=True)
-
-
-def materialize_cycle(
-    *,
-    root: Path,
-    work_id: str,
-    agent_id: str,
-    cycle: int,
-    entry_text: str,
-    guide_seed_text: str,
-) -> Path:
-    """Publish one new cycle directory atomically; never touch existing cycles.
-
-    V1.1 keeps this directory as Cycle-bound execution evidence only. Stable
-    Agent entry is owned by the visible Project Workstation and is not refreshed
-    from Cycle materialization.
-    """
-    base = root / ".paos"
-    canonical_guide = base / "practice" / "WORKFLOW-GUIDE.md"
-    target = base / "workstations" / work_id / agent_id / f"cycle-{cycle}"
-    if target.exists():
-        raise WorkstationProblem(
-            "workstation_exists",
-            f"Workstation cycle 已存在，不覆盖：{target}",
-            {"workstation_path": str(target)},
-        )
-
-    stage = target.parent / f".cycle-{cycle}.staging-{uuid.uuid4().hex}"
-    try:
-        stage.mkdir(parents=True)
-        (stage / "ENTRY.md").write_text(entry_text, encoding="utf-8")
-        guide_bytes = _read_or_seed_canonical_guide(canonical_guide, guide_seed_text)
-        (stage / "GUIDE.md").write_bytes(guide_bytes)
-        for name in ("inputs", "outputs", "review"):
-            (stage / name).mkdir()
-        (stage / "review" / "GUIDE-SEED.md").write_bytes(guide_bytes)
-        os.rename(stage, target)
-    except Exception:
-        shutil.rmtree(stage, ignore_errors=True)
-        raise
-
-    # V1.1: Cycle materialization publishes only Cycle-bound evidence.
-    # The one normal Agent entry lives at <Project>/Workstations/<agent>/ENTRY.md.
-    # Never recreate the retired .paos/agents/<agent>/ENTRY.md projection here.
-    return target
-
 # V1.1 fixed Agent Workstation foundation.
 #
-# Unlike the S3 cycle materialization above, this home is stable across Work,
-# Cycle and Runtime changes. It lives in the visible Project Vault so humans and
-# Agents can read the same Markdown directly in Obsidian.
+# Home is stable across work and Runtime changes, and lives in the OB project
+# vault as the Agent's directly readable Markdown source.
 V11_PROJECT_VAULT_DIRS = (
     "Inbox",
     "Materials",

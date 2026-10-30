@@ -5,7 +5,7 @@ title: PAOS 接口参考：本地工位、项目登记与方法库
 description: Agent 无 Core HTTP 运行的本地入口；内容维护走原文件，不另建项目概览。
 tags: paos, interface, reference, cli
 status: active
-version: 23
+version: 24
 ---
 
 # PAOS 接口参考
@@ -26,7 +26,7 @@ TODO 写入仍走 `attention todo-update/todo-write`；本片保留 v3 格式。
 
 ## 项目与当前口径
 
-`project show <project>` 只读登记身份、位置、Coordinator 和成员 ID。
+`project show <project>` 返回五字段 `paos-project-registry/v1` 原始登记：项目 ID、OB 根、Home IDs、现任 Coordinator Home ID；不返回另一份业务状态摘要。首次登记通过 `project register <project> --root <已存在绝对目录> --coordinator <现任Home>`，额外成员才使用 `--home`。登记不写业务材料，不创建工位，不自动绑 Runtime；已有不同 JSON 不覆盖。
 项目最新口径是 Project Vault 中**一篇现有正文**，从 ENTRY/INDEX 或 TODO
 的 `alignment_ref` 找到后直接读写；不强制新文件名，不复制到 Project JSON。
 
