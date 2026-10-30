@@ -1,61 +1,55 @@
 ---
 schema: paos-workflow/v1
 id: template-workstation-todo
-title: TODO v3 模板
-description: 本人当前目标、下一步、等待与成果；八个默认字段，按需补在途信息。
-tags: template, todo, current
+title: TODO v4：Obsidian 原生工位
 status: active
-version: 9
+version: 10
+description: 一份可由 Obsidian 阅读和编辑、由 Agent 有界读写的 Pinned + Current + Tasks 工位原件。
+tags: template, todo, current, obsidian
 ---
 
-# 复制下方正文
+# 工位 TODO v4
+
+复制下面的正文到已登记 Home 的 `TODO.md`，并改为本人的真实身份与工作。
+Rooter 的 `home_kind` 用 `rooter`，`project_id` 用空字符串。
 
 ```markdown
 ---
-schema: "paos-todo/v3"
+schema: "paos-todo/v4"
 home_kind: "project_agent"
-home_id: "<home-id>"
-project_id: "<project-id>"
+home_id: "3002-s010"
+project_id: "3002"
 ---
 
+# Pinned
+
+- 项目最新口径：[[INDEX]] 所指向的唯一当前正文。
+- 本次 Human 要求：直接引用准确消息或原始记录，必要时在此简记。
+
 # Current
-objective: "<当前目标>"
-approved_scope: "<已获准范围>"
-stage: "<当前阶段>"
-next_action: "<下一项可执行动作>"
-waiting: "<谁提供什么、结果位置和回流方式；没有则写无>"
-result_refs: ["<当前成果路径或引用>"]
-input_version: "<本轮实际输入版本或原消息>"
-history_ref: "<长过程与已完成任务的历史入口>"
+
+- **Objective:** 更新项目口径并处理未完成输入
+- **Next action:** 阅读新增日会并核对原文
+- **Waiting:**
+- **Inflight:**
+- **Context refs:**
+  - [[Materials/日会记录]]
+- **Result refs:**
 
 # Tasks
 
-### T-001
-schema: "paos-todo-task/v1"
-title: "<任务标题>"
-state: "doing"
-waiting: ""
-result: ""
-artifact_ref: "<成果位置>"
-notify_after: []
+- [/] **T-001** · 从日会提取影响下一步的结论
+  - **Source refs:**
+    - [[Materials/日会记录]]
+  - **Artifact:** [[Works/日会整理]]
 ```
 
-Current 默认用这八项说明当前任务，长期岗位职责留在本人角色规则，历史过程沿 `history_ref` 阅读。只有 `objective` 和 `next_action` 是解析必需项，其余按实际需要填写。元数据填写本人 `home_kind`、`home_id`；Project Agent 还需 `project_id`。元数据和正文字段中的字符串值保持双引号，包括数字形式的 Project ID；列表仍用 JSON 数组。已有解析器支持的其他字段仍可使用，不必为套模板添加空字段。
+## 原则
 
-真实在途外部写入需要接续时，再加 `inflight`，写清目标、控制人、查看与停止入口。历史输入和重复状态缓存留在原成果中，Current 引用原件。
-
-## 任务状态
-
-每个任务使用独立 ID，字段值写成单行。按实际进展使用以下状态：
-
-| state | 示例 |
-| --- | --- |
-| todo | 已登记任务，下一步开始执行 |
-| doing | 正在修改正文或处理输入 |
-| waiting | 等同事给原件；waiting 写明负责人、结果位置和回流方式 |
-| done | 成果已保存，result 与 artifact_ref 指向实际结果 |
-| cancelled | 目标被明确取消；result 写明取消依据 |
-
-需要完成后回告的来源放 `notify_after`，没有则保留空列表。消息已发但下游尚未接续时，保留真实等待；个人任务 done 不代替项目验收。长过程放原报告或历史页，不复制进 Current。
-
-目标、成果、下一步或等待有实质变化时更新本人 TODO。具体写入、回读与异常定位只按[共享 OPS](../Guides/guide-paos-cat-operations.md#当前页与输入)。
+- `Pinned` 是任意正常 Markdown，可写长原话、引用、二级标题；不是另一套项目概览。
+- `Current` 只记录当前目标、下一步、等待、真实在途和需要的引用。只需 `Objective`、`Next action` 两个必填字段；不要添加旧 `stage`、`generated` 等重复状态。
+- `Tasks` 直接用 Markdown checkbox 表达任务状态：`[ ]` todo、`[/]` doing、`[?]` waiting、`[x]` done、`[-]` cancelled。**不再维护第二行 `state`**。Obsidian 原生识别任务列表；非标准字符的特殊视觉样式依赖主题/插件，但不影响文件解析。
+- 任务 ID 稳定，显示为 `- [/] **T-001** · 描述`；可选 `Waiting`、`Result`、`Artifact`、`Source refs`、`Acceptance refs`、`Notify after` 以缩进子列表记录。不要把长成果全文塞进 TODO。
+- 修改 `Current` 用 `attention todo-update` 或 `rooter-todo-update`，只写管理区，保留 `Pinned` 和 `Tasks` 原始字节及其换行。修改 Pinned、任务标题、勾选框和任务引用用完整 `todo-write`；CLI 读完后使用 `--expected-fingerprint` 防止过期覆盖。
+- `todo-write` 会验证身份、状态与引用，拒绝旧 v3；历史业务原件不自动修改。旧工位需要一次明确的离线转写、引用校核，再用合法完整写入替换，不在运行时兼容两套合同。
+- 短期任务进展留在 TODO，跨工位的长久项目共识归 OB 项目唯一最新口径，原始输入归档保留精确来源。

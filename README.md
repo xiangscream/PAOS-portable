@@ -69,17 +69,47 @@ Agent 之间（以及人和 Agent）围绕主题的临时讨论空间。
 
 ## 快速开始
 
-```bash
-# 克隆本仓库
-git clone https://github.com/xiangscream/PAOS-portable.git
-cd PAOS-portable
+克隆本仓库后，在仓库根目录（Python 3.10+）：
 
-# 启动画板后端（只需 Python 标准库）
-python front/paos_front_server.py --port 8780
+```bash
+# 查看将生成的配置（只读，不写文件）
+python portable.py plan
+
+# 生成本机安装配置（config/local/），并建好必要空目录
+python portable.py init
+
+# 只读核对配置与路径是否一致
+python portable.py doctor
 ```
 
-浏览器打开 `http://127.0.0.1:8780/`。
-（工位、库、CAT 数据的位置在 `front/paos_front_server.py` 顶部，按你的安装改几处路径即可。）
+`init` 不覆盖已有配置、不导入项目、不创建工位、不启动服务；`doctor` 只读检查，**配置通过 ≠ 业务/唤醒已验证**。
+
+然后按你的系统设置环境变量，验证 CLI：
+
+```powershell
+# Windows PowerShell
+$env:PAOS_INSTALLATION_FILE = (Resolve-Path .\config\local\installation.json).Path
+$env:PAOS_LIBRARY_ROOTS_CONFIG = (Resolve-Path .\config\local\library-roots.json).Path
+$env:PYTHONIOENCODING = "utf-8"
+python .\code\personal-agent-os\scripts\paos.py health
+```
+
+```sh
+# Linux / WSL
+export PAOS_INSTALLATION_FILE="$PWD/config/local/installation.json"
+export PAOS_LIBRARY_ROOTS_CONFIG="$PWD/config/local/library-roots.json"
+export PYTHONIOENCODING=utf-8
+python code/personal-agent-os/scripts/paos.py health
+```
+
+**说明**：克隆本仓库得到的是**代码与共享方法资产**，不是某台电脑的已运行安装——项目、工位、登录态、接收器都需要在你自己的机器上另行准备或登记。
+
+启动画板前端：
+
+```bash
+python front/paos_front_server.py --port 8780
+# 浏览器打开 http://127.0.0.1:8780/
+```
 
 ## 这套系统怎么组成
 

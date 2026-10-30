@@ -7,6 +7,8 @@ config/installation.json
 config/library-roots.json
 config/AGENT-NUMBERS.json
 config/AGENT-NUMBERS.md
+config/local/
+config/.portable-*/
 
 # ---- 运行时与缓存 ----
 .paos/

@@ -80,13 +80,12 @@ def _orient_library_roots(
 
 
 def _orient_next_action(
-    request_inbox_count: int,
     unhandled_mail_count: int,
     current: dict[str, str],
     open_tasks: list[dict[str, Any]],
     todo_is_coherent: bool,
 ) -> str:
-    """Workless：责任来源只有 Current(next)/TODO open tasks/正式 Request/未处理 Mail；
+    """责任来源只有当前 TODO 与未处理输入；
     不存在 live Work 推导，也不从历史消息推断主线。"""
     if not todo_is_coherent:
         return (
@@ -98,110 +97,46 @@ def _orient_next_action(
         return next_text
     if open_tasks:
         return f"处理 TODO 待办 {open_tasks[0].get('id')}：{open_tasks[0].get('title')}"
-    if request_inbox_count:
-        return (
-            "处理正式 PAOS Request inbox（仅与 TODO 主线相关项；"
-            "陈旧/无关 Request 记为待收口，不篡位）。"
-        )
     if unhandled_mail_count:
         return "可查看未处理 Mail，但不从历史消息推断新的主线。"
     return "当前无未完成责任；保持待机或向 Coordinator 确认新责任。"
 
 
 def _todo_current_view(todo: dict[str, Any]) -> dict[str, Any]:
-    raw = todo.get("current")
-    current = dict(raw) if isinstance(raw, dict) else {}
-    if todo.get("schema") == "paos-todo/v3":
-        current.setdefault("work", current.get("current_work", ""))
-        current.setdefault("next", current.get("next_action", ""))
-        current.setdefault("results", current.get("results", ""))
-        current.setdefault("inflight", current.get("inflight", ""))
-    return current
+    current = todo.get("current")
+    if not isinstance(current, dict):
+        return {}
+    return {**current, "next": current.get("next_action", "")}
 
 
 def _todo_open_tasks(todo: dict[str, Any]) -> list[dict[str, Any]]:
-    tasks = [
-        dict(item)
-        for item in (todo.get("tasks") or [])
-        if isinstance(item, dict)
-    ]
-    if todo.get("schema") == "paos-todo/v3":
-        result: list[dict[str, Any]] = []
-        for item in tasks:
-            state = str(item.get("state") or "todo")
-            item["done"] = state in {"done", "cancelled"}
-            if not item["done"]:
-                result.append(item)
-        return result
-    return [item for item in tasks if not item.get("done")]
+    return [dict(t) for t in todo.get("tasks", [])
+            if isinstance(t, dict) and t.get("state") not in {"done", "cancelled"}]
 
 
-def _orient_todo_contract_issues(
-    todo: dict[str, Any], project_id: str, agent_id: str
-) -> list[str]:
-    issues: list[str] = []
-    schema = str(todo.get("schema") or "")
-    if schema not in {"paos-todo/v2", "paos-todo/v3"}:
-        issues.append(
-            f"schema 必须为 paos-todo/v2 或 paos-todo/v3，实际为 {schema or '缺失'}"
-        )
-        return issues
-
-    if str(todo.get("project_id") or "") != project_id:
-        issues.append(
-            f"project_id 必须为 {project_id}，实际为 {todo.get('project_id') or '缺失'}"
-        )
-
-    if schema == "paos-todo/v3":
-        if todo.get("home_kind") != "project_agent":
-            issues.append(
-                f"home_kind 必须为 project_agent，实际为 {todo.get('home_kind') or '缺失'}"
-            )
-        if str(todo.get("home_id") or "") != agent_id:
-            issues.append(
-                f"home_id 必须为 {agent_id}，实际为 {todo.get('home_id') or '缺失'}"
-            )
-        current = todo.get("current")
-        if not isinstance(current, dict):
-            issues.append("Current 无法解析")
-        else:
-            for field in ("objective", "next_action"):
-                if not str(current.get(field) or "").strip():
-                    issues.append(f"Current 缺少有效字段：{field}")
-        return issues
-
-    if todo.get("agent_id") != agent_id:
-        issues.append(
-            f"agent_id 必须为 {agent_id}，实际为 {todo.get('agent_id') or '缺失'}"
-        )
-    if todo.get("metadata_issues"):
-        issues.extend(f"front matter {item}" for item in todo["metadata_issues"])
-    if todo.get("missing_sections"):
-        issues.append("缺少区段：" + "、".join(todo["missing_sections"]))
-    if todo.get("duplicate_sections"):
-        issues.append("必需区段重复：" + "、".join(todo["duplicate_sections"]))
-    if todo.get("malformed_tasks"):
-        issues.append("待办行格式无效：" + "；".join(todo["malformed_tasks"]))
-
+def _orient_todo_contract_issues(todo: dict[str, Any], project_id: str, agent_id: str) -> list[str]:
+    issues = []
+    if todo.get("schema") != "paos-todo/v4":
+        return [f"TODO schema 不支持：{todo.get('schema') or '缺失'}；需要 paos-todo/v4"]
+    for field, value in (("project_id", project_id), ("home_id", agent_id), ("home_kind", "project_agent")):
+        if todo.get(field) != value:
+            issues.append(f"{field} 应为 {value}，实际为 {todo.get(field)}")
     current = todo.get("current")
     if not isinstance(current, dict):
-        issues.append("当前区无法解析")
+        issues.append("Current 无法解析")
     else:
-        for field in ("objective", "stage", "next"):
-            if not str(current.get(field) or "").strip():
-                issues.append(f"当前区缺少有效字段：{field}")
+        for key in ("objective", "next_action"):
+            if not str(current.get(key) or "").strip():
+                issues.append(f"Current 缺少 {key}")
     return issues
 
 
 def render_orient(payload: dict[str, Any]) -> str:
     identity = payload.get("identity") or {}
-    work = payload.get("current_work") or {}
     todo = payload.get("todo") or {}
     project = payload.get("project") or {}
     communication = payload.get("communication") or {}
     mail = communication.get("durable_mail") or {}
-    requests = communication.get("formal_requests") or {}
-    request_counts = (requests.get("counts") or {})
     entry = payload.get("entry") or {}
     lines = [
         f"PAOS orient — {identity.get('agent_id')} @ {identity.get('project_id')}",
@@ -209,10 +144,9 @@ def render_orient(payload: dict[str, Any]) -> str:
         + (f" · 员工号 {identity.get('staff_number')}" if identity.get('staff_number') else ""),
         f"Project: {identity.get('project_id')} · {identity.get('project_name') or ''}",
         f"Status: {identity.get('status') or ''}",
-        f"Work: {work.get('id') or '（无当前 Work）'} · {work.get('title') or ''}",
         f"ENTRY: {'available' if entry.get('available') else 'missing'} · {entry.get('path') or ''}",
         f"TODO: {'trusted' if todo.get('trusted') else 'untrusted'} · {todo.get('current', {}).get('next') or ''}",
-        f"Mail: {mail.get('count', 0)} total / {mail.get('unhandled_count', 0)} unhandled; Request inbox/waiting: {request_counts.get('inbox', 0)}/{request_counts.get('waiting', 0)}",
+        f"Mail: {mail.get('count', 0)} total / {mail.get('unhandled_count', 0)} unhandled",
         f"Source: {project.get('source_root') or '（未登记或不可验证）'}",
         f"Libraries: {project.get('library_roots', {}).get('state', 'unknown')}",
         f"Runtime reachability: {payload.get('runtime_reachability', 'unknown')}",

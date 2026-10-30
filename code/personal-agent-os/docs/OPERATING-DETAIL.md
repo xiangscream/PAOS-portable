@@ -18,7 +18,7 @@ Human（唯一授权源：阶段放行 / 工作语义 / 模型策略 / 例外）
         │     Project JSON ── 业务唯一 Store（业务对象/事件台账；HTTP 读面直读它，
         │                      写变更经 Store 合同——GET 只是读，不走变更事务）；
         │                      位置由 installation descriptor / data root 决定，不打包在 Project 目录里
-        │     Workstations/<agent>/ ── 固定工位：ENTRY.md + TODO.md(paos-todo/v3) + mailbox/ + notices/
+        │     Workstations/<agent>/ ── 固定工位：ENTRY.md + TODO.md(paos-todo/v4) + mailbox/ + notices/
         │     .paos/（按机器/项目两侧）── mail dispatch、native injection 绑定/状态（当前代号 contact native-targets，
         │                      C:/Users/<u>/.paos/wakeup-native/opencode 或 runtime 级对照路径）、CLI config、
         │                      installation descriptor、library-roots（后三者在用户 ~/.paos）
@@ -36,7 +36,7 @@ Human（唯一授权源：阶段放行 / 工作语义 / 模型策略 / 例外）
 **谁存事实**：文件（Project JSON / 固定工位 / .paos / 共享库）——没有内存记忆库；Project 文件与 Git 保存成果。
 **谁执行**：原生 Runtime；PAOS 不做推理。
 **如何回流**：Agent 产出落盘（Project 工件/Git）→ durable Mail → 下游在自己的会话里实际消费 → 交付/审阅经 Home 的 Current 与正式 Mail 收口 → Project JSON + 操作回执。
-**无 Work/Cycle/ACK 前置**：责任形式为长期固定 Home（`Workstations/<agent>`）+ 本人 Current（`paos-todo/v3`）；正常路径不再有 ack/Work 交接/换 Work/COME 等动词，业务责任由本人 Current + 正式 Mail/Notice 呈现。
+**无 Work/Cycle/ACK 前置**：责任形式为长期固定 Home（`Workstations/<agent>`）+ 本人 Current（`paos-todo/v4`）；正常路径不再有 ack/Work 交接/换 Work/COME 等动词，业务责任由本人 Current + 正式 Mail/Notice 呈现。
 
 **绑定（Workless）当前语义**：`paos wake` 是独立的联系底面——bind/status/unbind/trigger 四动词；trigger 为一次性原生注入提醒且**成功即止失败如实**（无探针/恢复/停机/自检，这些旧 attempt 动词在 CLI 上已显式退役）；无前置 Work/Cycle/ACK。
 

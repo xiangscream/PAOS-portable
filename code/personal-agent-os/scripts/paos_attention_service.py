@@ -62,14 +62,10 @@ from paos_notice import (
     read_notice,
     request_notice_activation,
 )
-from paos_todo_v3 import (
-    TodoV3Problem,
-    fingerprint_todo_v3,
-    parse_todo_v3,
-    read_todo_v3,
-    render_todo_v3,
-    update_todo_v3_current,
-    write_todo_v3,
+from paos_todo import (
+    TodoProblem, fingerprint_todo, parse_todo, read_todo,
+    render_todo, update_todo_current, write_todo,
+    CURRENT_FIELDS, LIST_CURRENT_FIELDS, validate_current_updates,
 )
 from paos_workstation import locator_like, posix_windows_drive_locator
 from paos_home import agent_project_id
@@ -82,8 +78,8 @@ def _runtime_root(value: str | Path) -> Path:
     return Path(posix_windows_drive_locator(str(value))).expanduser()
 
 
-def _assert_home_v3(home_ref: dict[str, Any]) -> dict[str, Any]:
-    """Home 身份只校验固定工位定位与 paos-todo/v3 schema 标识（frontmatter 级）。
+def _assert_home_current(home_ref: dict[str, Any]) -> dict[str, Any]:
+    """Home 身份只校验固定工位定位与 paos-todo/v4 schema 标识（frontmatter 级）。
 
     Current 正文（字段/区段）解析失败不阻断正常 Mail/Notice 读取；
     错误 Current 由 Home 状态视图自身如实呈现（s029 缺换行事故教训）。"""
@@ -91,8 +87,8 @@ def _assert_home_v3(home_ref: dict[str, Any]) -> dict[str, Any]:
     todo_file = todo_path(ref)
     if not todo_file.is_file():
         raise AttentionServiceProblem(
-            "attention_home_not_v3",
-            "目标 Home 尚未采用 paos-todo/v3（TODO.md 缺失）；拒绝提前写入 V1.3 Notice。",
+            "attention_home_not_v4",
+            "目标 Home 尚未采用 paos-todo/v4（TODO.md 缺失）；拒绝提前写入 V1.3 Notice。",
             {
                 "home_kind": ref["home_kind"],
                 "home_id": ref["home_id"],
@@ -105,10 +101,10 @@ def _assert_home_v3(home_ref: dict[str, Any]) -> dict[str, Any]:
         if text_line.startswith("schema:"):
             schema_line = text_line.split(":", 1)[1].strip().strip('"')
             break
-    if schema_line != "paos-todo/v3":
+    if schema_line != "paos-todo/v4":
         raise AttentionServiceProblem(
-            "attention_home_not_v3",
-            "目标 Home 尚未采用 paos-todo/v3；拒绝提前写入 V1.3 Notice。",
+            "attention_home_not_v4",
+            "目标 Home 尚未采用 paos-todo/v4；拒绝提前写入 V1.3 Notice。",
             {
                 "home_kind": ref["home_kind"],
                 "home_id": ref["home_id"],
@@ -175,11 +171,9 @@ def resolve_home_by_registry(agent_id: str, *, installation_file: str | None = N
         )
     try:
         project_id = agent_project_id(agent_id)
-        project = json.loads(
-            (_registry_projects_root(descriptor) / f"{project_id}.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        # CLI and cross-Project routing read the same registration contract.
+        from paos_registry import ProjectRegistry
+        project = ProjectRegistry(resolve_installation_path(installation_file)).read(project_id)
     except AttentionServiceProblem:
         raise
     except Exception as problem:
@@ -327,7 +321,7 @@ def resolve_project_home(
     agent_id: str,
     root_override: str = "",
     require_existing: bool = True,
-    require_todo_v3: bool = True,
+    require_todo_current: bool = True,
 ) -> dict[str, Any]:
     """定位真实登记 Home。旧 TODO 有效性只属于读/路由合同；TODO 恢复写口
     （todo-write）以当前登记 Home 身份为前置，新载荷的 v3 合同由
@@ -339,7 +333,7 @@ def resolve_project_home(
             root_override=root_override,
             require_existing=require_existing,
         )
-        return _assert_home_v3(home_ref) if require_todo_v3 else home_ref
+        return _assert_home_current(home_ref) if require_todo_current else home_ref
     except HomeProblem as problem:
         raise _map_problem(problem) from problem
 
@@ -349,7 +343,7 @@ def resolve_rooter_home(
     home_path: str | Path,
     home_id: str = "rooter-001",
     require_existing: bool = True,
-    require_todo_v3: bool = True,
+    require_todo_current: bool = True,
 ) -> dict[str, Any]:
     try:
         home_ref = rooter_home(
@@ -357,7 +351,7 @@ def resolve_rooter_home(
             home_id=home_id,
             require_existing=require_existing,
         )
-        return _assert_home_v3(home_ref) if require_todo_v3 else home_ref
+        return _assert_home_current(home_ref) if require_todo_current else home_ref
     except HomeProblem as problem:
         raise _map_problem(problem) from problem
 
@@ -375,7 +369,7 @@ def _home_read_iso_from_mtime(path: Path) -> str | None:
 
 def _home_read_todo_fingerprint(path: Path) -> str | None:
     try:
-        return fingerprint_todo_v3(path)
+        return fingerprint_todo(path)
     except (OSError, ValueError):
         return None
 
@@ -522,7 +516,7 @@ def read_home_state(home_ref: dict[str, Any]) -> dict[str, Any]:
         blobs: dict[str, bytes] = {}
         notice_paths: list[Path] = []
         notices_before = _home_read_notice_tree(notices_dir, collect=blobs)
-        todo = read_todo_v3(todo_file)
+        todo = read_todo(todo_file)
         notices = list_notices(Path(ref["home_path"]), blobs=blobs)
         todo_after = _home_read_todo_fingerprint(todo_file)
         notices_after = _home_read_notice_tree(notices_dir, fingerprint_only=True)
@@ -532,7 +526,7 @@ def read_home_state(home_ref: dict[str, Any]) -> dict[str, Any]:
             # Unchanged bytes: keep the first observation's complete fields
             # (filesystem timestamp, file count) instead of the lean pass.
             notices_after = notices_before
-    except (HomeProblem, TodoV3Problem, NoticeProblem) as problem:
+    except (HomeProblem, TodoProblem, NoticeProblem) as problem:
         raise _map_problem(problem) from problem
 
     current = dict(todo.get("current") or {})
@@ -638,11 +632,11 @@ def write_home_todo(
     text: str,
     expected_fingerprint: str | None = None,
 ) -> dict[str, Any]:
-    """Validate identity before atomically replacing the Home owner's TODO v3."""
+    """Validate identity before atomically replacing the Home owner's TODO v4."""
     try:
         ref = normalize_home_ref(home_ref)
-        candidate = parse_todo_v3(text)
-    except (HomeProblem, TodoV3Problem) as problem:
+        candidate = parse_todo(text)
+    except (HomeProblem, TodoProblem) as problem:
         raise _map_problem(problem) from problem
 
     if (
@@ -651,7 +645,7 @@ def write_home_todo(
     ):
         raise AttentionServiceProblem(
             "attention_todo_home_mismatch",
-            "TODO v3 Home identity 与目标 Home 不一致；原文件未修改。",
+            "TODO v4 Home identity 与目标 Home 不一致；原文件未修改。",
             {
                 "target_home": ref,
                 "todo_home_kind": candidate.get("home_kind"),
@@ -664,321 +658,88 @@ def write_home_todo(
     ):
         raise AttentionServiceProblem(
             "attention_todo_project_mismatch",
-            "TODO v3 project_id 与目标 Home 不一致；原文件未修改。",
+            "TODO v4 project_id 与目标 Home 不一致；原文件未修改。",
             {
                 "target_project_id": ref["project_id"],
                 "todo_project_id": candidate.get("project_id"),
             },
         )
 
-    # render 契约对等：写进去的文字必须能被同版 render_todo_v3 原样复现。
-    # todo-write 接受而渲染器拒绝（超长字段、非列表 result_refs、
-    # render 不认识的字段形态）一律在入口拒绝，Home 不产生"收敛不了"的状态。
-    c = candidate.get("current") or {}
+    # A full write saves the original Markdown bytes. Verify that our renderer
+    # could still represent every managed fact (including Pinned) before publish.
+    current = candidate["current"]
     try:
-        re_rendered = render_todo_v3(
-            home_kind=str(candidate.get("home_kind") or ""),
-            home_id=str(candidate.get("home_id") or ""),
-            project_id=str(candidate.get("project_id") or ""),
-            objective=str(c.get("objective") or ""),
-            approved_scope=str(c.get("approved_scope") or ""),
-            stage=str(c.get("stage") or ""),
-            next_action=str(c.get("next_action") or ""),
-            waiting=str(c.get("waiting") or ""),
-            results=str(c.get("results") or ""),
-            result_refs=list(c.get("result_refs") or []),
-            context_refs=list(c.get("context_refs") or []),
-            legacy_source_ref=str(c.get("legacy_source_ref") or ""),
-            inflight=str(c.get("inflight") or ""),
-            alignment_ref=str(c.get("alignment_ref") or ""),
-            input_version=str(c.get("input_version") or ""),
-            delivery=str(c.get("delivery") or ""),
-            dependencies=str(c.get("dependencies") or ""),
-            continuation_to=str(c.get("continuation_to") or ""),
-            boundaries=str(c.get("boundaries") or ""),
-            history_ref=str(c.get("history_ref") or ""),
-            latest_readback=str(c.get("latest_readback") or ""),
-            updated_at=str(c.get("updated_at") or ""),
-            tasks=list(candidate.get("tasks") or []),
+        normalized = render_todo(
+            home_kind=candidate["home_kind"], home_id=candidate["home_id"],
+            project_id=candidate["project_id"], pinned=candidate["pinned"],
+            objective=current["objective"], next_action=current["next_action"],
+            waiting=current.get("waiting", ""), inflight=current.get("inflight", ""),
+            context_refs=current.get("context_refs", []),
+            result_refs=current.get("result_refs", []),
+            updated_at=current.get("updated_at", ""), tasks=candidate["tasks"],
         )
-    except TodoV3Problem as problem:
+        roundtrip = parse_todo(normalized)
+    except TodoProblem as problem:
         raise _map_problem(problem) from problem
-    # Full todo-write preserves the caller's exact UTF-8 text/line endings.
-    normalized_input = text
-    if re_rendered != normalized_input:
-        # 语义对等（而非整篇排版相等）：valid Current 的正常编辑不应被字段顺序、
-        # 空行或排版噪音挡住。直接比较「输入的解析值」与「同版渲染文本的解析值」
-        # ——语义无丢失即通过，原文写入； 有值被渲染器丢掉才是结构漂移，入口拒绝。
-        try:
-            recaparsed = parse_todo_v3(re_rendered)
-        except TodoV3Problem as problem:
-            raise _map_problem(problem) from problem
-        if candidate.get("home_kind") != recaparsed.get("home_kind") or candidate.get(
-            "home_id"
-        ) != recaparsed.get("home_id") or candidate.get("project_id") != recaparsed.get(
-            "project_id"
-        ):
+    for field in ("home_kind", "home_id", "project_id", "pinned", "current", "tasks"):
+        if candidate[field] != roundtrip[field]:
             raise AttentionServiceProblem(
                 "attention_todo_write_unrenderable",
-                "TODO 身份语义在解析/渲染间不一致（可能字段超限或类型漂移）；原文件未修改。",
+                f"TODO 字段 {field} 无法往返渲染；原文件未修改。",
                 {"todo_path": str(todo_path(ref))},
             )
-        # 合同语义比较（不是两个完整 dict 硬相等）：已提供值必须原样保留；省略的
-        # 可选字段与显式空/空列表默认值按合同等价（renderer 对已知字段统一补默认
-        # 行）；输入里 renderer 无法保留的未知 key 或被转换的类型才是丢失。
-        input_current = dict(candidate.get("current") or {})
-        recap_current = dict(recaparsed.get("current") or {})
-        known_fields = {
-            key
-            for key in (
-                "objective",
-                "approved_scope",
-                "stage",
-                "next_action",
-                "waiting",
-                "results",
-                "result_refs",
-                "context_refs",
-                "legacy_source_ref",
-                "inflight",
-                "alignment_ref",
-                "input_version",
-                "delivery",
-                "dependencies",
-                "continuation_to",
-                "boundaries",
-                "history_ref",
-                "latest_readback",
-                "updated_at",
-            )
-        }
-        unknown_input_keys = sorted(set(input_current) - known_fields)
-        if unknown_input_keys:
-            raise AttentionServiceProblem(
-                "attention_todo_write_unrenderable",
-                "TODO Current 含渲染器无法保留的未知字段；不会静默丢弃。"
-                "请去除该字段或改为已知合同字段；原文件未修改。",
-                {"todo_path": str(todo_path(ref)), "unknown_keys": unknown_input_keys},
-            )
-        for key in sorted(known_fields):
-            provided = input_current.get(key, "")
-            kept_value = recap_current.get(key, "")
-            if provided != kept_value and not (provided in ("", [], None) and kept_value in ("", [], None)):
-                raise AttentionServiceProblem(
-                    "attention_todo_write_unrenderable",
-                    f"TODO Current 字段 {key} 的值在解析/渲染间有丢失；原文件未修改。",
-                    {"todo_path": str(todo_path(ref)), "field": key},
-                )
-
-        if candidate.get("tasks") != recaparsed.get("tasks"):
-            raise AttentionServiceProblem(
-                "attention_todo_write_unrenderable",
-                "TODO Tasks 在解析/渲染间有丢失；原文件未修改。",
-                {"todo_path": str(todo_path(ref))},
-            )
-        written_sha_tier = "semantic"
-    else:
-        written_sha_tier = "normalized"
-
     path = todo_path(ref)
     try:
-        # No pre-lock fingerprint read: the guard (if any) is evaluated inside the
-        # writer's lock against the caller-supplied expected value.
-        write_todo_v3(path, normalized_input, expected_fingerprint=expected_fingerprint)
-        todo = read_todo_v3(path)
-    except TodoV3Problem as problem:
+        write_todo(path, text, expected_fingerprint=expected_fingerprint)
+        todo = read_todo(path)
+    except TodoProblem as problem:
         raise _map_problem(problem) from problem
-    return {
-        "schema": ATTENTION_SERVICE_SCHEMA,
-        "home": ref,
-        "todo": todo,
-        "written_sha_tier": written_sha_tier,
-    }
+    return {"schema": ATTENTION_SERVICE_SCHEMA, "home": ref, "todo": todo,
+            "written_sha_tier": "semantic"}
 
 
-# Current 字段维护入口：只允许这些既有 paos-todo/v3 Current 字段。
-TODO_V3_CURRENT_FIELDS: tuple[str, ...] = (
-    "objective",
-    "approved_scope",
-    "stage",
-    "next_action",
-    "waiting",
-    "results",
-    "result_refs",
-    "context_refs",
-    "legacy_source_ref",
-    "inflight",
-    "alignment_ref",
-    "input_version",
-    "delivery",
-    "dependencies",
-    "continuation_to",
-    "boundaries",
-    "history_ref",
-    "latest_readback",
-    "updated_at",
-)
-TODO_V3_LIST_FIELDS: frozenset[str] = frozenset({"result_refs", "context_refs"})
+# Current is only short-lived responsibility; long requirements live in Pinned
+# or in the one authoritative project alignment document.
+TODO_CURRENT_FIELDS = tuple(CURRENT_FIELDS)
+TODO_LIST_FIELDS = LIST_CURRENT_FIELDS
 
 
 def update_home_todo_fields(
-    *,
-    home_ref: dict[str, Any],
-    updates: dict[str, Any],
-    expected_fingerprint: str | None = None,
-    dry_run: bool = False,
+    *, home_ref: dict[str, Any], updates: dict[str, Any],
+    expected_fingerprint: str | None = None, dry_run: bool = False,
 ) -> dict[str, Any]:
-    """Update only the named Current fields of the one real TODO v3.
-
-    Surgically replaces/inserts just the submitted Current field lines in the
-    original text; everything else (front matter and any extra metadata, other
-    Current lines including tolerated unknown fields, and the whole Task region
-    with its comments/layout) is preserved, using the existing writer's newline
-    normalization. Reuses the existing
-    Home locator, TODO parser (for identity + submitted-value validation via the
-    renderer) and the atomic writer. Unknown fields, malformed values, a
-    missing/unreadable/bad TODO, or an identity mismatch all fail before any
-    write.
-    """
-    if not updates:
-        raise AttentionServiceProblem(
-            "attention_todo_update_empty",
-            "未提供任何要更新的 Current 字段（用 --set field=value）。",
-            {"valid_fields": list(TODO_V3_CURRENT_FIELDS)},
-        )
-    unknown = sorted(k for k in updates if k not in TODO_V3_CURRENT_FIELDS)
-    if unknown:
-        raise AttentionServiceProblem(
-            "attention_todo_update_unknown_field",
-            "存在未知的 Current 字段；拒绝写入。",
-            {"unknown_fields": unknown, "valid_fields": list(TODO_V3_CURRENT_FIELDS)},
-        )
+    if not updates or set(updates) - set(TODO_CURRENT_FIELDS):
+        raise AttentionServiceProblem("attention_todo_update_unknown_field",
+            "只能更新 Current 中明确支持的短期责任字段。",
+            {"valid_fields": list(TODO_CURRENT_FIELDS)})
     try:
         ref = normalize_home_ref(home_ref)
-    except HomeProblem as problem:
+        path = todo_path(ref)
+        existing = read_todo(path)
+    except (HomeProblem, TodoProblem) as problem:
         raise _map_problem(problem) from problem
-    path = todo_path(ref)
-    try:
-        original_text = path.read_text(encoding="utf-8")
-    except FileNotFoundError as problem:
-        raise AttentionServiceProblem(
-            "attention_todo_update_source_missing",
-            "目标 Home 没有可读的 paos-todo/v3；请用现行官方恢复写口 "
-            "`paos attention todo-write` 交回完整恢复载荷后再字段维护。",
-            {"todo_path": str(path), "reason": "todo_v3_missing"},
-        ) from problem
-    except (OSError, UnicodeError) as problem:
-        raise AttentionServiceProblem(
-            "attention_todo_update_source_missing",
-            "目标 Home 的 TODO 无法读取；请用现行官方恢复写口 "
-            "`paos attention todo-write` 交回完整恢复载荷后再字段维护。",
-            {"todo_path": str(path), "reason": type(problem).__name__},
-        ) from problem
-    try:
-        existing = parse_todo_v3(original_text)
-    except TodoV3Problem as problem:
-        # 坏/旧 TODO 不自动修复、不丢旧内容；明确引导现行官方恢复写口。
-        raise AttentionServiceProblem(
-            "attention_todo_update_source_invalid",
-            "当前 TODO 不是可解析的 paos-todo/v3（旧格式/语法错误）；本入口不自动修复、"
-            "不丢旧内容，请用现行官方恢复写口 `paos attention todo-write` 交回完整恢复载荷。",
-            {"todo_path": str(path), "reason": str(problem)},
-        ) from problem
-
-    if (
-        existing.get("home_kind") != ref["home_kind"]
-        or existing.get("home_id") != ref["home_id"]
+    if existing["home_kind"] != ref["home_kind"] or existing["home_id"] != ref["home_id"] or (
+        ref["home_kind"] == "project_agent" and existing["project_id"] != ref["project_id"]
     ):
-        raise AttentionServiceProblem(
-            "attention_todo_home_mismatch",
-            "TODO v3 Home identity 与目标 Home 不一致；原文件未修改。",
-            {
-                "target_home": ref,
-                "todo_home_kind": existing.get("home_kind"),
-                "todo_home_id": existing.get("home_id"),
-            },
-        )
-    if (
-        ref["home_kind"] == "project_agent"
-        and existing.get("project_id") != ref["project_id"]
-    ):
-        raise AttentionServiceProblem(
-            "attention_todo_project_mismatch",
-            "TODO v3 project_id 与目标 Home 不一致；原文件未修改。",
-            {
-                "target_project_id": ref["project_id"],
-                "todo_project_id": existing.get("project_id"),
-            },
-        )
-
-    # 只用现有 renderer 校验“本次提交的字段值”（超长/类型/非法）。未提交的旧
-    # 字段不参与校验（否则一个 parser 已接受的长旧值会挡住无关更新）；身份/必填
-    # 与整体 Task 由现有 parser 检查（上面 parse + 未触碰 Tasks 区域）。缺
-    # objective/next_action 未提交时沿用原值（parse 已保证其存在且合法）。
-    base_current = dict(existing.get("current") or {})
-    validation: dict[str, Any] = {
-        key: ([] if key in TODO_V3_LIST_FIELDS else "")
-        for key in TODO_V3_CURRENT_FIELDS
-    }
-    validation["objective"] = str(base_current.get("objective") or "")
-    validation["next_action"] = str(base_current.get("next_action") or "")
-    validation.update(updates)
+        raise AttentionServiceProblem("attention_todo_home_mismatch", "TODO 工位身份不匹配；不写盘。")
+    # The takeover path calls dry_run before marking a Notice read. Validate
+    # submitted values here, not after the potentially irreversible mark-read.
     try:
-        render_todo_v3(
-            home_kind=str(existing.get("home_kind") or ""),
-            home_id=str(existing.get("home_id") or ""),
-            project_id=str(existing.get("project_id") or ""),
-            objective=str(validation.get("objective") or ""),
-            approved_scope=str(validation.get("approved_scope") or ""),
-            stage=str(validation.get("stage") or ""),
-            next_action=str(validation.get("next_action") or ""),
-            waiting=str(validation.get("waiting") or ""),
-            results=str(validation.get("results") or ""),
-            result_refs=list(validation.get("result_refs") or []),
-            context_refs=list(validation.get("context_refs") or []),
-            legacy_source_ref=str(validation.get("legacy_source_ref") or ""),
-            inflight=str(validation.get("inflight") or ""),
-            alignment_ref=str(validation.get("alignment_ref") or ""),
-            input_version=str(validation.get("input_version") or ""),
-            delivery=str(validation.get("delivery") or ""),
-            dependencies=str(validation.get("dependencies") or ""),
-            continuation_to=str(validation.get("continuation_to") or ""),
-            boundaries=str(validation.get("boundaries") or ""),
-            history_ref=str(validation.get("history_ref") or ""),
-            latest_readback=str(validation.get("latest_readback") or ""),
-            updated_at=str(validation.get("updated_at") or ""),
-            tasks=[],
-        )
-    except TodoV3Problem as problem:
-        # 超长/非法值等：明确字段错误、失败不写。
+        validate_current_updates(updates)
+    except TodoProblem as problem:
         raise _map_problem(problem) from problem
-
     if dry_run:
-        return {
-            "schema": ATTENTION_SERVICE_SCHEMA,
-            "home": ref,
-            "current": dict(base_current),
-            "tasks_count": len(existing.get("tasks") or []),
-            "todo_path": str(path),
-            "dry_run": True,
-        }
-
-    # 统一到公共合法写者：其内部持跨进程锁覆盖 read→validate→modify→replace、
-    # 保持原 EOL、无变化不写；服务层不再保留第二份 competing surgical writer。
+        return {"schema": ATTENTION_SERVICE_SCHEMA, "home": ref,
+                "current": existing["current"], "tasks_count": len(existing["tasks"]),
+                "todo_path": str(path), "dry_run": True}
     try:
-        # 公共写者在真实修改时刷新 updated_at；无变化不刷新。
-        # 显式提交 updated_at 时保留调用方给定值。
-        update_todo_v3_current(path, updates, expected_fingerprint=expected_fingerprint)
-        actual = read_todo_v3(path)
-    except TodoV3Problem as problem:
+        update_todo_current(path, updates, expected_fingerprint=expected_fingerprint)
+        actual = read_todo(path)
+    except TodoProblem as problem:
         raise _map_problem(problem) from problem
-    return {
-        "schema": ATTENTION_SERVICE_SCHEMA,
-        "home": ref,
-        "current": dict(actual.get("current") or {}),
-        "tasks_count": len(actual.get("tasks") or []),
-        "todo_path": str(path),
-    }
+    return {"schema": ATTENTION_SERVICE_SCHEMA, "home": ref,
+            "current": actual["current"], "tasks_count": len(actual["tasks"]),
+            "todo_path": str(path)}
 
 
 def read_source_status(
@@ -989,7 +750,7 @@ def read_source_status(
 ) -> dict[str, Any]:
     """Read one Notice by stable source identity; no transport/body duplication."""
     try:
-        ref = _assert_home_v3(home_ref)
+        ref = _assert_home_current(home_ref)
         identity = input_identity(
             home_kind=ref["home_kind"],
             home_id=ref["home_id"],
@@ -1001,7 +762,7 @@ def read_source_status(
             Path(ref["home_path"]),
             notice_id_for(identity),
         )
-    except (HomeProblem, TodoV3Problem, NoticeProblem) as problem:
+    except (HomeProblem, TodoProblem, NoticeProblem) as problem:
         raise _map_problem(problem) from problem
     return {
         "schema": ATTENTION_SERVICE_SCHEMA,
@@ -1026,7 +787,7 @@ def register_direct_input(
     explicit absolute path/UNC path or http(s) URL. Opaque ids must be resolved
     by the caller to their durable carrier before registration.
     """
-    ref = _assert_home_v3(home_ref)
+    ref = _assert_home_current(home_ref)
     source_ref = str(source_ref or "").strip()
     if not locator_like(source_ref):
         raise AttentionServiceProblem(
@@ -1070,11 +831,11 @@ def _resolve_target_project_agent_home(
 
     Lookup contract: the callable must already have verified that the target
     Agent is a registered member of that project and that the registered
-    Home actually exists (the CLI/HTTP lookups both do); paos-todo/v3
-    enforcement happens here via `_assert_home_v3`.  Returns the target
+    Home actually exists (the CLI/HTTP lookups both do); paos-todo/v4
+    enforcement happens here via `_assert_home_current`.  Returns the target
     project dict.  Returns (project, home_ref, cross)."""
     try:
-        home_ref = _assert_home_v3(
+        home_ref = _assert_home_current(
             project_agent_home(
                 project=project,
                 agent_id=agent_id,
@@ -1085,7 +846,7 @@ def _resolve_target_project_agent_home(
         if direct.code != "home_agent_unknown" or target_project_lookup is None:
             raise direct
         target_project = target_project_lookup(agent_project_id(agent_id))
-        home_ref = _assert_home_v3(
+        home_ref = _assert_home_current(
             project_agent_home(
                 project=target_project,
                 agent_id=agent_id,
@@ -1197,7 +958,7 @@ def request_cat_activation(
             expected_agent_id=expected_agent_id,
         )
         target_agent = str(verified.get("agent_id") or "")
-        home_ref = _assert_home_v3(
+        home_ref = _assert_home_current(
             project_agent_home(
                 project=project,
                 agent_id=target_agent,
@@ -1328,7 +1089,7 @@ def organize_input(
 ) -> dict[str, Any]:
     """Edit Notice presentation metadata without changing handling or activation."""
     try:
-        ref = _assert_home_v3(home_ref)
+        ref = _assert_home_current(home_ref)
         item = organize_notice(
             home_path=Path(ref["home_path"]),
             notice_id=notice_id,
@@ -1411,7 +1172,7 @@ def handle_mail_input(
     """
     root = _runtime_root(root)
     try:
-        ref = _assert_home_v3(
+        ref = _assert_home_current(
             project_agent_home(
                 project=project,
                 agent_id=agent_id,
@@ -1452,7 +1213,7 @@ def read_project_mail_input(
     """Read immutable Mail body plus unified Notice handling projection."""
     root = _runtime_root(root)
     try:
-        ref = _assert_home_v3(
+        ref = _assert_home_current(
             project_agent_home(
                 project=project,
                 agent_id=agent_id,
@@ -1496,7 +1257,7 @@ def list_project_mail_inputs(
     """
     root = _runtime_root(root)
     try:
-        ref = _assert_home_v3(
+        ref = _assert_home_current(
             project_agent_home(
                 project=project,
                 agent_id=agent_id,
@@ -1620,7 +1381,7 @@ def send_mail_source(
                 )
             except HomeProblem:
                 home_ref = resolve_home_by_registry(agent_text)
-            recipient_homes[agent_text] = _assert_home_v3(home_ref)
+            recipient_homes[agent_text] = _assert_home_current(home_ref)
             if not _same_project_home(home_ref, project, root):
                 external_routes.append(
                     _deliver_external_mail_copy(
@@ -1772,7 +1533,7 @@ def request_mail_activation(
     for agent_id in selected:
         if agent_id in same_session_ids:
             try:
-                ref = _assert_home_v3(
+                ref = _assert_home_current(
                     project_agent_home(
                         project=project,
                         agent_id=agent_id,
@@ -1783,7 +1544,7 @@ def request_mail_activation(
                 raise _map_problem(problem) from problem
         else:
             try:
-                ref = _assert_home_v3(resolve_home_by_registry(agent_id))
+                ref = _assert_home_current(resolve_home_by_registry(agent_id))
             except (HomeProblem, AttentionServiceProblem) as problem:
                 raise AttentionServiceProblem(
                     "attention_recipient_home_unresolved",
@@ -1904,7 +1665,7 @@ def register_source_input(
 ) -> dict[str, Any]:
     """Register a verified CAT/direct source after its transport layer persists it."""
     try:
-        ref = _assert_home_v3(home_ref)
+        ref = _assert_home_current(home_ref)
         request_id = activation_request_id.strip()
         if request_activation and not request_id:
             request_id = new_activation_request_id()
@@ -1943,39 +1704,8 @@ def activation_work(home_ref: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _workbench_projection_enabled() -> bool:
-    return os.environ.get("PAOS_WORKBENCH_PROJECTION") == "1" and bool(
-        os.environ.get("PAOS_INSTALLATION_FILE")
-    )
 
 
-def _workbench_after_write(result: dict[str, Any], kind: str) -> dict[str, Any]:
-    if not _workbench_projection_enabled():
-        return result
-    try:
-        import sys as _sys
-        from pathlib import Path as _Path
-
-        _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-        from workbench_markdown import refresh_home_after_notice, refresh_home_after_todo
-
-        installation = os.environ["PAOS_INSTALLATION_FILE"]
-        if kind == "notice":
-            notice = result.get("notice") if isinstance(result.get("notice"), dict) else {}
-            page = refresh_home_after_notice(
-                installation, result["home"], notice_id=str(notice.get("notice_id") or ""),
-                state=str(notice.get("state") or "pending"), read=bool(notice.get("read")),
-            )
-        else:
-            page = refresh_home_after_todo(installation, result["home"])
-    except Exception as error:  # noqa: BLE001 - business write already committed
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_failed", "error": type(error).__name__}
-        return result
-    if page.get("status") == "conflict":
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_conflict", "page": page.get("page")}
-    else:
-        result["projection"] = {"ok": True, "page": page.get("page"), "status": page.get("status")}
-    return result
 
 
 def _takeover_mail_source(home_ref: dict[str, Any], source_ref: str) -> dict[str, Any]:
@@ -2026,21 +1756,21 @@ def takeover_input(
         raise AttentionServiceProblem(
             "attention_takeover_current_empty",
             "接手必须明确提交本次 Current 字段（--set field=value）。",
-            {"valid_fields": list(TODO_V3_CURRENT_FIELDS)},
+            {"valid_fields": list(TODO_CURRENT_FIELDS)},
         )
-    unknown = sorted(k for k in updates if k not in TODO_V3_CURRENT_FIELDS)
+    unknown = sorted(k for k in updates if k not in TODO_CURRENT_FIELDS)
     if unknown:
         raise AttentionServiceProblem(
             "attention_takeover_current_unknown",
             "存在未知 Current 字段；未读取、未标读、未写 Current。",
-            {"unknown_fields": unknown, "valid_fields": list(TODO_V3_CURRENT_FIELDS)},
+            {"unknown_fields": unknown, "valid_fields": list(TODO_CURRENT_FIELDS)},
         )
     try:
         notice = read_notice(Path(str(ref["home_path"])), notice_id)
     except NoticeProblem as problem:
         raise _map_problem(problem) from problem
     if expected_fingerprint:
-        current_fp = fingerprint_todo_v3(todo_path(ref))
+        current_fp = fingerprint_todo(todo_path(ref))
         if current_fp != expected_fingerprint:
             raise AttentionServiceProblem(
                 "attention_takeover_todo_changed",
@@ -2097,28 +1827,3 @@ def takeover_input(
         "tasks_count": updated.get("tasks_count"),
         "stages": stages,
     }
-
-
-_write_home_todo_original = write_home_todo
-_update_home_todo_fields_original = update_home_todo_fields
-_handle_input_original = handle_input
-_mark_input_read_original = mark_input_read
-
-
-def write_home_todo(*args, **kwargs):
-    return _workbench_after_write(_write_home_todo_original(*args, **kwargs), "todo")
-
-
-def update_home_todo_fields(*args, **kwargs):
-    result = _update_home_todo_fields_original(*args, **kwargs)
-    if kwargs.get("dry_run"):
-        return result
-    return _workbench_after_write(result, "todo")
-
-
-def handle_input(*args, **kwargs):
-    return _workbench_after_write(_handle_input_original(*args, **kwargs), "notice")
-
-
-def mark_input_read(*args, **kwargs):
-    return _workbench_after_write(_mark_input_read_original(*args, **kwargs), "notice")

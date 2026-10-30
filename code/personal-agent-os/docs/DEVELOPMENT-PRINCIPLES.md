@@ -8,7 +8,7 @@
 
 ## 1. 不以维护向后兼容性为目标
 
-老路径要删掉，不要留着"以防万一"。schema 改了就迁移全部真实数据，然后把旧分支从代码、测试和 fixture 里一次性清除。
+Portable 新实现不为退役接口保留运行兼容。当前安装的数据原件必须与代码删除区分：本轮新登记使用 `paos-project-registry/v1`，不自动覆盖已有 `paos-project/v3` 原件。实际迁入项目需先独立留存原记录，再在目标数据根显式登记。
 
 **为什么：** 单用户系统里，唯一的 v1 数据就是自己的 8 个项目文件；迁移一次的成本远低于让每个函数长期背两套 schema。v0.4 删 v1 时，`project_store.py` 从 1775 行降到约 1500 行，前端少了 13 处 `schema === V2_SCHEMA` 判断——那些判断每一处都是未来读代码时要重新推理的分叉。
 
@@ -53,19 +53,19 @@
 
 一个模块一件事，边界写在文档里也写在代码里。
 
-**当前分层（v3 正常入口；改动时不要越界）：**
+**当前 Portable 分层：**
 
 | 层 | 文件 | 职责 | 禁止 |
 |---|---|---|---|
 | CLI 入口 | `scripts/paos.py` | 参数、命令装配、结果渲染与错误出口 | 复制业务规则、绕过 Home/Project 写者 |
 | 服务模块 | `scripts/paos_*.py` | 各自的语义动作与校验（Home、Mail、Notice、Activation、安装等） | 越界改其它 Home、直接拼 Project 状态 |
-| Home 写者 | `paos_todo_v3.py`、`paos_mail.py`、`paos_notice.py`、`paos_attention_service.py` 及激活/唤醒写者 | 只写自己负责的 Home 文件、Mail/Notice/激活事实；合法的跨 Home Mail 投递仍走 mail 写者 | 充当 Project 状态写者、越权改写其它 Home 或绕过对应写者 |
-| Project 状态 | `project_store.py`（`ProjectStore`） | **Project JSON 的唯一写者**：原子写、revision、备份、Ledger、operation receipt、恢复 | 写 Home/Mail/Notice、HTTP 概念 |
+| Home 写者 | `paos_todo.py`、`paos_mail.py`、`paos_notice.py`、`paos_attention_service.py` 及激活/唤醒写者 | 只写自己负责的 Home 文件、Mail/Notice/激活事实；合法的跨 Home Mail 投递仍走 mail 写者 | 充当 Project 状态写者、越权改写其它 Home 或绕过对应写者 |
+| Project 最小登记 | `paos_registry.py` | 五字段 OB 根/Home/Coordinator 定位；首次 `register` 原子创建 | 复制旧 `human/generated/next_items/key_files`、覆盖既有 Project JSON |
 | 设备/安装定位 | `paos_installation.py`、`paos_workstation.py` | 安装描述、data_root、Library/Windows-WSL locator | 业务状态变更 |
 | 业务规则 | 共享 Workflow Library | 角色、工作循环、Notice/Mail、激活与写协议 | 在 Source 复制第二份规程 |
-| 历史 HTTP 链 | `local_server.py` → `workflow_service.py` | v2 时代内部管线/兼容，不是当前业务入口或恢复路径 | 以它推断当前业务语义 |
+| 外部运行通道 | CAT / runtime injection | 仅显式联络和提醒 | 作为本地工位读写的前置服务 |
 
-**为什么这个分层值得守：** Project 状态换存储层（比如上 SQLite）只需要改 `project_store.py`；Home 文件则各有独立写者。两条写入边界不能合成“一个唯一磁盘写者”，也不能让服务模块绕过任一写者直接落盘——边界一破，revision、recovery 与责任归属就同时失效。
+**为什么这个分层值得守：** 同一项目只有一个定位原件，只有显式 `project register` 能初次创建；同一工位沿既有写者操作；不为了删除 HTTP 再复制一套消息/任务实现。历史 ProjectStore 账本和回执不迁入五字段新登记，也不借此声称它们已在生产完成迁移。
 
 ## 5. 优先采用成熟库（有明确范围）
 
@@ -89,7 +89,7 @@
 
 改动分两类，用不同的标准：
 
-**核心公共合同**（Project schema、ProjectStore/Home 写者路径、状态转换、错误码映射）——这些地方一个错误会污染真实状态或让所有调用方一起错。这里不要权宜方案，要想清楚长期形态再动，并且配阻塞测试。
+**核心公共合同**（最小登记 schema、Home 写者路径、Mail/Notice 状态转换、错误码映射）——这些地方一个错误会污染真实状态或让所有调用方一起错。这里不要权宜方案，要想清楚长期形态再动，并且配阻塞测试。
 
 **局部实现**（一个渲染函数、一个 Prompt 模板、一个 CLI 参数）——这些地方错了影响半径就是它自己。这里允许先用能跑的写法，之后按需要重构。为它们做"长期演进设计"是浪费。
 
@@ -105,7 +105,7 @@
 
 **不该借的：** 别人的产品形态、别人的抽象层数、别人为多租户/高并发付的复杂度。Jira 的工作流引擎、Notion 的块模型，解决的是本系统没有的问题。
 
-**为什么强调这个区分：** 照搬形态是"看起来专业"的最大来源，也是复杂度失控的最大来源。PAOS 当前的业务模型——Project 保存耐久事实，固定 Home 保存 Current、TODO、Mail、Notice 与激活证据，Agent 通过 CLI 窄写入——是从用户真实工作方式长出来的，不是从任何产品抄的；不要用某个产品的 Work/Session 形态替换它。
+**为什么强调这个区分：** 照搬形态是"看起来专业"的最大来源，也是复杂度失控的最大来源。PAOS Portable 的业务模型——OB 项目保存唯一最新口径，最小 Project 登记提供定位，固定 Home 保存 Current、TODO、Mail、Notice 与激活证据，Agent 通过 CLI 窄写入——是从用户真实工作方式长出来的，不是从任何产品抄的；不要用某个产品的 Work/Session 形态替换它。
 
 ## 9. 错误必须可见、可定位、可恢复
 
