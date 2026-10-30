@@ -1,0 +1,66 @@
+name: One-time TODO migration candidate transfer
+on:
+  push:
+    branches: [review/portable-bootstrap-minimal-homes-20261030]
+    paths: [_transfer/offline.patch.xz.b64]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: true
+      - name: Verify exact slice and publish review candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "fd36e3698123c41210826161eb338d6ae18d8e85"
+          python - <<'PY'
+          import base64, hashlib, lzma, subprocess
+          from pathlib import Path
+          def digest(value): return hashlib.sha256(value).hexdigest()
+          sizes = [3500, 3500, 3500, 3420]
+          hashes = [
+              'a7b90de6133b1c1aa01803fefdb86049c1ae0214b0299319762a3f1e96145b20',
+              'bd74e5f62ea7e1833d9c57e514c2da9dbff415e1ac2fc338ba4cd099e877cbd0',
+              'f5cc18cf7639e1b804ce6b6bc121c6b2001968f126893c0a1ab0da3d32b61804',
+              'c417da8d2746351db2686e83aa483f025310e45e15ea853863d89e310daf293c',
+          ]
+          # The transfer blob lost exactly one base64 byte. Repair only if a
+          # unique, exact SHA-256 match exists; otherwise reject the import.
+          data = Path('_transfer/offline.patch.xz.b64').read_bytes()
+          assert len(data) == sum(sizes)-1, 'unexpected transfer size'
+          offset = 0
+          alphabet = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='
+          for size, known in zip(sizes, hashes):
+              if digest(data[offset:offset+size]) == known:
+                  offset += size
+                  continue
+              broken = data[offset:offset+size-1]
+              matches = []
+              for pos in range(size):
+                  for ch in alphabet:
+                      candidate = broken[:pos]+bytes((ch,))+broken[pos:]
+                      if digest(candidate) == known:
+                          matches.append(candidate)
+              assert len(matches) == 1, 'transfer cannot be uniquely verified'
+              data = data[:offset]+matches[0]+data[offset+size-1:]
+              break
+          assert digest(data) == '015c553fccd37a126c12d7d09edb296a45ab433568ae48ee9324bd1103973403'
+          patch = lzma.decompress(base64.b64decode(data))
+          assert digest(patch) == '87166328a2bf091ba11da283e2064107da483ac1134cf140a02fa8bfb4c7289e'
+          subprocess.run(['git', 'apply', '--check', '-'], input=patch, check=True)
+          subprocess.run(['git', 'apply', '-'], input=patch, check=True)
+          PY
+          git rm -- .github/workflows/one-time-todo-transfer.yml _transfer/offline.patch.xz.b64
+          git add -A
+          test "$(git write-tree)" = "114cdd2e9e976f6558d7a7552cf460a7bf3d2062"
+          python code/personal-agent-os/scripts/verify.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(portable): add strict offline TODO v3-to-v4 review conversion'
+          git push origin HEAD:refs/heads/review/portable-bootstrap-minimal-homes-20261030
