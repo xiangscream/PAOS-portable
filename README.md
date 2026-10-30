@@ -98,7 +98,7 @@ python code/personal-agent-os/scripts/verify.py
 不再依赖已剥离的 Node/Dashboard。原无效 Core 测试按退出接口退役，仍有用的数据根/备份
 断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
 
-本包尚未自动迁入真实项目，也未重写 TODO v4 为原生 Markdown 任务列表。
+本包尚未自动迁入真实项目；TODO v4 已使用原生 Markdown 任务列表。
 目标电脑的真实项目登记/接续验收、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
 这是草稿候选，不是生产安装已切换。
 
@@ -107,3 +107,16 @@ python code/personal-agent-os/scripts/verify.py
 Portable 现行 Home 使用 `paos-todo/v4`，参照 [模板与写入边界](libraries/workflow/Templates/workstation-todo.md)。`Pinned` 用普通 Markdown 表达持续有效要求或来源；`Current` 只含当前目标、下一步、等待、在途和引用；`Tasks` 用 Markdown checkbox 的单一状态标记。旧 TODO v3 不在运行时自动兼容、也不自动覆盖原始业务资料。
 
 本轮只改候选代码和模板。真实 Home 转换与本机 Runtime 采用仍须分别验证。
+
+### TODO v3 原件的离线候选转换
+
+只在确实迁入原工位时使用 [`tools/convert_todo_v3.py`](tools/convert_todo_v3.py)，它不是运行时兼容层，不扫描全部项目，也不会修改生产 `TODO.md`。先用准确的 Rooter 或 Coordinator 原件运行只读规划：
+
+```powershell
+python .\tools\convert_todo_v3.py --source "<旧工位绝对路径>/TODO.md" --output "<独立审核目录>/TODO.v4.md" --expect-home-id "<该工位真实ID>"
+# 人工确认来源和报告的 source_sha256；需要时再重复命令，加 --expected-source-sha256 <实际SHA> --write
+```
+
+`--write` 只会创建**尚不存在**的候选文件，输出源/目标 SHA、任务数量和迁移保留字段名；不会覆盖原件或已有候选。旧 `approved_scope`、`stage` 等非现行字段如非空会放在 Pinned 的“v3 遗留 Current（待核现行性）”部分；不会伪装成最新项目口径。任务 `source_refs`、`acceptance_refs`、`notify_after` 及 ID/状态逐项回读核对。不能无损表示、未知的手写文本或损坏结构直接拒绝转换。**该工具不安装候选、不搬 Mail/Notice/ENTRY、不替代新的 Project 登记或 Runtime 绑定。**
+
+Rooter 和项目 Coordinator 分别在私有工位来源上执行；项目 Coordinator 的真实身份由当前登记/原件确认，不要把示例 `3002-s010` 当作必然现任。完整接续顺序见 [迁移说明](MIGRATION-NOTES.md)。

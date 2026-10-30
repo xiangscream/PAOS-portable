@@ -48,13 +48,29 @@ Tool Catalog 中的原机安装位置、可用性和验证日期也是待核信�
 
 这一步只建立 Project locator，不能证明 TODO 原件、所有引用、Mail 或 native binding 已迁入；须分别回读并做新输入闭环测试。
 
-## 5. 最后建立本机运行绑定
+## 5. TODO v3 → v4 仅生成离线候选
+
+旧 Home 需要迁入时，先保存/指认原始 `TODO.md`，并核实 Rooter 或本项目**实际现任 Coordinator** 的精确 Home ID。完整迁入还需要相同工位的 `ENTRY`、Mail、Notice、成果原件及必要历史引用；这些文件不由 TODO 转换器处理。
+
+仅对选中的单个 Home 原件运行以下命令，默认**只读规划，不写候选**：
+
+```text
+python tools/convert_todo_v3.py --source <旧TODO原件> --output <独立审核位置的TODO.v4.md> --expect-home-id <真实HomeID>
+```
+
+核对返回的 `source_sha256`、Home 身份、任务数和 `retained_extra_fields`，确认来源未变化，再显式附 `--expected-source-sha256 <已核原始SHA> --write` 创建新的候选文件；不能覆盖已有目标，也不能以原 TODO 作为输出。产生候选后，人工阅读 Pinned/Current/Tasks，回到引用原件核对特别是“待核现行性”旧字段、任务接续、回告与接受引用；必要时用 Home 的正式写入口将**经确认**的 v4 候选安装到另行备份的目标 Home。转换工具本身绝不执行安装。
+
+映射规则：v3 的 `objective`、`next_action`、`waiting`、`inflight`、`context_refs`、`result_refs`、`updated_at` 进入 v4 Current；所有非空的其他既有 Current 字段进入 Pinned 并标为**历史线索、不是新口径**；任务 ID、标题、五类状态、结果、来源/接受引用、`notify_after` 保留。解析到不认识的手写行、字段、非 UTF-8 原件或候选无法无损回读时明确失败，原件保持不变。
+
+**这只验证格式转换。** Rooter/Coordinator 实际接班还须单独复核 project register、首页口径引用、未处理 Mail/Notice、原生 Contact 和合法新输入处理。不能把单份 TODO 转换成功当作完整迁移。
+
+## 6. 最后建立本机运行绑定
 
 Runtime、认证、原生会话、Contact 执行定位、Receiver、端口和管道由目标机器重新建立。旧绑定可作为历史信息，不直接作为有效连接。保留 STOP 等耐久控制要求，不默认开启后台唤醒。
 
 先离线读回 Rooter 和 Coordinator 的当前责任与必要原件，再用新的、可辨认的测试输入核对实际接收和消费。不要重放旧的不确定投递来做验收，也不要把发送成功当作已经消费。
 
-## 6. 验证分别说清
+## 7. 验证分别说清
 
 `doctor` 只回答配置和必要路径是否一致；CLI 命令实跑回答程序入口是否可用；工位回读与原件检查回答能否接班；实际新输入的完整处理回答运行协作是否恢复。
 

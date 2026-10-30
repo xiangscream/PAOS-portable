@@ -60,3 +60,11 @@ Mail/Notice/TODO 写者。接收器原测试使用临时 localhost 服务和假 
 - `Pinned` 完整承载自由正文、引用与已批准持续要求；`Current` 只保留 objective/next_action/waiting/inflight/context_refs/result_refs/updated_at；`Tasks` 继续保留稳定任务 ID、来源、接受与回告引用。
 - 只写当前区会保留其前后的 Pinned、Tasks 原始字节与换行，修改前进行指纹检查；完整写入验证语义往返和身份。
 - 旧格式不兼容。没有自动改写生产工位，实际迁移需核原件；真实接收器/Obsidian 的点击交互仍未实机验收。
+
+## TODO v3 → v4 离线候选转换（2026-10-30）
+
+新增 `tools/convert_todo_v3.py`：严格读取原 v3 写者的已知字段，默认只生成规划摘要；显式 `--write` 才创建另一个不存在的候选文件。源字节不变并以 SHA-256 核对。新 Current 保留必要工作字段，旧多余字段以“待核现行性”形式保留在 Pinned。任务 ID、状态、原始输入引用、接受引用和回告信息全部往返验证；未知字段/额外手写正文拒绝，不沿用 v3 运行时读取分支。
+
+专门测试 `tests/test_todo_conversion.py` 覆盖 Rooter 与 Coordinator、CRLF、引用/通知/状态往返、旧原件不变、目标存在、错误身份与哈希、未知正文、未知字段、无效状态、重复 ID 和 CLI 只读模式。完整 `scripts/verify.py` 包含这组测试。
+
+这不是生产工位转换验收：本会话不能读用户本机 Rooter/3002 真实 TODO；没有写生产 Home、Mail、Notice、Contact 或项目登记，也未启动 CAT/Runtime。需本人/Owner 先读审候选与业务来源，再沿准确 Home 的写入合同决定是否采用。
