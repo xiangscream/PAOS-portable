@@ -277,6 +277,99 @@ class HeadlessTests(unittest.TestCase):
         self.call('agent','send','3002','--to','rooter-001','--subject','安装接续','--body','原件入口','--message-id','rooter-test-001')
         self.assertTrue((self.rooter/'mailbox/rooter-test-001.md').exists())
 
+    def test_mail_reply_reaches_installation_rooter_and_is_consumable(self):
+        self.call('agent','send','3002','--to','3002-s002','--sender-kind','agent',
+                  '--sender-id','rooter-001','--subject','安装回告','--body','请回告',
+                  '--message-id','rooter-request')
+        result=self.call('mail','reply','3002','3002-s002','rooter-request',
+                         '--body','真实结果入口','--message-id','rooter-reply')[1]
+        self.assertEqual(result['mail']['deliveries'][0]['path'],
+                         str(self.rooter/'mailbox/rooter-reply.md'))
+        self.assertFalse((self.vault/'Workstations/rooter-001').exists())
+        state=self.call('attention','rooter-show')[1]
+        notice=next(n for n in state['notices']['items'] if n['source_ref']=='rooter-reply')
+        self.call('attention','rooter-read',notice['notice_id'])
+        self.call('attention','rooter-handle',notice['notice_id'],
+                  '--resolution','已核结果','--action-ref','Works/验收结果.md')
+        state=self.call('attention','rooter-show')[1]
+        notice=next(n for n in state['notices']['items'] if n['source_ref']=='rooter-reply')
+        self.assertEqual(notice['state'],'handled');self.assertTrue(notice['read'])
+        original=self.call('mail','read','3002','3002-s002','rooter-request')[1]
+        self.assertEqual(original['notice']['resolution'],'replied')
+        self.assertEqual(original['notice']['action_ref'],'rooter-reply')
+
+    def test_mail_reply_uses_registered_same_and_cross_project_homes(self):
+        p2=dict(self.project,id='3003',root_path=str(self.root/'另一项目'),
+                homes=['3003-s001'],coordinator_home_id='3003-s001')
+        (self.records/'3003.json').write_text(json.dumps(p2),encoding='utf-8')
+        target=Path(p2['root_path'])/'Workstations/3003-s001'
+        self.make_home(target,'3003-s001','3003')
+        before={p:p.read_bytes() for p in self.records.glob('*.json')}
+        for sender,home in [('3002-s001',self.vault/'Workstations/3002-s001'),
+                            ('3003-s001',target)]:
+            with self.subTest(sender=sender):
+                mid='request-'+sender;reply_id='reply-'+sender
+                self.call('agent','send','3002','--to','3002-s002','--sender-kind','agent',
+                          '--sender-id',sender,'--subject','回告','--body','请回复','--message-id',mid)
+                self.call('mail','reply','3002','3002-s002',mid,
+                          '--body','结果入口','--message-id',reply_id)
+                self.assertTrue((home/'mailbox'/f'{reply_id}.md').is_file())
+                reply_bytes=(home/'mailbox'/f'{reply_id}.md').read_bytes()
+                self.call('mail','reply','3002','3002-s002',mid,
+                          '--body','结果入口','--message-id',reply_id)
+                self.assertEqual((home/'mailbox'/f'{reply_id}.md').read_bytes(),reply_bytes)
+                self.assertEqual(len(list((home/'notices').glob('notice-*.md'))),1)
+        self.assertEqual(before,{p:p.read_bytes() for p in self.records.glob('*.json')})
+        self.assertFalse((self.vault/'Workstations/3003-s001').exists())
+
+    def test_mail_reply_rejects_unregistered_or_non_v4_rooter_before_dispatch(self):
+        for failure in ('unregistered','v3'):
+            with self.subTest(failure=failure):
+                mid='rooter-request-'+failure;reply_id='rooter-reply-'+failure
+                self.call('agent','send','3002','--to','3002-s002','--sender-kind','agent',
+                          '--sender-id','rooter-001','--subject','回告','--body','请回复',
+                          '--message-id',mid)
+                config=self.install.read_bytes();todo=(self.rooter/'TODO.md').read_bytes()
+                if failure=='unregistered':
+                    data=json.loads(config);data['rooter_home']=''
+                    self.install.write_text(json.dumps(data),encoding='utf-8')
+                else:
+                    (self.rooter/'TODO.md').write_bytes(todo.replace(b'paos-todo/v4',b'paos-todo/v3'))
+                before={str(p):p.read_bytes() for p in self.vault.rglob('*')
+                        if p.is_file() and '.read' not in p.parts}
+                rc,result=self.call('mail','reply','3002','3002-s002',mid,
+                                    '--body','不可误报已回复','--message-id',reply_id,ok=False)
+                self.assertNotEqual(rc,0)
+                self.assertEqual(result['error_code'],'attention_recipient_home_not_registered'
+                                 if failure=='unregistered' else 'attention_home_not_v4')
+                # Reading the source may mark it read; it must stay unhandled with no reply dispatch.
+                self.assertFalse((self.rooter/'mailbox'/f'{reply_id}.md').exists())
+                self.assertEqual(before,{str(p):p.read_bytes() for p in self.vault.rglob('*')
+                                         if p.is_file() and '.read' not in p.parts})
+                self.install.write_bytes(config);(self.rooter/'TODO.md').write_bytes(todo)
+                original=self.call('mail','read','3002','3002-s002',mid)[1]
+                self.assertEqual(original['notice']['state'],'pending')
+
+    def test_rooter_full_todo_write_honors_fingerprint_and_identity(self):
+        from paos_todo import fingerprint_todo
+        path=self.rooter/'TODO.md';fp=fingerprint_todo(path)
+        old=path.read_text(encoding='utf-8')
+        candidate=self.root/'rooter-candidate.md'
+        text=old.replace('# Tasks\n','# Tasks\n\n- [x] **BASELINE** · 收口验收\n')
+        candidate.write_text(text,encoding='utf-8')
+        self.call('attention','rooter-todo-write','--body','@'+str(candidate),
+                  '--expected-fingerprint',fp)
+        self.assertEqual(parse_todo(path.read_text(encoding='utf-8'))['tasks'][0]['state'],'done')
+        before=path.read_bytes()
+        rc,result=self.call('attention','rooter-todo-write','--body','@'+str(candidate),
+                            '--expected-fingerprint',fp,ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(result['error_code'],'todo_fingerprint_conflict')
+        self.assertEqual(path.read_bytes(),before)
+        candidate.write_text(text.replace('home_id: "rooter-001"','home_id: "rooter-wrong"'),encoding='utf-8')
+        rc,_=self.call('attention','rooter-todo-write','--body','@'+str(candidate),
+                       '--expected-fingerprint',fingerprint_todo(path),ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(path.read_bytes(),before)
+
     def test_peers_and_team_use_local_roster(self):
         for command in ('peers','team'):
             r=self.call(command,'3002','3002-s001')[1]

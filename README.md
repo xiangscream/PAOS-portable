@@ -99,8 +99,8 @@ python code/personal-agent-os/scripts/verify.py
 断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
 
 本包尚未自动迁入真实项目；TODO v4 已使用原生 Markdown 任务列表。
-目标电脑的真实项目登记/接续验收、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
-这是草稿候选，不是生产安装已切换。
+每台目标电脑仍须独立验收自己的项目登记、Home 接续和 Runtime/CAT；本仓库测试不代表这些机器均已切换。
+保留的旧非入口模块按实际调用继续裁减，不作为文件工作底座的部署前置。
 
 ## TODO v4 — Agent 与 Obsidian 共用一份原件
 

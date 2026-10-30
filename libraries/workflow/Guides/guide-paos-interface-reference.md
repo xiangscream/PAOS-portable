@@ -5,7 +5,7 @@ title: PAOS 接口参考：本地工位、项目登记与方法库
 description: Agent 无 Core HTTP 运行的本地入口；内容维护走原文件，不另建项目概览。
 tags: paos, interface, reference, cli
 status: active
-version: 24
+version: 25
 ---
 
 # PAOS 接口参考
@@ -20,7 +20,8 @@ version: 24
 Rooter 使用 `attention rooter-show`。`inbox` 给待处理优先的 Mail 短表，
 `mail list/read` 展开原件。读取不等于输入已处理。
 
-TODO 写入仍走 `attention todo-update/todo-write`；本片保留 v3 格式。
+TODO 写入走 `attention todo-update/todo-write`，Rooter 使用对应 `rooter-*` 命令；
+现行格式为 `paos-todo/v4`：身份 frontmatter、自由 Markdown 的 Pinned、Current 小字段和 Tasks 标准勾选列表。
 `attention takeover` 把一条 Mail 输入接到当前工作，随后 `attention handle`
 记录具体处理结果。没有新增原始要求、项目概览或全局待办表。
 
@@ -28,10 +29,10 @@ TODO 写入仍走 `attention todo-update/todo-write`；本片保留 v3 格式。
 
 `project show <project>` 返回五字段 `paos-project-registry/v1` 原始登记：项目 ID、OB 根、Home IDs、现任 Coordinator Home ID；不返回另一份业务状态摘要。首次登记通过 `project register <project> --root <已存在绝对目录> --coordinator <现任Home>`，额外成员才使用 `--home`。登记不写业务材料，不创建工位，不自动绑 Runtime；已有不同 JSON 不覆盖。
 项目最新口径是 Project Vault 中**一篇现有正文**，从 ENTRY/INDEX 或 TODO
-的 `alignment_ref` 找到后直接读写；不强制新文件名，不复制到 Project JSON。
+的 `context_refs` 找到后直接读写；不强制新文件名，不复制到 Project JSON。
 
-任务要求用 TODO 的当前目标/范围与原输入引用表达；需要持续注意的内容可在
-后续工位格式收敛时作为置顶。当前 v3 解析器尚未支持任意自由置顶正文。
+任务要求用 TODO 的当前目标与原输入引用表达；需要持续注意的内容放在
+`# Pinned` 自由 Markdown。Tasks 的勾选标记是唯一状态来源，不再另写 `state` 字段。
 
 ## Project 经验（只读）
 

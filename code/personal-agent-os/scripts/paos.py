@@ -1256,8 +1256,8 @@ def _cross_project_target_lookup(
     sessions = [i for i in (project.get("sessions") or []) if isinstance(i, dict)]
     if not any(str(i.get("id") or "") == target_agent_id for i in sessions):
         return None
-    # NOTE: v3 enforcement happens in the service (`_assert_home_current` raises
-    # `attention_home_not_v4`), so non-v3 targets get the precise error code
+    # NOTE: v4 enforcement happens in the service (`_assert_home_current` raises
+    # `attention_home_not_v4`), so non-v4 targets get the precise error code
     # instead of a misleading home_agent_unknown.
     return lambda _pid: project
 
@@ -2305,11 +2305,16 @@ def execute_mail(
                     error_code="mail_reply_target_unavailable",
                     hint="对 Human 的正式请求请使用 paos session request-create。",
                 )
-            if _recipient_contract(root=root, recipients=[recipient_id]) != "v4":
-                raise CliError(
-                    "当前 Home 已采用 V1.3，但回复目标仍是 legacy Home；切换窗口内拒绝跨合同发送。",
-                    error_code="v13_target_not_converted",
-                    details={"recipient_agent_id": recipient_id},
+            recipient_home = resolve_home_by_registry(
+                recipient_id, installation_file=getattr(args, "installation_file", None)
+            )
+            if recipient_home["home_kind"] == "rooter":
+                attention_resolve_rooter_home(
+                    home_path=recipient_home["home_path"], home_id=recipient_id
+                )
+            else:
+                _recipient_contract(
+                    root=Path(recipient_home["project_root"]), recipients=[recipient_id]
                 )
             original_subject = str(metadata.get("subject") or "").strip()
             subject = text_arg(args.subject, "mail subject") or f"Re: {original_subject}"
@@ -2957,6 +2962,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Replace registered Rooter TODO v4 after identity validation",
     )
     x.add_argument("--body", required=True, help="TODO Markdown, @FILE, or '-' for stdin")
+    x.add_argument(
+        "--expected-fingerprint",
+        help="Optimistic lock: only write if the current TODO sha256 matches this value",
+    )
     x.add_argument("--home-id", default="rooter-001")
 
     x = attention_sub.add_parser(

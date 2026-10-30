@@ -5,7 +5,7 @@ title: PAOS 操作指南：联系、当前页与运行
 description: 按需操作：正常留信与提醒、维护本人当前页、查看版本和排查阻碍。
 tags: paos, cat, cli, operations
 status: active
-version: 82
+version: 83
 ---
 
 # PAOS 操作指南
@@ -132,7 +132,7 @@ show默认只返回房间概况、人数、消息数与last_seq，普通与JSON�
 | 目的 | 安装入口 |
 | --- | --- |
 | 读本人 TODO 与 Notice | `paos attention show <project> <home>` |
-| 改本人 Current 字段 | `paos attention todo-update <project> <home> --set 'stage=当前阶段' --set 'next_action=下一步'` |
+| 改本人 Current 字段 | `paos attention todo-update <project> <home> --set 'objective=当前目标' --set 'next_action=下一步'` |
 | 更新 Tasks 或恢复完整 TODO | `paos attention todo-write <project> <home> --body @<候选载荷文件>` |
 | 处理输入 | `paos attention handle <project> <home> <notice> --resolution "处理结果" --action-ref <任务或成果>` |
 | 展示归档 | `paos attention notice-update <project> <home> <notice> --archive` |
@@ -148,13 +148,13 @@ Notice 的 Markdown 文件只是输入登记；当前 `state`、`read`、`archiv
 
 历史积压按已有证据处置：已有完成或取代证据的补收口；仍需行动的进入本人 Current；来源缺失或业务未定的保留具体 Owner。阶段接受不等于同日期所有业务完成；不按年龄清空、不伪造逐封 read、不重执旧授权。普通 Owner 维护自己的工位。
 
-Rooter Current 使用 `paos attention rooter-todo-update --set stage=... --set next_action=...`，沿登记 Home 复用同一字段合同；`--home-id` 默认 `rooter-001`。
+Rooter Current 使用 `paos attention rooter-todo-update --set objective=... --set next_action=...`，沿登记 Home 复用同一字段合同；`--home-id` 默认 `rooter-001`。
 
-目标、阶段和输入版本也可在同一次todo-update中用多个--set更新；只改Current时直接使用该入口。
+现行 TODO 为 `paos-todo/v4`，Current 仅含 `objective`、`next_action`、`waiting`、`inflight`、`context_refs`、`result_refs`、`updated_at`；目标和输入引用可在同一次 `todo-update` 中用多个 `--set` 更新。
 
-已发布字段合同：`updated_at` 属 Current；`todo-update` 与 `rooter-todo-update` 实际改动才刷新它，no-op 不刷新。任务层 `source_refs`（原输入）与 `acceptance_refs`（已接受成果的具体版本）随**完整 `todo-write` 载荷**维护，**不放入 Current**；只写本人当前页，不新增 `task-id`。字段可空，按需维护，不补写全部历史任务或造演示任务；引用存在不等于 PASS，PASS 仍按实际验证。`todo-update`、`rooter-todo-update` 及 Project `todo-write` 可带 `--expected-fingerprint` 做过期守卫；`rooter-todo-write` 仍仅支持原 `--body/--home-id` 参数。
+已发布字段合同：`updated_at` 属 Current；`todo-update` 与 `rooter-todo-update` 实际改动才刷新它，no-op 不刷新。任务层 `source_refs`（原输入）与 `acceptance_refs`（已接受成果的具体版本）随**完整 `todo-write` 载荷**维护，**不放入 Current**；只写本人当前页，不新增 `task-id`。字段可空，按需维护，不补写全部历史任务或造演示任务；引用存在不等于 PASS，PASS 仍按实际验证。Project 与 Rooter 的 `todo-update`、`todo-write` 都可带 `--expected-fingerprint` 做过期守卫；全量写入前从本人最新 TODO 原始字节取得 SHA-256，失配则回读并重新整理候选。
 
-需要改 Tasks 或恢复破损 TODO 时，在独立候选载荷文件中保留正确元数据和原责任，再经 `todo-write` 写回。按任务ID定位目标条目，写回后核该条目的state、result和成果引用。`trusted` 只说明格式可读，下一步按 Current 引用的项目状态和原件校准。不要先覆盖唯一 TODO 再校验。Notice 的展示归档不代处理，也不删除正文。只写本人当前页；任务完成和历史索引按工作循环归位。
+需要改 Tasks 或恢复破损 TODO 时，在独立候选载荷文件中保留正确元数据和原责任，再经 `todo-write` 写回。按任务ID定位目标条目，写回后核该条目的勾选状态、result和成果引用；不再另写任务 `state` 字段。`trusted` 只说明格式可读，下一步按 Current 引用的项目状态和原件校准。不要先覆盖唯一 TODO 再校验。Notice 的展示归档不代处理，也不删除正文。只写本人当前页；任务完成和历史索引按工作循环归位。
 
 ### 明确接手一条输入
 
@@ -162,7 +162,7 @@ Project Home：
 
 ```bash
 paos attention takeover <project_id> <agent_id> <notice_id> \
-  --set objective='本次目标' --set next_action='下一步' --set stage='doing'
+  --set objective='本次目标' --set next_action='下一步'
 ```
 
 Rooter Home：
