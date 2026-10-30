@@ -1,26 +1,21 @@
 name: Portable candidate checks
 on:
   push:
-    branches: [review/portable-bootstrap-minimal-homes-20261030]
+    branches: [review/portable-bootstrap-minimal-homes-20261030, main]
   pull_request:
 permissions:
   contents: read
 jobs:
   candidate:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Bootstrap tests (not a full core verifier)
-        run: python -m unittest discover -s tests -v
-      - name: Export exact public source for isolated continuation
-        if: always()
-        run: git archive --format=zip --output=portable-source.zip HEAD
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: portable-source-${{ github.sha }}
-          path: portable-source.zip
-          retention-days: 1
+      - name: Verify file-backed Portable
+        run: python code/personal-agent-os/scripts/verify.py
