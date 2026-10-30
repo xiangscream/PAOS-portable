@@ -2,6 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PAOS 画板</title>
 <style>
   /* ============================================================
@@ -12,6 +13,7 @@
   :root{
     --bg:#0e1013;            /* 全局背景 */
     --panel:#14171d;         /* 侧栏/顶栏 */
+    --panel2:#181c23;        /* 原文与输入区域 */
     --card:#1b1f27;          /* 卡片底 */
     --card-hover:#212633;
     --line:#262b36;          /* 边框 */
@@ -77,6 +79,7 @@
   .node .role{font-size:12px;font-weight:600;letter-spacing:.2px}
   .node .meta{fill:var(--dim);font-size:10px}
   .node .centerlbl{fill:var(--accent);font-size:10px;letter-spacing:.4px}
+  .node .current{fill:var(--text);font-size:10px}
 
   /* ---- 连线（贝塞尔曲线）---- */
   .link{stroke:var(--accent);stroke-width:1.8;fill:none;opacity:.75}
@@ -107,7 +110,7 @@
   <select id="projSel" title="切换项目库"></select>
   <span class="sub" id="hdSub">加载中…</span>
   <span class="sp"></span>
-  <span class="sub">Ctrl 多选：2 个连线、多个建 CAT 房间 · 单击进详情 · 右键选范例</span>
+  <span class="sub">Ctrl 多选后点击“围绕主题沟通” · 单击进详情 · 右键选范例</span>
   <button id="btnRefresh">刷新</button>
 </header>
 <div id="main">
@@ -139,23 +142,34 @@
 const svg=document.getElementById('svg'),NS='http://www.w3.org/2000/svg';
 let DATA={agents:[],projects:[],examples:{workflow:[],skill:[],tool:[]},rooms:[],coordinator:''};
 let nodes={},links=[],selected=new Set(),tab='agent',dragging=null,dragMoved=false;
-let CURPROJ='3002';
+let CURPROJ='';
 function el(n,a={}){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
 function toast(m,ok=true){const t=document.getElementById('toast');t.textContent=m;t.style.borderColor=ok?'var(--accent2)':'var(--danger)';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3200);}
-function esc(s){return (s||'').replace(/[<&>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]));}
+function esc(s){return String(s??'').replace(/[<&>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function retryAllowed(error){return error.retry!==false;}
+function problem(d){return typeof d.error==='string'?d.error:(d.error?.message||d.error_code||'操作未完成');}
+async function request(url,options){
+  const response=await fetch(url,options);const data=await response.json();
+  if(!response.ok||data.ok===false){const error=new Error(problem(data));error.retry=data.retry;throw error;}
+  return data;
+}
 
 // 拉取当前项目库的全部展示数据（工位、CAT 房间、范例、INDEX、项目登记）。
 // CURPROJ 决定绑定哪个项目库；切换下拉时重新拉取并重画。
 async function load(){
-  const r=await fetch('/api/dashboard?project='+CURPROJ);DATA=await r.json();
+  try{
+  DATA=await request('/api/dashboard'+(CURPROJ?'?project='+encodeURIComponent(CURPROJ):''));
+  CURPROJ=DATA.project;
   document.getElementById('hdSub').textContent=`${DATA.agents.length} 工位 · ${DATA.rooms.length} 房间 · 范例 ${DATA.examples.workflow.length+DATA.examples.skill.length+DATA.examples.tool.length}`;
   const sel=document.getElementById('projSel');
-  if(!sel.options.length){
+  sel.innerHTML='';
     (DATA.projects||[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=`${p.id} ${p.name||''}`;sel.appendChild(o);});
     sel.value=CURPROJ;
     sel.onchange=()=>{CURPROJ=sel.value;nodes={};links=[];load();};
-  }
+  selected.clear();document.getElementById('btnConnect').hidden=true;
   layout();renderSide();
+  if(!DATA.projects.length)document.getElementById('sideBody').textContent='当前安装尚未登记项目。请先使用 project register 登记已有项目根和 Coordinator。';
+  }catch(error){document.getElementById('hdSub').textContent='读取失败';document.getElementById('sideBody').textContent=error.message;}
 }
 
 // 以 coordinator 为中心的椭圆环绕布局；用 clamp 保证节点不越出画板。
@@ -179,12 +193,14 @@ function layout(){
 // 长 todo 通过 hover 的 <title> 展示，避免节点文字溢出。
 function makeNode(a,x,y,center){
   const g=el('g',{class:'node'+(center?' center':''),transform:`translate(${x},${y})`});
-  const W=220,H=center?86:66;
+  const W=220,H=center?112:92;
   g.appendChild(el('rect',{class:'body',width:W,height:H,rx:10}));
   const role=el('text',{x:14,y:center?26:24,class:'role'});role.textContent=a.id;g.appendChild(role);
   if(center){const c=el('text',{x:14,y:44,class:'centerlbl'});c.textContent='coordinator';g.appendChild(c);}
-  const meta=el('text',{x:14,y:center?H-14:H-14,class:'meta'});
-  meta.textContent=`${a.pending_notices||0} 待处理 · ${a.mail_total} 信`;g.appendChild(meta);
+  const current=el('text',{x:14,y:center?64:46,class:'current'});
+  current.textContent=(a.ok===false?'读取失败：'+a.error:(a.next_action||a.objective||'暂无当前行动')).slice(0,25);g.appendChild(current);
+  const meta=el('text',{x:14,y:H-14,class:'meta'});
+  meta.textContent=a.ok===false?'工位不可读':`${a.pending_notices} 待处理 · ${a.tasks?.doing||0} 进行中 · ${a.mail_total} 信`;g.appendChild(meta);
   const tip=el('title');tip.textContent=`${a.id}\n正在处理：${a.next_action||'（无）'}`;g.appendChild(tip);
   g.addEventListener('mousedown',e=>startDrag(e,a,g));
   g.addEventListener('contextmenu',e=>{e.preventDefault();openCtx(e,a);});
@@ -221,10 +237,14 @@ function endDrag(e){
 function toggleSelect(a){
   if(selected.has(a.id)){selected.delete(a.id);nodes[a.id].el.classList.remove('sel');}
   else{selected.add(a.id);nodes[a.id].el.classList.add('sel');}
+  document.getElementById('btnConnect').hidden=selected.size<2;
+}
+function connectSelected(){
+  if(!DATA.cat?.ok){toast(problem(DATA.cat),false);return;}
   if(selected.size===2){
     const [x,y]=[...selected];
     const title=prompt('简单连线：围绕什么主题？',`${x} ↔ ${y}`);
-    if(title!==null){createRoom(x,y,title||'画板沟通');drawLink([x,y],title||'画板沟通');}
+    if(title!==null){createRoomMulti([x,y],title||'画板沟通');}
     clearSelection();
   } else if(selected.size>=3){
     const title=prompt(`创建 CAT 房间（${selected.size} 人）：主题？`,[...selected].join(' ↔ '));
@@ -235,16 +255,12 @@ function toggleSelect(a){
 function clearSelection(){
   selected.forEach(id=>nodes[id]&&nodes[id].el.classList.remove('sel'));
   selected.clear();
-}
-async function createRoom(a,b,title){
-  const r=await fetch('/api/room',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,members:[a,b]})});
-  const d=await r.json();
-  if(d.ok||d.room){toast(`已连线：${title}`);}else{toast('创建失败',false);}
+  document.getElementById('btnConnect').hidden=true;
 }
 async function createRoomMulti(members,title){
-  const r=await fetch('/api/room',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,members})});
-  const d=await r.json();
-  if(d.ok||d.room){toast(`已建 CAT 房间：${title}`);drawLink(members,title);}else{toast('创建失败',false);}
+  try{await request('/api/room',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,members})});
+  toast(`已建 CAT 房间：${title}`);drawLink(members,title);
+  }catch(error){toast(error.message,false);}
 }
 function drawLink(ids,title){
   for(let i=0;i<ids.length-1;i++){
@@ -272,25 +288,27 @@ async function openRoom(r){
   tab='rooms';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='rooms'));
   const body=document.getElementById('sideBody');
   body.innerHTML='<div class="hint">读取房间…</div>';
-  const res=await fetch('/api/room/'+r.id);const d=await res.json();
-  if(!d.ok){body.innerHTML='<div class="hint">读取失败</div>';return;}
+  let d;try{d=await request('/api/room/'+encodeURIComponent(r.id));}catch(error){body.textContent=error.message;return;}
   let html=`<div class="detail"><h3>${esc(d.title)}</h3>`;
   html+=`<div style="color:var(--dim);font-size:11px">${d.members.map(m=>m.home_id).join(' · ')} ｜ ${d.status}</div>`;
   html+=`<div class="sec">消息（${d.messages.length}）</div>`;
   d.messages.forEach(m=>{html+=`<div class="mail"><b>${esc(m.sender_id)}</b><p>${esc(m.body)}</p></div>`;});
   html+=`<div class="sec">发言</div><textarea id="msgIn" rows="3" style="width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px"></textarea>`;
   html+=`<div style="margin-top:6px"><button id="btnSend" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer">发送</button>`;
+  html+=`<button id="btnCheckRoom" style="margin-left:8px;padding:6px 14px;cursor:pointer">核对消息</button>`;
   html+=`<button id="btnBack" style="margin-left:8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 14px;cursor:pointer">返回列表</button></div></div>`;
   body.innerHTML=html;
   document.getElementById('btnSend').onclick=()=>sendMsg(d.id);
+  document.getElementById('btnCheckRoom').onclick=()=>openRoom({id:d.id});
   document.getElementById('btnBack').onclick=()=>{tab='rooms';renderSide();};
 }
 async function sendMsg(roomId){
   const inp=document.getElementById('msgIn');const body=inp.value.trim();
   if(!body)return;
-  const r=await fetch(`/api/room/${roomId}/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:'human',body})});
-  const d=await r.json();
-  if(d.ok||d.message||d.message_id){toast('已发送');openRoom({id:roomId});}else{toast('发送失败：'+(d.error||d.stderr||''),false);}
+  const button=document.getElementById('btnSend');button.disabled=true;
+  try{await request(`/api/room/${encodeURIComponent(roomId)}/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:'human',body,message_id:'board-'+crypto.randomUUID()})});
+  toast('消息已保存；提醒受理和实际处理分别核对');openRoom({id:roomId});
+  }catch(error){toast(error.message+(retryAllowed(error)?'':' 请先核对房间消息，勿重复发送。'),false);button.disabled=!retryAllowed(error);}
 }
 
 // ---- 工位详情 ----
@@ -299,10 +317,10 @@ async function openAgent(a){
   tab='agent';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='agent'));
   const body=document.getElementById('sideBody');
   body.innerHTML='<div class="hint">读取工位…</div>';
-  const r=await fetch('/api/agent/'+a.id);const d=await r.json();
-  if(!d.ok){body.innerHTML='<div class="hint">读取失败</div>';return;}
+  let d;try{d=await request('/api/agent/'+encodeURIComponent(a.id));}catch(error){body.textContent=error.message;return;}
   let html=`<div class="detail"><h3>${a.id}</h3>`;
-  html+=`<div class="sec">当前处理</div><div class="ex">${esc(a.next_action||'（无）')}</div>`;
+  html+=`<div class="sec">当前目标</div><div class="ex">${esc(d.objective||'（无）')}</div>`;
+  html+=`<div class="sec">下一步</div><div class="ex">${esc(d.next_action||'（无）')}</div>`;
   html+=`<div class="sec">TODO 全文</div><pre>${esc(d.todo)}</pre>`;
   if(d.docs&&d.docs.length){html+=`<div class="sec">成果文档</div>`;d.docs.forEach(x=>{html+=`<div class="ex">${esc(x)}</div>`;});}
   if(d.mails&&d.mails.length){html+=`<div class="sec">最近邮件</div>`;d.mails.slice(0,6).forEach(m=>{html+=`<div class="mail"><b>${esc(m.name)}</b><p>${esc(m.preview)}</p></div>`;});}
@@ -325,9 +343,9 @@ function openCtx(e,a){
 }
 document.addEventListener('click',e=>{const c=document.getElementById('ctx');if(!c.contains(e.target))c.style.display='none';});
 async function sendHint(a,ex){
-  const r=await fetch('/api/hint',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:a.id,example:ex})});
-  const d=await r.json();
-  if(d.ok||d.handoff){toast(`已给 ${a.id} 留范例提示`);}else{toast('投递失败：'+(d.error||''),false);}
+  try{await request('/api/hint',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:a.id,example:ex})});
+  toast(`已向 ${a.id} 持久留信；未请求原生提醒`);
+  }catch(error){toast(error.message,false);}
 }
 
 // ---- 侧栏 ----
@@ -336,9 +354,10 @@ function renderSide(){
   const body=document.getElementById('sideBody');
   if(tab==='agent'){body.innerHTML='<div class="hint">双击节点查看该工位详情；单击选中，选两个以上可“围绕主题沟通”。</div>';return;}
   if(tab==='rooms'){
+    if(!DATA.cat?.ok){body.textContent=problem(DATA.cat);return;}
     body.innerHTML=DATA.rooms.length?'':'<div class="hint">还没有 CAT 房间。</div>';
     DATA.rooms.forEach(r=>{const d=document.createElement('div');d.className='room';
-      d.innerHTML=`<div class="t">${esc(r.title)}</div><div class="m">${r.members.join(' · ')} ｜ ${r.message_count} 条 ｜ ${r.status}</div><div class="last">${esc(r.last_message)}</div>`;
+      d.innerHTML=`<div class="t">${esc(r.title)}</div><div class="m">${r.member_count} 位成员 ｜ ${r.message_count} 条 ｜ ${r.status}</div>`;
       d.onclick=()=>openRoom(r);body.appendChild(d);});
   } else {
     body.innerHTML='';
@@ -353,6 +372,7 @@ function renderSide(){
   }
 }
 document.getElementById('btnRefresh').onclick=load;
+const connectButton=document.createElement('button');connectButton.id='btnConnect';connectButton.textContent='围绕主题沟通';connectButton.hidden=true;connectButton.onclick=connectSelected;document.getElementById('btnRefresh').before(connectButton);
 load();
 </script>
 </body>

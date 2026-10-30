@@ -232,7 +232,15 @@ def main(argv: list[str] | None = None) -> int:
     init.add_argument("--rooter-home", default="", help="已迁入的 Rooter 工位绝对路径")
     init.add_argument("--agent-numbers-config", default="", help="已迁入的编号登记文件绝对路径")
     sub.add_parser("doctor", help="只读：检查定位；不是业务或唤醒验收")
+    serve = sub.add_parser("serve", help="启动可选画板；CLI 文件操作不需要此服务")
+    serve.add_argument("--port", type=int, default=8780)
+    serve.add_argument("--installation-file", type=Path, default=local_dir(ROOT) / "installation.json")
+    serve.add_argument("--cat-url", default="", help="显式配置可选 CAT 地址")
     args = parser.parse_args(argv)
+    if args.command == "serve":
+        from front.paos_front_server import main as serve_board
+        return serve_board(["--port", str(args.port), "--installation-file", str(args.installation_file),
+                            "--cat-url", args.cat_url])
     try:
         if args.command == "plan":
             result = expected_configs(ROOT)

@@ -5,7 +5,7 @@
 大多数多 Agent 框架关心的是"**让几个 Agent 协作把活干完**"。
 PAOS 关心的是另一件事：**对话关了、模型换了、电脑重启了，那份工作还在不在。**
 
-PAOS（Personal Agent OS）是一个跑在你自己电脑上的**状态内核**：
+PAOS（Personal Agent OS）是一套运行在自己电脑上的 **CLI 与文件约定**：
 它把跨会话的工作事实——项目、工位、当前责任、消息、决策、证据——保存成 JSON 和 Markdown，
 让 Agent 可以被替换、暂停、接力、唤醒，而**工作本身一直连续**。
 
@@ -48,8 +48,8 @@ Agent 的思考与执行交给 Codex / OpenCode 等 Harness；PAOS 只保存能�
 换会话、换模型、换电脑，**工位和责任不丢**。
 
 **唤醒与接续**
-原生会话可以关，Agent 可以离线。需要时通过 wake binding 把它叫醒，
-它从自己的 ENTRY / TODO 恢复身份与当前责任，接着干。
+原生会话可以关，Agent 可以离线。目标 Runtime 在线且本机接收入口就绪时，可以请求原生提醒；
+离线时消息仍持久保存，下次从自己的 ENTRY / TODO 恢复身份与当前责任，接着干。
 
 **CAT 圆桌**
 Agent 之间（以及人和 Agent）围绕主题的临时讨论空间。
@@ -59,13 +59,15 @@ Agent 之间（以及人和 Agent）围绕主题的临时讨论空间。
 
 一个轻量网页画板（原生 JS + SVG，无框架）：
 
-- 以 **TEAM.md（联系表）**渲染工位节点：角色、职责、待处理、邮件数。
-- **Ctrl 多选**：选 2 个画简单连线，选多个建 CAT 房间。
+- 从本机五字段项目登记读取成员和 Coordinator，节点显示 TODO v4 当前行动、待处理与邮件数。
+- **Ctrl 多选**后点击“围绕主题沟通”，使用已配置的独立 CAT 建立圆桌。
 - **右键节点**：从 workflow / skill / tool 库里选范例，提示该 Agent 按范例参考。
 - 点进工位看 TODO 全文、邮件、成果；点进 CAT 房间看完整对话、发言。
 - **项目口径**直接展示项目库的 `INDEX.md`（唯一映射指南）。
 
 ![PAOS 画板](front/board-polished.png)
+
+上图为 WorkBuddy 原型。当前接入版读取 Portable 的登记和工位原件；界面与 CAT 的现场操作仍需在目标电脑验收。
 
 ## 快速开始
 
@@ -104,23 +106,39 @@ python code/personal-agent-os/scripts/paos.py health
 
 **说明**：克隆本仓库得到的是**代码与共享方法资产**，不是某台电脑的已运行安装——项目、工位、登录态、接收器都需要在你自己的机器上另行准备或登记。
 
+准备好一个现有的项目根后，显式登记其位置和现任 Coordinator：
+
+```powershell
+python .\code\personal-agent-os\scripts\paos.py project register 3002 --root "D:\OB\3002-Personal-Agent-OS" --coordinator 3002-s010
+python .\code\personal-agent-os\scripts\paos.py project show 3002
+```
+
+登记只保存 `schema/id/root_path/homes/coordinator_home_id`，不创建或覆盖真实工位。
+Rooter 是独立的安装级入口，不算项目成员。项目当前口径由 `INDEX.md` 导航，行动保存在工位 TODO v4。
+迁移边界见 [MIGRATION-NOTES.md](MIGRATION-NOTES.md)，组件职责见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+
 启动画板前端：
 
 ```bash
-python front/paos_front_server.py --port 8780
+python portable.py serve
 # 浏览器打开 http://127.0.0.1:8780/
 ```
+
+画板是可选进程，关闭后 CLI 文件操作照常可用。默认读取此 checkout 的 `config/local/installation.json`，
+不依赖原机器盘符或 WorkBuddy 自带 Python。CAT 需显式连接：
+`python portable.py serve --cat-url http://127.0.0.1:8870`。
+未配置 CAT 时工位与共享方法仍可读，页面不会自动启动 Runtime 或接收器。详见[画板说明](front/README.md)。
 
 ## 这套系统怎么组成
 
 ```
 硬侧（代码，可重建）
-  PAOS CLI + v3 核心模块 · CAT 圆桌引擎
+  PAOS CLI + 本地文件读写模块 · 可选独立 CAT
 软侧（Markdown，人与 Agent 共改）
   PAOS 库：workflow / skill / tool 方法资产
   项目库：工位 + INDEX + TEAM + 材料与成果
 运行状态（机器读写）
-  data/（registry、当前状态） + config/（安装配置）
+  data/（项目定位登记） + config/local/（本机安装配置）
 ```
 
 一句话：**硬侧给机器，软侧给人；代码管"能跑"，库管"怎么跑"，项目库管"在跑什么"。**
@@ -145,6 +163,10 @@ PAOS 借鉴但不复制：
 
 PAOS-portable 是从一个真实使用中的 PAOS 系统**抽离、收敛出的可迁移单元**：
 代码与业务资料分离、数据根从代码里抽出、历史依赖与可重建物剔除。
-画板前端可运行；后端为 Python 标准库；工位与库为 Markdown / JSON。
+画板是可选的 Python 标准库后端与原生 JS；工位与库为 Markdown / JSON。
+正常文件接续不要求旧 Core、Work/Session 状态机、Dashboard 或画板在线。
+
+开发检查：`python code/personal-agent-os/scripts/verify.py`。
+画板显示辅助测试使用 `node --test tests/board-ui.test.mjs`；运行产品不需要 Node。
 
 它不是一个"功能大而全"的框架，而是一个**正在持续收敛、追求简单与可解释**的个人工作内核。
