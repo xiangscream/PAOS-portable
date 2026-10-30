@@ -1,56 +1,51 @@
-# 硬基座优化批注：拆分与前端剥离
+# PAOS Portable：首轮收敛与代码健康复核
 
-2026-10-30，S040。在 `paos-portable` 副本上做，**未动原系统**。目标：让硬基座更轻、更懂、更易迁移。所有改动都做了功能验证。
+审查基线：`e00f31b2bedb6b40d8924a74636b26dd633f6fe2`（初始仓库提交）。本轮只改 Portable 仓库候选，不改原生产系统、不迁移真实业务、不启动服务。
 
-## 一、paos.py 巨型入口的拆分
+S040 的拆分与剥离记录原文保留在 [历史代码健康记录](docs/history/CODE-HEALTH-NOTES-S040-20261030.md)。下表是对当前仓库的核实，不把历史回报自动升级为本轮实测。
 
-**问题**：`paos.py` 原 5948 行，一个文件装着 95 个函数，而且**同时包含 v2 HTTP 客户端逻辑和 v3 文件操作逻辑**——两套挤在一起，是"易懂"最大的反例。
+## 一、查明的问题与本轮处理
 
-**方法**：先 AST 做依赖分析，找**自包含或域内自包含**的函数组，按域提取（不是按行乱切），每拆一块立即验证。
+| 问题 | 基线证据 | 本轮处理 |
+|---|---|---|
+| README 将本机副本和 Git 包混写 | 仓库没有 data/、真实 installation.json、Rooter 或项目工位；README 却列其尺寸和闭环实测 | README 改成真实发布边界，分开配置/CLI/业务/唤醒验证 |
+| 配置模板不能直接启动 | `config/*.example.json` 使用占位符；`paos_installation.py` 要求绝对定位 | 新增只做定位的 `portable.py`，从仓库位置展开模板，使用原 v1 schema |
+| Library 元数据目录不会随 clone 出现 | 根 `.gitignore` 忽略 `.paos/`；`paos_library.py` 的注册校验要求该目录及 usage-events/ | init 只补空目录；明确不恢复使用事件，不伪造统计 |
+| 硬/软边界过度按文件格式划分 | 旧 ARCHITECTURE 声称系统不约束内容；开发准则实际要求 Home/Project 专属写者 | 统一架构说明；可读 Markdown 不等于可绕过状态合同 |
+| 工位迁移范围重复、过时 | README 要求全部十个工位，历史文档又说工位都不迁 | 采用本轮用户确定的 Rooter + 每项目现任 Coordinator；不删除历史 |
+| Works 与 `.paos` 被笼统当成可丢内容 | 旧迁移记录将 Works 全视作现场；Library 代码将 usage-events 作为原始事实 | 按引用/证据筛选，保留范例、正式成果及所需历史事件 |
+| 文档重复维护结构定义 | README、ARCHITECTURE、COMPOSITION 分别给出不同结构 | ARCHITECTURE 为唯一边界说明，COMPOSITION 仅保留入口，历史报告归档 |
 
-### 拆出的三个模块
+## 二、必须保留为未完成的硬基座缺口
 
-| 模块 | 内容 | 行数 | 对外依赖 |
-| --- | --- | --- | --- |
-| `paos_render.py` | 5 个 `render_*` 展示函数 | 121 | 仅 typing，纯 `result.get` 拼字符串 |
-| `paos_orient.py` | orient 导览域 7 个函数 | 224 | paos_library / paos_installation / paos_workstation |
-| `paos_compact.py` | compact 摘要域 5 函数 + 3 常量 | 103 | 仅 typing 与域内常量 |
+**1. 旧 verifier 与当前包不闭合。**
 
-`paos.py`：**5948 → 5577 行**，三处改为 `from paos_xxx import ...`，调用处不变（函数名仍在命名空间）。
+`scripts/verify.py` 仍对 `attention-dashboard-v1-static` 执行 unittest、Node 测试、编译检查；该目录已不在当前包。它也没有在现有 `python_tests()` 中发现根 `tests/` 的三份 pytest 测试。因此“只缺 pytest，其他六门已过”不能作为此 Git 包的可复现结论。保留旧报告原文，但不沿用其通过口径。
 
-**关键依据**：ORIENT 域经 AST 验证**域外依赖为空**（可整体独立）；COMPACT 域只多带 3 个 `*_MAX_CHARS` 常量（一并带走）。render 系是纯展示，最先拆。
+**2. UI 剥离不等于后端依赖剥离完成。**
 
-### 验证（每拆必验）
+`AGENTS.md` 和开发准则仍把 ProjectStore 放在已剥离的目录中。`tests/test_d32_data_root.py` 导入 `install_homes`，并把 scripts 与旧服务目录加入搜索路径；本轮读取 `scripts/install_homes.py` 返回 404。需要恢复必要后端模块或有证据地移除对应能力，并同步测试，不能仅凭 health/orient 两条成功就断言全 CLI 无依赖。
 
-- `py_compile` 三个新模块 + paos.py 全过
-- `import paos_orient / paos_compact` 正常
-- `paos health` → `ok:true`
-- `paos orient 3002 3002-s035` → 完整输出（Who / Project / Mail / Source 全正常）——这一步同时覆盖了 orient 域与 compact 域的真实调用
+**3. CLI 入口仍混合新旧语义。**
 
-## 二、前端完全剥离
+`scripts/paos.py` 的模块说明仍称所有耐久状态只走 HTTP，同时文件实际导入 v3 Home/Mail/Notice 等模块。下一切片应先列清命令到模块的真实依赖，再按域裁减或拆分；不再以减少主文件行数作为完成指标。
 
-**改动**：把 `attention-dashboard-v1-static/`（v2 HTTP 服务 + 旧前端 UI，**195 个 py**）从代码包移到 `D:\paos-frontend-legacy`。
+**4. 项目恢复与运行绑定未验证。**
 
-**理由**：按你的判断——**现在的"前端"未来是 Obsidian 库中的汇总页**，这套历史前端服务+UI 不该留在硬基座里。剥离后，硬基座只剩 **CLI + v3 核心模块**，未来前端在本地收敛完成后重做。
+本仓库没有真实项目数据。未核实实际 Coordinator、未完成输入和原件可达性；也未测试 Windows/WSL、CAT、Receiver 或新机唤醒。任何配置级结果都不能填补这些证据空白。
 
-**验证**：剥离后 `health`、`orient` 均正常。前端本就"承载内部兼容、非业务入口"，CLI 正常路径不依赖它；`local_server.py` 是"前端依赖 scripts"，不是反过来。
+## 三、新增入口的设计取舍
 
-**保留**：`attention-memory-pipeline-v0/`（仅 1MB）——它被 `ensure_build_data.py`、`release_check.py`、`verify.py` 引用，是构建/派生数据的来源，剥了会让 verify 的派生数据步失败。**只剥大前端服务+UI，不碰这个被构建工具引用的小管道。**
+`plan`、`doctor` 只读。`init` 的显式写入范围仅为 config/local 配置对、空 data_root 以及库所需的空元数据目录。配置对先在同一文件系统暂存，写完后一次重命名发布；不提供 force 覆盖，不写 Project、TODO、Mail、Notice、Contact、凭据或 Runtime 配置。
 
-## 三、verify 的 Python tests FAIL 是环境问题，不是拆分引入
+旧配置不匹配、已存在另一安装描述、损坏 JSON、未知模板字段、文件占目录、路径越界均可见失败。已有 Rooter 和编号文件只能显式绑定，默认保持未绑定。代码旁注解释了这些约束的原因。
 
-跑 `verify.py` 时 `[2/7] Python tests FAIL`，一度需要查清是不是拆分破坏。
-核实：**本机几个 Python 都没装 pytest**（`No module named pytest`），所以那项直接失败。
-**这与拆分无关**——拆分已用 compile / import / health / orient 做了实证。其余六道门（Architecture / Derived data / Node UTC / Node 上海 / compileall / JS check）全 PASS。
+这是首次配置入口，不是完整安装器、迁移引擎、通用配置数据库或自动重试器。它没有替代任何业务写者。
 
-## 四、剩余路线（未做，按优先级）
+## 四、实际验证与限制
 
-1. **v2 客户端函数剥离**：paos.py 里的 `RestClient`、session/project/coordinator 的 HTTP 调用属 v2 历史链，前端剥离后它们没有服务端可连。可整体提取为 `paos_v2_legacy.py`，让 paos.py 只剩 v3 正常路径 + 工具。**需先确认 v3 功能对这些函数零依赖**（AST 可判）。
-2. **继续按域拆 v3**：attention / mail / notice / library 各自成模块，让 paos.py 只剩 argparse + main + 共享工具。
-3. **paos.py 最终目标**：一个薄入口（参数解析 + 调度），业务全在域模块里——那时"易懂"才算真正达成。
+在本轮 Linux 执行容器运行 `python -m unittest discover -s tests -v`：**37 tests，全部通过**。测试使用合成的最小包，覆盖路径含空格/中文、工作目录独立、只读检查、重复初始化、旧配置保护、绑定不覆盖、编号内容保留、损坏输入、路径/链接边界、写入/发布失败清理、移动后旧路径诊断与退出码。
 
-## 五、边界
+这是新增助手的合同测试，**不是完整仓库集成测试**。直接 git clone 失败，实际错误为 `Could not resolve host: github.com`；仓库原文通过已连接 GitHub 工具读取，新增文件在容器中测试。未在此容器取得整库检出，未运行核心完整测试，未通过 Windows/WSL 或真实业务闭环验收。
 
-- 没动 Store 的不变量（revision / receipt / Ledger / atomic / Restore）。
-- 没删 v2 历史链代码，只是**把大前端服务+UI 物理剥离**；v2 客户端函数仍留在 paos.py 待后续按路线 1 处理。
-- 所有改动只在副本，原系统不受影响。
+下一项最有价值的硬基座工作是**让当前 CLI 依赖和保留测试形成可复现的闭合包**，而不是扩大 Agent 数量或继续删除目录。本轮不声称 PAOS Portable 已全部完成。

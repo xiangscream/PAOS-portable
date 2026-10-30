@@ -1,85 +1,69 @@
-# PAOS 可迁移单元
+# PAOS Portable
 
-这是从本机 PAOS 体系中**抽离、收敛后的一份自包含副本**，目标是：一眼看懂每块是什么、换电脑能直接恢复。
+**以项目事实为核心的轻量硬基座，配合可复用方法库和可替换的 Agent 运行环境。**
 
-**只读自原系统，未改动原系统任何文件。** 全部内容约 274 MB（原体系约 12 GB，已剔除可重建依赖与历史堆积）。
+这个仓库发布的是**代码与共享方法资产**，不是某台电脑的已运行安装。克隆不会带来原机的项目、工位、登记数据、登录状态或已启动的接收器。
 
-## 目录结构
+## 仓库里有什么
 
+| 路径 | 内容 | 是否随 Git 发布 |
+|---|---|---|
+| `code/personal-agent-os/` | CLI、服务模块、Runtime 适配代码及保留的测试 | 是；旧 HTTP 服务目录已不在包内，部分依赖仍待核清 |
+| `libraries/` | Workflow、Skill、参考范例、Tool Catalog | 是；Catalog 是索引，不是原文替代品 |
+| `config/*.example.json` | 安装定位模板 | 是；占位模板不能直接作为有效安装使用 |
+| `config/local/` | 本机生成的安装描述与 Library 定位 | 否；换电脑重新生成 |
+| `data/`、Rooter 工位、项目库 | 私有安装事实与业务资料 | 否；按需要单独迁移 |
+
+首次接续采用**一个安装级 Rooter + 每个迁入项目一个现任 Coordinator**。其他工位不默认恢复运行，但不删除原工位与业务历史。具体边界只有一份：[架构与资产边界](ARCHITECTURE.md)。
+
+## 从新克隆开始
+
+在仓库根目录，使用 Python 3.10 或更高版本：
+
+```text
+python portable.py plan
+python portable.py init
+python portable.py doctor
 ```
-paos-portable/
-├─ code/personal-agent-os/     核心代码（PAOS 本体，v3 正常路径 + 历史兼容链）
-├─ data/                       安装事实（data_root，已从代码里抽离）
-├─ libraries/                  共享资产（workflow 流程库 / skill 技能库 / 工具目录）
-└─ config/                     安装配置（路径已指向本目录）
-    ├─ installation.json
-    ├─ library-roots.json
-    └─ AGENT-NUMBERS.json
-```
 
-**这是纯系统包**：只含"机制 + 流程资产 + 安装事实"，**不含工位等业务文件**。
+`plan` 只显示按当前仓库位置展开的两个配置；`init` 生成 `config/local/` 中的配置对，并创建空的数据根与 Library 元数据目录。它不覆盖已有配置，不导入项目，不创建工位，不修改 Runtime、不启动服务。遇到已有安装、损坏配置或旧路径，明确报错，不猜测修复。
 
-**分层原则**：代码可重建（clone）、数据必须带走（data）、流程资产可复用（libraries）、配置集中（config）。**业务工作区（各 Agent 工位 TODO、项目文件）是独立的 Markdown，不属于本系统包**——它们由人或 Agent 直接编辑，按需另行处理。架构与分层理由见 `ARCHITECTURE.md`，逐条优化批注见 `MIGRATION-NOTES.md`。
+`doctor` 是**只读定位检查**：即使 `configuration_ok: true`，也不代表 CLI、项目接续或唤醒已经通过测试。输出分别保留 `cli_verified`、`business_verified`、`runtime_verified` 为 `false`。
 
-## 3002 完整闭环
-
-本系统包与**项目库**组合，构成 Project 3002 的完整闭环：
-
-| 部分 | 位置 | 角色 | 大小 |
-| --- | --- | --- | --- |
-| 硬侧代码 | `code/personal-agent-os` | PAOS 本体（可 clone） | 226 MB |
-| PAOS 库（软侧） | `libraries/` | 流程库 / 技能库 / 工具目录 / Rooter 工位 | ~9 MB |
-| 运行状态 | `data/` + `config/` | 安装事实 + 配置 | ~23 MB |
-| **项目库** | `D:\paos-business` | **全部 10 个工位** + Materials | ~16 MB |
-
-项目库是独立的 Obsidian 库，含 `Workstations/`（s010…s037 全部 10 个工位）与 `Materials/`。**工位属项目业务，不进系统包**，但闭环通过 `data/project-registry/projects/3002.json` 的 `root_path` 指向它。
-
-**闭环验证**（已实测）：
-
-- `paos health` → `ok:true`（build `a48fe60`）
-- 工位解析 → `D:\paos-business\Workstations\3002-s035`（确认指向项目库）
-- `attention show 3002 3002-s035` → 工位正文可读
-- 流程库 `workflow/CATALOG.md`、`skill/CATALOG.md` 均在
-
-## 在本机/新机跑起来
+选用本机生成的配置后，再核查 CLI。以下为待在完整检出上执行的命令，不是本次已通过的实机记录：
 
 ```powershell
-# 1. 指向本单元的安装配置
-$env:PAOS_INSTALLATION_FILE = "D:\paos-portable\config\installation.json"
-$env:PYTHONIOENCODING = "utf-8"   # Windows 控制台必须，否则中文/特殊字符报 GBK 错
-
-# 2. 进入代码目录运行
-cd D:\paos-portable\code\personal-agent-os
-python scripts\paos.py health
-
-# 3. 系统本体自检（工位业务数据不在本包内，见下方说明）
+$env:PAOS_INSTALLATION_FILE = (Resolve-Path .\config\local\installation.json).Path
+$env:PAOS_LIBRARY_ROOTS_CONFIG = (Resolve-Path .\config\local\library-roots.json).Path
+$env:PYTHONIOENCODING = "utf-8"
+python .\code\personal-agent-os\scripts\paos.py --help
+python .\code\personal-agent-os\scripts\paos.py health
 ```
 
-已实测通过：`health` 返回 `ok:true`（build `a48fe60`），系统本体可独立运行。工位等业务文件不在本系统包内——它们是独立的 Markdown 工作区，由人或 Agent 直接编辑，按需指向或另行迁移。
+Linux 对应设置：
 
-## 换电脑怎么做
+```sh
+export PAOS_INSTALLATION_FILE="$PWD/config/local/installation.json"
+export PAOS_LIBRARY_ROOTS_CONFIG="$PWD/config/local/library-roots.json"
+export PYTHONIOENCODING=utf-8
+python code/personal-agent-os/scripts/paos.py --help
+python code/personal-agent-os/scripts/paos.py health
+```
 
-1. **整目录拷到新机**（放哪都行，不必是 D 盘）。
-2. **若路径变了，改三处**（就这三处，没有第四处）：
-   - `config/installation.json` 的 5 个路径（source_root / data_root / library_roots_config / rooter_home / agent_numbers_config）
-   - `config/library-roots.json` 的 3 个路径（workflow_root / skill_root / tool_catalog）
-   - `data/project-registry/projects/3002.json` 的 `root_path`（指向新的业务工作区位置）
-3. **装 Runtime**（Codex / OpenCode）并登录——这些不随包迁移。
-4. **设 `PAOS_INSTALLATION_FILE`** 指向新位置的 `config/installation.json`。
-5. **逐工位重建 Contact / wake binding**：原生会话 ID、接收器、端口都是新机重新建立，不沿用旧值。
-6. 用 `paos health` + 各工位 `attention show` 验收——**恢复的是工位与 Current，不是聊天历史**。
+已有 Rooter 或编号登记文件时，首次 `init` 可以用 `--rooter-home <绝对目录>` 与 `--agent-numbers-config <绝对文件>` 显式绑定；没有提供时保持未绑定，不伪造身份，也不重置编号。之后的安装变更继续使用核心已有的配置入口，而不是反复运行初始化来覆盖。
 
-## 这份副本没包含什么（有意不带）
+## 换电脑与最小接续
 
-- `project-registry/backups/`（4.67 GB 历史快照，留原机，需要时可取）
-- `node_modules`、`.git`、`.gitnexus`、缓存、构建产物（可重建）
-- **工位等业务文件**（Workstations、Materials、Rooter 工位）——已单独移出系统包，不属系统本体
-- `Works/` 工作现场（约 4 GB，非资产）
-- Rooter 的 candidate / reports / restore-points（历史快照）
-- Runtime 软件、登录凭据、原生会话 ID、接收器进程、PID / 命名管道
+[迁移说明](MIGRATION-NOTES.md) 区分三件事：重新取得代码和库、迁入选定的耐久业务资料、在目标机器重新建立运行绑定。项目 `root_path` 不会因为安装路径更新而自动变化；不要直接搜索替换 Project JSON。
 
-## 注意
+公开 Git 仓库不等于完整备份。尤其 `.paos/usage-events/` 中的使用事件不是可重建缓存，Rooter/Coordinator 引用的 Works、决策与消息也不能按目录名整批丢弃。
 
-- 本系统包**不含工位业务文件**。各 Agent 工位 TODO、项目材料属业务资料，由人或 Agent 直接编辑，按需另行处理（原机仍在，副本暂存 `D:\paos-business`）。registry 里的 `root_path` 指向业务工作区位置，新机按需指向已有或新建的工作区。
-- 代码里仍含 v2 历史 HTTP 链（内部兼容用）。**业务入口是 v3 CLI**，Core 8766 属历史链，迁移时不需要拉起它也能用 CLI。
-- 这是一份**副本快照**（2026-10-29），原系统后续变更不会自动同步。
+## 本轮验证范围
+
+```text
+python -m unittest discover -s tests -v
+```
+
+根目录 `tests/` 覆盖新增配置助手的隔离合同，不替代核心测试。本轮结果和现存缺口见 [代码健康与收敛报告](CODE-HEALTH-NOTES.md)。旧 `code/personal-agent-os/scripts/verify.py` 仍引用已剥离的目录，不能将旧的“7/7”搬到本仓库。
+
+这是待审查的收敛候选，不是“完整多 Agent 系统已迁移并上线”的声明。
