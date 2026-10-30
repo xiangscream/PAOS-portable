@@ -88,6 +88,22 @@ CLI → 登记的 Workflow / Skill / Tool 文件
 对话、日会和 Tips 增量整理复用[已有工作流](libraries/workflow/Workflows/wf-meeting-audio-package.md)：
 保留原件，按需更新唯一口径、TODO 或方法；不是新增状态服务，也没有自动启动采集任务。
 
+## 可选画板
+
+完成安装初始化、项目登记和工位准备后，可以启动 WorkBuddy 原型适配的无依赖画板：
+
+```text
+python portable.py serve
+```
+
+打开 `http://127.0.0.1:8780/`，拖动登记的 Agent、查看其 TODO v4、Mail/Notice 和项目入口。
+前端从本安装配置读取路径，不需要原机器的盘符、WorkBuddy Python 或旧 Core。
+它只是可选读面；关闭画板不影响 CLI 文件操作。未登记项目时显示准备入口，不加载原机数据。
+
+CAT 使用独立的显式连接：`python portable.py serve --cat-url http://127.0.0.1:8870`。
+未配置 CAT 时工位与库仍可读；页面不会自动启动 CAT、Runtime 或接收器。
+操作和边界见 [画板说明](front/README.md)。
+
 ## 验证
 
 ```text

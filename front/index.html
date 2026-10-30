@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAOS 画板</title>
+<style>
+  /* ============================================================
+   PAOS 画板 · 视觉规范（深色、轻量、无依赖）
+   仅做展示层：所有样式服务于"忠实反映后端字段"，不加业务逻辑。
+   配色 / 间距 / 圆角 / 阴影集中在此，便于整体调整与复用。
+   ============================================================ */
+  :root{
+    --bg:#0e1013;            /* 全局背景 */
+    --panel:#14171d;         /* 侧栏/顶栏 */
+    --card:#1b1f27;          /* 卡片底 */
+    --card-hover:#212633;
+    --line:#262b36;          /* 边框 */
+    --text:#e8eaf0;          /* 主文字 */
+    --dim:#8b93a5;           /* 辅助文字 */
+    --accent:#6ea8fe;        /* 强调·蓝 */
+    --accent2:#7bd88f;       /* 成功·绿 */
+    --warn:#e0b56a;          /* 警示·琥珀 */
+    --danger:#e06c75;
+    --radius:10px;
+    --shadow:0 4px 16px rgba(0,0,0,.32);
+    --shadow-lg:0 10px 34px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+
+  /* ---- 顶栏 ---- */
+  header{height:48px;display:flex;align-items:center;gap:14px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .sub{color:var(--dim);font-size:12px}
+  header .sp{flex:1}
+  header select,header button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;transition:border-color .15s,background .15s}
+  header select{padding:4px 8px}
+  header button:hover,header select:hover{border-color:var(--accent);background:var(--card-hover)}
+  header button.on{border-color:var(--accent2);color:var(--accent2)}
+
+  #main{display:flex;height:calc(100vh - 48px)}
+
+  /* ---- 画板（左半）---- */
+  #board{flex:0 0 50%;position:relative;overflow:hidden;
+    background:radial-gradient(1000px 600px at 45% 40%,#171b22 0%,transparent 70%),var(--bg)}
+  #board svg{position:absolute;inset:0;width:100%;height:100%}
+
+  /* ---- 侧栏（右半）---- */
+  #side{flex:1;background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+  .tabs{display:flex;border-bottom:1px solid var(--line);gap:2px;padding:0 8px}
+  .tabs button{flex:1;background:none;border:none;color:var(--dim);padding:11px 4px;cursor:pointer;font-size:12px;border-bottom:2px solid transparent;transition:color .15s}
+  .tabs button:hover{color:var(--text)}
+  .tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  #sideBody{flex:1;overflow-y:auto;padding:12px}
+  #sideBody::-webkit-scrollbar{width:8px}
+  #sideBody::-webkit-scrollbar-thumb{background:#2c313c;border-radius:4px}
+
+  /* ---- 通用卡片 ---- */
+  .room,.ex{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;transition:border-color .15s,background .15s}
+  .room{cursor:pointer}
+  .room:hover,.ex:hover{border-color:var(--accent);background:var(--card-hover)}
+  .room .t{font-weight:600;font-size:13px;letter-spacing:.1px}
+  .room .m{color:var(--dim);font-size:11px;margin-top:4px}
+  .room .last{color:var(--dim);font-size:11px;margin-top:6px;max-height:0;overflow:hidden;transition:max-height .2s}
+  .room.open .last{max-height:120px}
+  .ex .k{color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+  .hint{color:var(--dim);font-size:11px;padding:8px 4px;line-height:1.6}
+
+  /* ---- Agent 节点 ---- */
+  .node{cursor:grab}
+  .node:active{cursor:grabbing}
+  .node rect.body{fill:var(--card);stroke:var(--line);stroke-width:1.2;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35));transition:stroke .15s}
+  .node:hover rect.body{stroke:var(--accent)}
+  .node.sel rect.body{stroke:var(--accent);stroke-width:2.2;filter:drop-shadow(0 0 14px rgba(110,168,254,.35))}
+  .node.center rect.body{fill:#1e2634;stroke:var(--accent);stroke-width:1.6}
+  .node text{fill:var(--text);pointer-events:none;user-select:none}
+  .node .role{font-size:12px;font-weight:600;letter-spacing:.2px}
+  .node .meta{fill:var(--dim);font-size:10px}
+  .node .centerlbl{fill:var(--accent);font-size:10px;letter-spacing:.4px}
+  .node .current{fill:var(--text);font-size:10px}
+
+  /* ---- 连线（贝塞尔曲线）---- */
+  .link{stroke:var(--accent);stroke-width:1.8;fill:none;opacity:.75}
+  .linklabel{fill:var(--dim);font-size:10px;pointer-events:none}
+
+  /* ---- 右键菜单 ---- */
+  #ctx{position:fixed;z-index:50;background:var(--card);border:1px solid var(--accent);border-radius:var(--radius);min-width:264px;max-height:60vh;overflow-y:auto;box-shadow:var(--shadow-lg);display:none}
+  #ctx .hd{padding:10px 14px;font-size:12px;color:var(--dim);border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+  #ctx .grp{padding:8px 14px 3px;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.6px}
+  #ctx .it{padding:7px 14px;font-size:12px;cursor:pointer;transition:background .12s}
+  #ctx .it:hover{background:#2a3140}
+
+  /* ---- 提示条 ---- */
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--accent);padding:10px 18px;border-radius:var(--radius);font-size:13px;display:none;z-index:60;box-shadow:var(--shadow-lg)}
+
+  /* ---- 详情页 ---- */
+  .detail h3{margin:2px 0 10px;font-size:15px;font-weight:600}
+  .detail pre{white-space:pre-wrap;word-break:break-word;font:11px/1.6 ui-monospace,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:320px;overflow-y:auto;color:var(--dim)}
+  .detail .mail{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11px}
+  .detail .mail b{font-size:11px;color:var(--accent)}
+  .detail .mail p{color:var(--dim);margin:5px 0 0;white-space:pre-wrap;line-height:1.5}
+  .detail .sec{color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:.6px;margin:14px 0 7px}
+</style>
+</head>
+<body>
+<header>
+  <h1>PAOS 画板</h1>
+  <select id="projSel" title="切换项目库"></select>
+  <span class="sub" id="hdSub">加载中…</span>
+  <span class="sp"></span>
+  <span class="sub">Ctrl 多选后点击“围绕主题沟通” · 单击进详情 · 右键选范例</span>
+  <button id="btnRefresh">刷新</button>
+</header>
+<div id="main">
+  <div id="board"><svg id="svg"></svg></div>
+  <div id="side">
+    <div class="tabs">
+      <button data-tab="agent" class="on">工位详情</button>
+      <button data-tab="rooms">CAT 房间</button>
+      <button data-tab="projects">项目口径</button>
+    </div>
+    <div id="sideBody"></div>
+  </div>
+</div>
+<div id="ctx"></div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+ PAOS 画板 · 展示层（薄、可复用）
+ 原则：前端只读后端 /api/* 的字段并渲染，**不实现任何业务规则**。
+ 数据流：load() → /api/dashboard → 节点 / CAT 房间 / 项目口径；
+ 动作流：
+   · Ctrl 多选 → /api/room（官方 CAT 创建+入座）→ 画线；
+   · 右键选范例 → /api/hint（官方 mail/notice）；
+   · 单击进工位详情 → /api/agent/<id>；
+   · 点 CAT 房间 → /api/room/<id>（读）→ /api/room/<id>/message（写）。
+ 后端字段若变化，只需改本层的读取与展示，业务逻辑留在后端。
+ ============================================================ */
+const svg=document.getElementById('svg'),NS='http://www.w3.org/2000/svg';
+let DATA={agents:[],projects:[],examples:{workflow:[],skill:[],tool:[]},rooms:[],coordinator:''};
+let nodes={},links=[],selected=new Set(),tab='agent',dragging=null,dragMoved=false;
+let CURPROJ='';
+function el(n,a={}){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function toast(m,ok=true){const t=document.getElementById('toast');t.textContent=m;t.style.borderColor=ok?'var(--accent2)':'var(--danger)';t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3200);}
+function esc(s){return String(s??'').replace(/[<&>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]));}
+function problem(d){return typeof d.error==='string'?d.error:(d.error?.message||d.error_code||'操作未完成');}
+async function request(url,options){
+  const response=await fetch(url,options);const data=await response.json();
+  if(!response.ok||data.ok===false){const error=new Error(problem(data));error.retry=data.retry;throw error;}
+  return data;
+}
+
+// 拉取当前项目库的全部展示数据（工位、CAT 房间、范例、INDEX、项目登记）。
+// CURPROJ 决定绑定哪个项目库；切换下拉时重新拉取并重画。
+async function load(){
+  try{
+  DATA=await request('/api/dashboard'+(CURPROJ?'?project='+encodeURIComponent(CURPROJ):''));
+  CURPROJ=DATA.project;
+  document.getElementById('hdSub').textContent=`${DATA.agents.length} 工位 · ${DATA.rooms.length} 房间 · 范例 ${DATA.examples.workflow.length+DATA.examples.skill.length+DATA.examples.tool.length}`;
+  const sel=document.getElementById('projSel');
+  sel.innerHTML='';
+    (DATA.projects||[]).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=`${p.id} ${p.name||''}`;sel.appendChild(o);});
+    sel.value=CURPROJ;
+    sel.onchange=()=>{CURPROJ=sel.value;nodes={};links=[];load();};
+  selected.clear();document.getElementById('btnConnect').hidden=true;
+  layout();renderSide();
+  if(!DATA.projects.length)document.getElementById('sideBody').textContent='当前安装尚未登记项目。请先使用 project register 登记已有项目根和 Coordinator。';
+  }catch(error){document.getElementById('hdSub').textContent='读取失败';document.getElementById('sideBody').textContent=error.message;}
+}
+
+// 以 coordinator 为中心的椭圆环绕布局；用 clamp 保证节点不越出画板。
+function layout(){
+  svg.innerHTML='';nodes={};links=[];
+  const W=svg.clientWidth,H=svg.clientHeight,cx=W/2-110,cy=H/2-55;
+  const others=DATA.agents.filter(a=>a.id!==DATA.coordinator);
+  const Rx=Math.min(W*0.42,560),Ry=Math.min(H*0.36,320);
+  if(nodes[DATA.coordinator]===undefined&&DATA.coordinator&&DATA.agents.find(a=>a.id===DATA.coordinator)){
+    makeNode(DATA.agents.find(a=>a.id===DATA.coordinator),cx,cy,true);
+  }
+  others.forEach((a,i)=>{
+    const ang=-Math.PI/2+i*2*Math.PI/others.length;
+    const px=Math.max(12,Math.min(cx+Math.cos(ang)*Rx,W-232));
+    const py=Math.max(12,Math.min(cy+Math.sin(ang)*Ry,H-110));
+    makeNode(a,px,py,false);
+  });
+}
+
+// 渲染单个 agent 节点：只显示角色名与状态小字（待处理/信数），coordinator 高亮。
+// 长 todo 通过 hover 的 <title> 展示，避免节点文字溢出。
+function makeNode(a,x,y,center){
+  const g=el('g',{class:'node'+(center?' center':''),transform:`translate(${x},${y})`});
+  const W=220,H=center?112:92;
+  g.appendChild(el('rect',{class:'body',width:W,height:H,rx:10}));
+  const role=el('text',{x:14,y:center?26:24,class:'role'});role.textContent=a.id;g.appendChild(role);
+  if(center){const c=el('text',{x:14,y:44,class:'centerlbl'});c.textContent='coordinator';g.appendChild(c);}
+  const current=el('text',{x:14,y:center?64:46,class:'current'});
+  current.textContent=(a.ok===false?'读取失败：'+a.error:(a.next_action||a.objective||'暂无当前行动')).slice(0,25);g.appendChild(current);
+  const meta=el('text',{x:14,y:H-14,class:'meta'});
+  meta.textContent=a.ok===false?'工位不可读':`${a.pending_notices} 待处理 · ${a.tasks?.doing||0} 进行中 · ${a.mail_total} 信`;g.appendChild(meta);
+  const tip=el('title');tip.textContent=`${a.id}\n正在处理：${a.next_action||'（无）'}`;g.appendChild(tip);
+  g.addEventListener('mousedown',e=>startDrag(e,a,g));
+  g.addEventListener('contextmenu',e=>{e.preventDefault();openCtx(e,a);});
+  g.addEventListener('dblclick',e=>{e.preventDefault();openAgent(a);});
+  svg.appendChild(g);
+  nodes[a.id]={x,y,el:g,a,center,W,H};
+}
+
+// 记录拖动起点与 Ctrl 状态；移动=拖动，单击（含 Ctrl）在 endDrag 里区分处理。
+function startDrag(e,a,g){
+  e.preventDefault();dragMoved=false;
+  const n=nodes[a.id];
+  dragging={a,g,dx:e.clientX-n.x,dy:e.clientY-n.y,ctrl:e.ctrlKey||e.metaKey};
+  window.addEventListener('mousemove',onDrag);
+  window.addEventListener('mouseup',endDrag,{once:true});
+}
+function onDrag(e){
+  if(!dragging)return;dragMoved=true;
+  const n=nodes[dragging.a.id];
+  n.x=e.clientX-dragging.dx;n.y=e.clientY-dragging.dy;
+  n.el.setAttribute('transform',`translate(${n.x},${n.y})`);
+  redrawLinks();
+}
+// 松手判定：Ctrl 单击 → 多选（toggleSelect）；普通单击 → 进工位详情；拖动则只移动位置。
+function endDrag(e){
+  if(dragging&&!dragMoved){
+    if(dragging.ctrl){toggleSelect(dragging.a);}
+    else{openAgent(dragging.a);}
+  }
+  dragging=null;window.removeEventListener('mousemove',onDrag);
+}
+
+// Ctrl 多选：2 个画简单连线，≥3 个建 CAT 房间，处理完清除选中。
+function toggleSelect(a){
+  if(selected.has(a.id)){selected.delete(a.id);nodes[a.id].el.classList.remove('sel');}
+  else{selected.add(a.id);nodes[a.id].el.classList.add('sel');}
+  document.getElementById('btnConnect').hidden=selected.size<2;
+}
+function connectSelected(){
+  if(!DATA.cat?.ok){toast(problem(DATA.cat),false);return;}
+  if(selected.size===2){
+    const [x,y]=[...selected];
+    const title=prompt('简单连线：围绕什么主题？',`${x} ↔ ${y}`);
+    if(title!==null){createRoomMulti([x,y],title||'画板沟通');}
+    clearSelection();
+  } else if(selected.size>=3){
+    const title=prompt(`创建 CAT 房间（${selected.size} 人）：主题？`,[...selected].join(' ↔ '));
+    if(title!==null){createRoomMulti([...selected],title||'画板沟通');}
+    clearSelection();
+  }
+}
+function clearSelection(){
+  selected.forEach(id=>nodes[id]&&nodes[id].el.classList.remove('sel'));
+  selected.clear();
+  document.getElementById('btnConnect').hidden=true;
+}
+async function createRoomMulti(members,title){
+  try{await request('/api/room',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,members})});
+  toast(`已建 CAT 房间：${title}`);drawLink(members,title);
+  }catch(error){toast(error.message,false);}
+}
+function drawLink(ids,title){
+  for(let i=0;i<ids.length-1;i++){
+    const A=nodes[ids[i]],B=nodes[ids[i+1]];if(!A||!B)continue;
+    const line=el('path',{class:'link'});svg.appendChild(line);
+    const lbl=el('text',{class:'linklabel'});lbl.textContent=title;svg.appendChild(lbl);
+    links.push({a:ids[i],b:ids[i+1],el:line,label:lbl});
+  }
+  redrawLinks();
+}
+function redrawLinks(){
+  // 用贝塞尔曲线画平滑连线，两端保持水平切线，视觉上更自然。
+  links.forEach(L=>{
+    const A=nodes[L.a],B=nodes[L.b];if(!A||!B)return;
+    const x1=A.x+A.W,y1=A.y+A.H/2,x2=B.x,y2=B.y+B.H/2;
+    const dx=Math.max(40,Math.abs(x2-x1)*0.45);
+    L.el.setAttribute('d',`M ${x1} ${y1} C ${x1+dx} ${y1}, ${x2-dx} ${y2}, ${x2} ${y2}`);
+    L.label.setAttribute('x',(x1+x2)/2-20);L.label.setAttribute('y',(y1+y2)/2+40);
+  });
+}
+
+// ---- CAT 房间页面 ----
+// CAT 房间页面：标题、成员、完整消息历史 + 发言框（发送走官方 cat send）。
+async function openRoom(r){
+  tab='rooms';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='rooms'));
+  const body=document.getElementById('sideBody');
+  body.innerHTML='<div class="hint">读取房间…</div>';
+  let d;try{d=await request('/api/room/'+encodeURIComponent(r.id));}catch(error){body.textContent=error.message;return;}
+  let html=`<div class="detail"><h3>${esc(d.title)}</h3>`;
+  html+=`<div style="color:var(--dim);font-size:11px">${d.members.map(m=>m.home_id).join(' · ')} ｜ ${d.status}</div>`;
+  html+=`<div class="sec">消息（${d.messages.length}）</div>`;
+  d.messages.forEach(m=>{html+=`<div class="mail"><b>${esc(m.sender_id)}</b><p>${esc(m.body)}</p></div>`;});
+  html+=`<div class="sec">发言</div><textarea id="msgIn" rows="3" style="width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px"></textarea>`;
+  html+=`<div style="margin-top:6px"><button id="btnSend" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;cursor:pointer">发送</button>`;
+  html+=`<button id="btnBack" style="margin-left:8px;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 14px;cursor:pointer">返回列表</button></div></div>`;
+  body.innerHTML=html;
+  document.getElementById('btnSend').onclick=()=>sendMsg(d.id);
+  document.getElementById('btnBack').onclick=()=>{tab='rooms';renderSide();};
+}
+async function sendMsg(roomId){
+  const inp=document.getElementById('msgIn');const body=inp.value.trim();
+  if(!body)return;
+  const button=document.getElementById('btnSend');button.disabled=true;
+  try{await request(`/api/room/${encodeURIComponent(roomId)}/message`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sender_id:'human',body,message_id:'board-'+crypto.randomUUID()})});
+  toast('消息已保存；提醒受理和实际处理分别核对');openRoom({id:roomId});
+  }catch(error){toast(error.message,false);button.disabled=error.retry===false;}
+}
+
+// ---- 工位详情 ----
+// 工位详情页：TODO 全文、最近邮件、成果文档，全部来自 /api/agent/<id>。
+async function openAgent(a){
+  tab='agent';document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x.dataset.tab==='agent'));
+  const body=document.getElementById('sideBody');
+  body.innerHTML='<div class="hint">读取工位…</div>';
+  let d;try{d=await request('/api/agent/'+encodeURIComponent(a.id));}catch(error){body.textContent=error.message;return;}
+  let html=`<div class="detail"><h3>${a.id}</h3>`;
+  html+=`<div class="sec">当前目标</div><div class="ex">${esc(d.objective||'（无）')}</div>`;
+  html+=`<div class="sec">下一步</div><div class="ex">${esc(d.next_action||'（无）')}</div>`;
+  html+=`<div class="sec">TODO 全文</div><pre>${esc(d.todo)}</pre>`;
+  if(d.docs&&d.docs.length){html+=`<div class="sec">成果文档</div>`;d.docs.forEach(x=>{html+=`<div class="ex">${esc(x)}</div>`;});}
+  if(d.mails&&d.mails.length){html+=`<div class="sec">最近邮件</div>`;d.mails.slice(0,6).forEach(m=>{html+=`<div class="mail"><b>${esc(m.name)}</b><p>${esc(m.preview)}</p></div>`;});}
+  html+='</div>';body.innerHTML=html;
+}
+
+// ---- 右键选范例 ----
+function openCtx(e,a){
+  const ctx=document.getElementById('ctx');
+  ctx.innerHTML=`<div class="hd">给 ${a.id} 选范例作参考</div>`;
+  ['workflow','skill','tool'].forEach(kind=>{
+    const items=DATA.examples[kind]||[];if(!items.length)return;
+    const g=document.createElement('div');g.className='grp';g.textContent=kind;ctx.appendChild(g);
+    items.slice(0,20).forEach(ex=>{
+      const it=document.createElement('div');it.className='it';it.textContent=ex.title||ex.id;
+      it.onclick=()=>{sendHint(a,ex);ctx.style.display='none';};ctx.appendChild(it);
+    });
+  });
+  ctx.style.left=Math.min(e.clientX,innerWidth-280)+'px';ctx.style.top=e.clientY+'px';ctx.style.display='block';
+}
+document.addEventListener('click',e=>{const c=document.getElementById('ctx');if(!c.contains(e.target))c.style.display='none';});
+async function sendHint(a,ex){
+  try{await request('/api/hint',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agent_id:a.id,example:ex})});
+  toast(`已向 ${a.id} 持久留信；未请求原生提醒`);
+  }catch(error){toast(error.message,false);}
+}
+
+// ---- 侧栏 ----
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));renderSide();});
+function renderSide(){
+  const body=document.getElementById('sideBody');
+  if(tab==='agent'){body.innerHTML='<div class="hint">双击节点查看该工位详情；单击选中，选两个以上可“围绕主题沟通”。</div>';return;}
+  if(tab==='rooms'){
+    if(!DATA.cat?.ok){body.textContent=problem(DATA.cat);return;}
+    body.innerHTML=DATA.rooms.length?'':'<div class="hint">还没有 CAT 房间。</div>';
+    DATA.rooms.forEach(r=>{const d=document.createElement('div');d.className='room';
+      d.innerHTML=`<div class="t">${esc(r.title)}</div><div class="m">${r.member_count} 位成员 ｜ ${r.message_count} 条 ｜ ${r.status}</div>`;
+      d.onclick=()=>openRoom(r);body.appendChild(d);});
+  } else {
+    body.innerHTML='';
+    if(DATA.index){
+      const h=document.createElement('div');h.className='hint';h.textContent='项目库 INDEX.md（唯一映射指南）';body.appendChild(h);
+      const pre=document.createElement('pre');
+      pre.style.cssText='white-space:pre-wrap;word-break:break-word;font:12px/1.7 ui-monospace,monospace;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px';
+      pre.textContent=DATA.index;body.appendChild(pre);
+    } else {
+      body.innerHTML='<div class="hint">该项目库尚无 INDEX.md。</div>';
+    }
+  }
+}
+document.getElementById('btnRefresh').onclick=load;
+const connectButton=document.createElement('button');connectButton.id='btnConnect';connectButton.textContent='围绕主题沟通';connectButton.hidden=true;connectButton.onclick=connectSelected;document.getElementById('btnRefresh').before(connectButton);
+load();
+</script>
+</body>
+</html>

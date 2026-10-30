@@ -31,7 +31,7 @@ def main():
              run('Bootstrap + headless real-file integration',['-m','unittest','discover','-s','tests','-v']),
              run('Core receiver + installation contracts',['-m','unittest','discover','-s','tests','-v'],CORE),
              run('Retained source pipeline',['-m','unittest','discover','-s','tests','-v'],CORE/'attention-memory-pipeline-v0'),
-             run('Python syntax',['-m','compileall','-q',str(CORE/'scripts'),str(CORE/'runtime_adapters'),str(CORE/'attention-memory-pipeline-v0'),str(PACKAGE/'portable.py')])]
+             run('Python syntax',['-m','compileall','-q',str(CORE/'scripts'),str(CORE/'runtime_adapters'),str(CORE/'attention-memory-pipeline-v0'),str(PACKAGE/'portable.py'),str(PACKAGE/'front')])]
     print('\nPortable verifier: '+('PASS' if all(results) else 'FAIL'))
     print('Scope: synthetic files/localhost; no production Homes, native model or Windows Desktop adoption.')
     return 0 if all(results) else 1
