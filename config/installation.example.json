@@ -2,7 +2,7 @@
   "schema": "paos-installation/v1",
   "source_root": "<PAOS_ROOT>/code/personal-agent-os",
   "data_root": "<PAOS_ROOT>/data",
-  "library_roots_config": "<PAOS_ROOT>/config/library-roots.json",
-  "rooter_home": "<PAOS_ROOT>/libraries/Rooter/rooter-001",
-  "agent_numbers_config": "<PAOS_ROOT>/config/AGENT-NUMBERS.json"
+  "library_roots_config": "<PAOS_ROOT>/config/local/library-roots.json",
+  "rooter_home": "",
+  "agent_numbers_config": ""
 }

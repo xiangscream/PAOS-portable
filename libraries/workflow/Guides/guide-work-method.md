@@ -5,7 +5,7 @@ title: 工作入口：必读循环与按需方法
 description: 恢复先读短工作循环；角色、操作、研究与专业方法按需打开。
 tags: guide, work-method, entry
 status: active
-version: 13
+version: 14
 ---
 
 # 工作入口
@@ -19,7 +19,7 @@ version: 13
 | 写/改文档、作者归属与版本引用 | [文档编辑·内容、作者与版本](guide-document-editing.md#内容作者与版本) |
 | 写产品合同、PRD、功能/验收规格 | [Spec Writing](../../skill/spec-writing/SKILL.md) |
 | 归位成果、归档旧版、Git 与日常顺手维护 | [Project 文件与 Git·日常顺手维护](guide-project-work-world.md#日常顺手维护) |
-| 写日更/周结、整理会议记录 | [会议与录音中间包](../Workflows/wf-meeting-audio-package.md) · [日更同步模板与 2026-10-20 采用样例](../../skill/project-progress-sync/assets/日更同步模板.md) |
+| 处理对话/日会/Tips 增量，按需汇报 | [会议与录音中间包](../Workflows/wf-meeting-audio-package.md) · [日更同步模板与 2026-10-20 采用样例](../../skill/project-progress-sync/assets/日更同步模板.md) |
 | 夜间补漏、解除旧等待、经验回用 | [夜间整理](../Workflows/wf-night-maintenance.md) |
 | 派工、验收、维护项目进度 | [Coordinator 工作循环](../Workflows/wf-coordinator-governance-cycle.md) |
 | 飞书/CLI/工具行为异常与写入陷阱 | [工具行为陷阱](guide-tool-pitfalls.md) |

@@ -1,56 +1,72 @@
-# 硬基座优化批注：拆分与前端剥离
+# Portable 当前收敛结果：本地 Agent 工作链
 
-2026-10-30，S040。在 `paos-portable` 副本上做，**未动原系统**。目标：让硬基座更轻、更懂、更易迁移。所有改动都做了功能验证。
+本片起点：`9066765f99d1fae9593e05dc26a12b47af42ac6c`（上片候选 `6506e07` 加复现检查）。
+原系统、真实工位、凭据和生产 Runtime 未改动。改动位于既有 PR #1 分支。
 
-## 一、paos.py 巨型入口的拆分
+## 实现
 
-**问题**：`paos.py` 原 5948 行，一个文件装着 95 个函数，而且**同时包含 v2 HTTP 客户端逻辑和 v3 文件操作逻辑**——两套挤在一起，是"易懂"最大的反例。
+`paos.py` 删除旧 Core HTTP 业务命令及其无人调用的辅助函数。
+ProjectRegistry 复用 data_root/project-registry/projects，只显式创建五字段最小登记（旧文件绝不覆盖）；
+`orient/inbox/status/attention/agent/mail/peers/team/workstation/wake` 直接读取登记。
+Library search/tools 调用既有文件模块。只有显式 CAT/原生提醒仍依赖外部通道。
 
-**方法**：先 AST 做依赖分析，找**自包含或域内自包含**的函数组，按域提取（不是按行乱切），每拆一块立即验证。
+Project 展示只保留定位与成员，旧人类要求/项目概览不再成为 CLI 的维护动作。
+Home 写入不再旁路生成 Workbench，避免“真实 TODO 已更新，展示副本却旧了”。
+换机绑定必须显式给出本机 native session，不继承 Project 中残留的旧运行身份。
 
-### 拆出的三个模块
+## 验证入口
 
-| 模块 | 内容 | 行数 | 对外依赖 |
-| --- | --- | --- | --- |
-| `paos_render.py` | 5 个 `render_*` 展示函数 | 121 | 仅 typing，纯 `result.get` 拼字符串 |
-| `paos_orient.py` | orient 导览域 7 个函数 | 224 | paos_library / paos_installation / paos_workstation |
-| `paos_compact.py` | compact 摘要域 5 函数 + 3 常量 | 103 | 仅 typing 与域内常量 |
+`python code/personal-agent-os/scripts/verify.py`
 
-`paos.py`：**5948 → 5577 行**，三处改为 `from paos_xxx import ...`，调用处不变（函数名仍在命名空间）。
+- 包根：37 项初始化测试 + 30 项新文件直连/输入接续测试。
+- 核心：22 项接收器测试 + 8 项保留的数据根与备份测试。
+- 保留的扫描管道：25 项，其中 1 项因没有真实预生成 build 而跳过。
+- 架构检查与 Python 语法检查。
 
-**关键依据**：ORIENT 域经 AST 验证**域外依赖为空**（可整体独立）；COMPACT 域只多带 3 个 `*_MAX_CHARS` 常量（一并带走）。render 系是纯展示，最先拆。
+新测试使用完整源码和隔离真实文件，封住网络；提醒测试只替换最终 native 提交，不替换
+Mail/Notice/TODO 写者。接收器原测试使用临时 localhost 服务和假 Desktop，不调用模型。
+测试含跨项目、Rooter、显式安装路径、重复提醒、未知提醒、坏登记、字节不变与 CLI 子进程。
 
-### 验证（每拆必验）
+退出的 `test_d31_install_homes.py` 对应已经删除的安装普查接口；旧 D3.2 的 Core 启动测试
+随服务退役。其仍适用的安装/备份断言已移入 `test_installation_files.py`，不是跳过错误后称通过。
 
-- `py_compile` 三个新模块 + paos.py 全过
-- `import paos_orient / paos_compact` 正常
-- `paos health` → `ok:true`
-- `paos orient 3002 3002-s035` → 完整输出（Who / Project / Mail / Source 全正常）——这一步同时覆盖了 orient 域与 compact 域的真实调用
+## 没有完成的部分
 
-## 二、前端完全剥离
+上一轮尚保留 TODO v3；见文末本轮 v4 改造。
+已增加 `project register` 新项目定位入口；没有旧 Project JSON 的批量迁移、真实日会自动消费任务或生产 Windows/WSL 采用。
+旧通用 Skill 中的报告模板仍是按需方法，不是硬基座必经流程；继续按真实使用精简。
 
-**改动**：把 `attention-dashboard-v1-static/`（v2 HTTP 服务 + 旧前端 UI，**195 个 py**）从代码包移到 `D:\paos-frontend-legacy`。
+部署判断以真实新机业务闭环为准，不把此处的测试/CI当成已部署。
 
-**理由**：按你的判断——**现在的"前端"未来是 Obsidian 库中的汇总页**，这套历史前端服务+UI 不该留在硬基座里。剥离后，硬基座只剩 **CLI + v3 核心模块**，未来前端在本地收敛完成后重做。
+## 教学要点
 
-**验证**：剥离后 `health`、`orient` 均正常。前端本就"承载内部兼容、非业务入口"，CLI 正常路径不依赖它；`local_server.py` 是"前端依赖 scripts"，不是反过来。
+解耦不是只拆文件。旧链是“读工位先依赖服务、服务又依赖旧业务对象”；本片直接减少
+这条依赖，把定位归本地登记，把工作归既有 Home 写者，把解释信息归 Workflow。
+不再恢复整套旧平台来满足一个 Agent 读取自己 TODO 的需求。
 
-**保留**：`attention-memory-pipeline-v0/`（仅 1MB）——它被 `ensure_build_data.py`、`release_check.py`、`verify.py` 引用，是构建/派生数据的来源，剥了会让 verify 的派生数据步失败。**只剥大前端服务+UI，不碰这个被构建工具引用的小管道。**
+## 下一片：Project 结构真正退役（本轮）
 
-## 三、verify 的 Python tests FAIL 是环境问题，不是拆分引入
+- 唯一持久新 schema：`paos-project-registry/v1`；仅 `schema`、`id`、`root_path`、`homes`、`coordinator_home_id`。
+- 不再接受项目管理 `human/generated/next_items/key_files` 与旧 Session/Work 负载。原 v3 JSON 是另需保留的历史原件，不在新文件读/写链兼容。
+- 新 CLI `project register` 从已存在的 OB 目录登记 Coordinator/可选 Homes；同值不改字节，不同值不覆盖；不创建空业务文档或 Runtime 身份。
+- 旧 `paos_coordinator.py` 的无消费 Work 前置检查和 `paos_workstation.py` 的 `key_files` 预检/周期材料化已退出源码；`paos_v12_convert`、`paos_v13_convert`、`migrate_workless_installation` 及不再被 CLI 调用的兼容/渲染脚本也已退出。真实 Home 写者和跨项目持久消息仍复用。
+- `ProjectRegistry.read()` 的短期内存适配仅为调用现有 Home/Mail 接口，**不持久化** Session status、项目摘要或 revision；名册“active”只指登记，不证明进程在线。
 
-跑 `verify.py` 时 `[2/7] Python tests FAIL`，一度需要查清是不是拆分破坏。
-核实：**本机几个 Python 都没装 pytest**（`No module named pytest`），所以那项直接失败。
-**这与拆分无关**——拆分已用 compile / import / health / orient 做了实证。其余六道门（Architecture / Derived data / Node UTC / Node 上海 / compileall / JS check）全 PASS。
+保留未完成：现行 v4 的 Pinned/Tasks 已实现；生产项目迁移需先独立保留原旧文件，再准确登记和回读；并未真实操作用户本机。
 
-## 四、剩余路线（未做，按优先级）
+## TODO v4 工位合同（本轮候选）
 
-1. **v2 客户端函数剥离**：paos.py 里的 `RestClient`、session/project/coordinator 的 HTTP 调用属 v2 历史链，前端剥离后它们没有服务端可连。可整体提取为 `paos_v2_legacy.py`，让 paos.py 只剩 v3 正常路径 + 工具。**需先确认 v3 功能对这些函数零依赖**（AST 可判）。
-2. **继续按域拆 v3**：attention / mail / notice / library 各自成模块，让 paos.py 只剩 argparse + main + 共享工具。
-3. **paos.py 最终目标**：一个薄入口（参数解析 + 调度），业务全在域模块里——那时"易懂"才算真正达成。
+- 新增 `paos_todo.py`，删除 875 行旧 `paos_todo_v3.py`；以原生 Markdown 固定栏目替代逐行 JSON 值，任务状态唯一来自 checkbox 标记，不再维护 `state` 复制字段。
+- `Pinned` 完整承载自由正文、引用与已批准持续要求；`Current` 只保留 objective/next_action/waiting/inflight/context_refs/result_refs/updated_at；`Tasks` 继续保留稳定任务 ID、来源、接受与回告引用。
+- 只写当前区会保留其前后的 Pinned、Tasks 原始字节与换行，修改前进行指纹检查；完整写入验证语义往返和身份。
+- 旧格式不兼容。没有自动改写生产工位，实际迁移需核原件；真实接收器/Obsidian 的点击交互仍未实机验收。
 
-## 五、边界
+## TODO v3 → v4 离线候选转换（2026-10-30）
 
-- 没动 Store 的不变量（revision / receipt / Ledger / atomic / Restore）。
-- 没删 v2 历史链代码，只是**把大前端服务+UI 物理剥离**；v2 客户端函数仍留在 paos.py 待后续按路线 1 处理。
-- 所有改动只在副本，原系统不受影响。
+新增 `tools/convert_todo_v3.py`：严格读取原 v3 写者的已知字段，默认只生成规划摘要；显式 `--write` 才创建另一个不存在的候选文件。源字节不变并以 SHA-256 核对。新 Current 保留必要工作字段，旧多余字段以“待核现行性”形式保留在 Pinned。任务 ID、状态、原始输入引用、接受引用和回告信息全部往返验证；未知字段/额外手写正文拒绝，不沿用 v3 运行时读取分支。
+
+专门测试 `tests/test_todo_conversion.py` 覆盖 Rooter 与 Coordinator、CRLF、引用/通知/状态往返、旧原件不变、目标存在、错误身份与哈希、未知正文、未知字段、无效状态、重复 ID 和 CLI 只读模式。完整 `scripts/verify.py` 包含这组测试。
+
+这不是生产工位转换验收：本会话不能读用户本机 Rooter/3002 真实 TODO；没有写生产 Home、Mail、Notice、Contact 或项目登记，也未启动 CAT/Runtime。需本人/Owner 先读审候选与业务来源，再沿准确 Home 的写入合同决定是否采用。
+
+本片 Linux 隔离源码回归：105 项包根测试 + 30 项 Core 测试 + 25 项管道测试，共发现 160 项，159 项通过、1 项因缺预生成 build 跳过；架构与 Python 语法检查通过。真实 Windows/WSL 与生产 Home 采用不在此范围。

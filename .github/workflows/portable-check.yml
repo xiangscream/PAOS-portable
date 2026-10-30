@@ -1,0 +1,21 @@
+name: Portable candidate checks
+on:
+  push:
+    branches: [review/portable-bootstrap-minimal-homes-20261030, main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  candidate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify file-backed Portable
+        run: python code/personal-agent-os/scripts/verify.py

@@ -1,86 +1,77 @@
-# 优化批注：这份可迁移单元做了什么、为什么
+# Portable 迁移：代码与库先就位，业务最小接续
 
-2026-10-29，S040。对照原体系，逐条说明本副本的结构优化与理由，以及实操中踩到的坑（供下次迁移避免）。原系统未被改动。
+适用对象：本仓库。S040 对原机副本的历史操作和尺寸/实测记录原文保留在 [历史迁移记录](docs/history/MIGRATION-NOTES-S040-20261029.md)，不是本仓库的目标机验收结果。
 
-## 一、结构优化的八条，及各自理由
+## 1. 重新取得系统资产
 
-### 1. 目录按"代码 / 数据 / 资产 / 业务 / 配置"五分
+在目标机器取得明确 commit 的代码与方法库。不要把旧机的配置、凭据、接收器和进程目录整包当作新安装。先执行 `python portable.py plan` 检查解析出的路径，再执行 `init` 创建本机配置。
 
-**改动**：建 `code/`、`data/`、`libraries/`、`business/`、`config/` 五个顶层目录。
-**理由**：原体系里代码、数据、业务、资产混在 `Source/` 与项目根下，看一眼分不清角色。五分之后，每一块的迁移方式天然明确——代码 clone、数据打包、资产带走、业务按需、配置改路径。这是"易懂"最基础的一步。
+`init` 一次发布 `config/local/installation.json` 与 `library-roots.json`，不修改现有安装。重复执行时只接受匹配的配置；旧路径、损坏 JSON、文件占位、越界链接均显式报错。已有 `config/installation.json` 时拒绝再创建第二份安装。
 
-### 2. data_root 从代码里抽离（解耦核心）
+这些配置仍使用核心已有的 `paos-installation/v1` 和 `paos-library-roots/v1`，没有另一套业务状态格式。整包移动后，`doctor` 会指出旧路径，不会悄悄回连原机；重新定位使用现有核心安装配置入口，先回读再更新。
 
-**改动**：原 `Source/private-data` 抽为独立的 `data/`。
-**理由**：代码和数据物理嵌套带来三个实际问题——代码更新会碰数据、出现两个同名 private-data 并存（连审查都判错）、无法"只带数据不带代码"。抽离后，代码目录只放代码，数据目录只放数据。**这是整个解耦里收益最直接的一步。**
+## 2. 选择耐久业务资料，而不是按目录名删除
 
-### 3. 剔除 `project-registry/backups/`（4.67 GB）
+首轮迁入安装级 Rooter，以及每个选定项目的现任 Coordinator 工位。一起保留项目事实、当前职责、未完成输入、必要的原始消息、决策与所引用的成果。
 
-**改动**：不随包迁移历史备份。
-**理由**：实测 backups 占数据根的 **99.6%**（4.67 GB），而当前状态 `projects/` 只有 8.1 MB。迁移要恢复的是"当前责任"，不是"全部历史快照"。历史备份留在原机，需要时可单独取。**这一条把数据根从 4.7 GB 降到 23 MB。**
+不能仅复制两个工位文件夹就宣布接续完整：TODO 指向的 Works 原件、消息附件或决策依据也必须仍可读取。Works 可能有临时文件，也可能有唯一的正式交付；应按内容、引用和保留要求选择，而不是统一视作垃圾。历史备份是否另存也需要明确的回退来源，而非直接删除。
 
-### 4. 剔除可重建的依赖与缓存
+其他执行工位不默认在新机器启用。原工位与历史证据保留在来源归档；后续需要执行者时再登记，不冒充已保留原生对话记忆。
 
-**改动**：排除 `node_modules`、`.git`、`.gitnexus`、`__pycache__`、构建产物。
-**理由**：这些都能由 `npm install` / `git clone` / 运行时再生成，搬它们只会把迁移包撑大且毫无意义。代码本体因此从约 600 MB 降到 226 MB。
+## 3. 方法库与复利证据
 
-### 5. 不带 `Works/` 工作现场，只带 `Materials/` 经验
+Workflow / Skill / Tool 定义以及 `references/` 中的范例随库保留。Catalog 是派生索引，应在验证库原件后重建；旧统计不能冒充新机器实测。
 
-**改动**：Works（约 4 GB）不迁，Materials/TIPS.md 等经验保留。
-**理由**：Works 是"工作现场"（中间产物、工作树、过程稿），不是资产。真正值得带走的是沉淀的经验与方法（TIPS、指南）。这正对应你说的"范例复利"——**带的是可复用的，不是全部过程**。
+`.paos/usage-events/` 的事件是 append-only 原始证据，不是缓存。公开仓库忽略该目录；需要历史使用统计时应私下迁入相应事件。`init` 创建空目录只是满足核心的目录合同，不等于恢复了这些历史。
 
-### 6. Rooter 只带工位，排除历史快照
+Tool Catalog 中的原机安装位置、可用性和验证日期也是待核信息，不能因为文档已复制就宣称工具已安装。
 
-**改动**：Rooter 排除 candidate / reports / restore-points / private-data，从 5.4 GB 降到 2.3 MB。
-**理由**：Rooter 是安装级维护角色，要的是它的工位（当前职责、联系、脚本），不是它多年来累积的安装快照。
+## 4. 首次显式登记新的最小 Project 记录
 
-### 7. 业务资料独立成 `business/`
+安装描述定位代码、data_root 和共享库，Project 登记只定位 OB 根目录、Home IDs 和 Coordinator。迁入一篇当前生效的项目口径，从该库 `INDEX.md` 指到此原文，不强制另建项目概览。Rooter 由安装级定位单独登记，不进入 Project 成员列表。
 
-**改动**：工位 Workstations、Materials、Rooter 工位统一放 `business/`，与系统本体（code/data/libraries）分开。
-**理由**：采用你那个更干净的分类——**PAOS 本体是机制，工位是它跑出来的业务资料**。分开之后，"迁移系统"和"迁移业务"变成两个可以独立进行的动作，不再互相牵扯。
+新登记文件位于 `<data_root>/project-registry/projects/<id>.json`，schema 为 `paos-project-registry/v1`，准确只有：
 
-### 8. 配置集中且只改路径
+```json
+{
+  "schema": "paos-project-registry/v1",
+  "id": "3002",
+  "root_path": "<目标电脑上已存在的绝对项目目录>",
+  "homes": ["3002-s010"],
+  "coordinator_home_id": "3002-s010"
+}
+```
 
-**改动**：`installation.json`、`library-roots.json` 放 `config/`，8 个路径全部指向本目录。
-**理由**：原 resolver 已经把路径集中到这 8 个字段，直接复用，不另起一套。迁移时只改路径，不动配置结构。
+上面的路径是**解释性占位符**，不能直接作为有效登记。先确认实际 Coordinator Home ID 与现有 OB 根，再由 CLI `project register <id> --root <真实绝对目录> --coordinator <Home ID>` 建立；不会生成缺失的业务目录或猜测成员。不要把原机 Rooter、PID、Runtime UUID、旧安装路径或 Session 作为新机器的有效身份。
 
-## 二、实操中踩到的三个坑（重要，下次必看）
+**不保留旧 Project JSON 运行兼容。** 如目标数据根已有原版 `paos-project/v3`，CLI 会拒绝读取/覆盖；先单独留好原件和项目证据，再使用独立的空数据根或在已核实的迁移位置重新登记。`project register` 不会自行搬走、裁切或替换任何旧字节，也不把迁移当成项目重新验收。原 Ledger/receipt 等若有历史证明价值，按原件归档，不重建假事件。
 
-### 坑 1：工位路径不由 installation.json 决定
+这一步只建立 Project locator，不能证明 TODO 原件、所有引用、Mail 或 native binding 已迁入；须分别回读并做新输入闭环测试。
 
-一开始我只改了 `installation.json` 的 8 个路径，结果 `attention show` 读到的仍是**原机工位**。
-查代码才发现：**工位位置由 `data/project-registry/projects/<pid>.json` 的 `root_path` 决定**（`paos_home.py:52,66` → `root_path + /Workstations/<agent>`），安装配置里没有这一项。
+## 5. TODO v3 → v4 仅生成离线候选
 
-**所以迁移要改的是两层路径**：安装配置（8 个）+ 每个 Project 的 `root_path`。这正是 S010 资料里提醒的"项目内部绝对定位不会随安装定位自动迁移"。
+旧 Home 需要迁入时，先保存/指认原始 `TODO.md`，并核实 Rooter 或本项目**实际现任 Coordinator** 的精确 Home ID。完整迁入还需要相同工位的 `ENTRY`、Mail、Notice、成果原件及必要历史引用；这些文件不由 TODO 转换器处理。
 
-### 坑 2：PowerShell 写 JSON 会带 BOM，直接把文件写坏
+仅对选中的单个 Home 原件运行以下命令，默认**只读规划，不写候选**：
 
-我用 `Set-Content -Encoding UTF8` 改 3002.json 后，解析报 `Unexpected UTF-8 BOM`。
-**原因**：PowerShell 的 UTF8 默认带 BOM，而 `json.loads` 不接受。
-**正确做法**：改 JSON 用 Python（`json.load` 用 `utf-8-sig` 读、`utf-8` 无 BOM 写）或专用编辑器。**不要再用 PowerShell Set-Content 写 JSON。**
+```text
+python tools/convert_todo_v3.py --source <旧TODO原件> --output <独立审核位置的TODO.v4.md> --expect-home-id <真实HomeID>
+```
 
-### 坑 3：Windows 控制台 GBK 编码
+核对返回的 `source_sha256`、Home 身份、任务数和 `retained_extra_fields`，确认来源未变化，再显式附 `--expected-source-sha256 <已核原始SHA> --write` 创建新的候选文件；不能覆盖已有目标，也不能以原 TODO 作为输出。产生候选后，人工阅读 Pinned/Current/Tasks，回到引用原件核对特别是“待核现行性”旧字段、任务接续、回告与接受引用；必要时用 Home 的正式写入口将**经确认**的 v4 候选安装到另行备份的目标 Home。转换工具本身绝不执行安装。
 
-`paos attention show` 输出含中文/特殊字符时直接 `UnicodeEncodeError: 'gbk'`。
-**解决**：设 `PYTHONIOENCODING=utf-8` 再跑。这条已写进 README 的运行步骤。
+映射规则：v3 的 `objective`、`next_action`、`waiting`、`inflight`、`context_refs`、`result_refs`、`updated_at` 进入 v4 Current；所有非空的其他既有 Current 字段进入 Pinned 并标为**历史线索、不是新口径**；任务 ID、标题、五类状态、结果、来源/接受引用、`notify_after` 保留。解析到不认识的手写行、字段、非 UTF-8 原件或候选无法无损回读时明确失败，原件保持不变。
 
-## 三、验证记录（这份副本确实能跑，不是复制对了就算）
+**这只验证格式转换。** Rooter/Coordinator 实际接班还须单独复核 project register、首页口径引用、未处理 Mail/Notice、原生 Contact 和合法新输入处理。不能把单份 TODO 转换成功当作完整迁移。
 
-- `paos health` → `ok:true`，build `a48fe60`。
-- `resolve_home_by_registry('3002-s035')` → `D:\paos-portable\business\Workstations\3002-s035`（确认读的是副本，不是原机）。
-- `paos attention show 3002 3002-s035` → 工位 schema / Current / TODO 正文正常返回。
+## 6. 最后建立本机运行绑定
 
-## 四、还没做、也不该由这次顺带做的
+Runtime、认证、原生会话、Contact 执行定位、Receiver、端口和管道由目标机器重新建立。旧绑定可作为历史信息，不直接作为有效连接。保留 STOP 等耐久控制要求，不默认开启后台唤醒。
 
-- **没拆 `paos.py`（5947 行巨型 CLI 入口）**。它是"易懂"的反例，但拆它牵动 import 与测试，属于独立的重构任务，不该和迁移混在一起。已单列为后续候选。
-- **没删 v2 历史链**。它承载内部兼容，只做"标注为历史"的处理，未剥离。要剥离须先验证正常路径对它零依赖。
-- **没动 Store 的不变量**（revision / receipt / Ledger / atomic / Restore）。那是承重墙，不为风格重构。
-- **只迁了 3002 这一块**。3003 / 3004 未纳入，按需按同法补。
+先离线读回 Rooter 和 Coordinator 的当前责任与必要原件，再用新的、可辨认的测试输入核对实际接收和消费。不要重放旧的不确定投递来做验收，也不要把发送成功当作已经消费。
 
-## 五、一句话总结这次优化
+## 7. 验证分别说清
 
-原体系的问题是"认知结构乱"，不是"代码烂"。这次没改一行代码逻辑，只做了**分层、抽离、剔除历史与可重建物、集中配置**——把 12 GB 收敛成 274 MB 的、每一块都讲得清角色的自包含单元，并验证了它真能跑。
+`doctor` 只回答配置和必要路径是否一致；CLI 命令实跑回答程序入口是否可用；工位回读与原件检查回答能否接班；实际新输入的完整处理回答运行协作是否恢复。
 
-## 后续调整（同日，按 Human 进一步明确）
-
-Human 澄清：**只需迁移优化系统，不必整理业务文件，工位不用迁**。据此把 `business/`（工位、材料、Rooter 工位）**整体移出系统包**，单独存放。系统包最终纯化为 **code + data + libraries + config**（约 256 MB），只含"机制 + 流程资产 + 安装事实"。业务工作区是独立的 Markdown，人与 Agent 直接编辑，不属系统本体——这比第 7 条更进一步：业务不只"分层"，而是**完全不进系统包**。架构图见 `ARCHITECTURE.md`。
+各阶段分别记录 commit、配置位置、命令和真实结果。配置助手测试不替代核心测试，旧机器的 health/orient 记录也不替代新机器的闭环验证。

@@ -5,12 +5,15 @@ title: 夜间整理：归位、清理与经验回用
 description: 执行者分批整理当天成果、当前入口和共享方法，Rooter清晨复核并接续原责任。
 tags: maintenance, night, continuity, library
 status: active
-version: 3
+version: 4
 ---
 
 # 夜间整理
 
 把白天的成果整理成明天能直接接续的入口。日常维护先由产出者或采用者在实际交付中按[Project 文件与 Git 的日常顺手维护](../Guides/guide-project-work-world.md#日常顺手维护)完成；本流程主要补漏、解除旧等待并把有效经验并回唯一正文。执行者处理遗漏的文件归位、明显失效的入口和普通软修；业务 Owner 维护任务状态与业务判断；Rooter 分配范围、处理运行问题并复核结果。
+
+日间输入整理复用[日常输入整理](wf-meeting-audio-package.md#默认工作循环)：
+只补未处理的对话、日会和 Tips，更新已有口径或行动，不强制生成独立日报。
 
 ## 开始一批
 

@@ -1,85 +1,122 @@
-# PAOS 可迁移单元
+# PAOS Portable
 
-这是从本机 PAOS 体系中**抽离、收敛后的一份自包含副本**，目标是：一眼看懂每块是什么、换电脑能直接恢复。
+**以项目事实为核心的轻量硬基座，配合可复用方法库和可替换的 Agent 运行环境。**
 
-**只读自原系统，未改动原系统任何文件。** 全部内容约 274 MB（原体系约 12 GB，已剔除可重建依赖与历史堆积）。
+这个仓库发布的是**代码与共享方法资产**，不是某台电脑的已运行安装。克隆不会带来原机的项目、工位、登记数据、登录状态或已启动的接收器。
 
-## 目录结构
+## 仓库里有什么
 
+| 路径 | 内容 | 是否随 Git 发布 |
+|---|---|---|
+| `code/personal-agent-os/` | CLI、服务模块、Runtime 适配代码及保留的测试 | 是；常用工位、输入与 Library 入口已改为文件直连 |
+| `libraries/` | Workflow、Skill、参考范例、Tool Catalog | 是；Catalog 是索引，不是原文替代品 |
+| `config/*.example.json` | 安装定位模板 | 是；占位模板不能直接作为有效安装使用 |
+| `config/local/` | 本机生成的安装描述与 Library 定位 | 否；换电脑重新生成 |
+| `data/`、Rooter 工位、项目库 | 私有安装事实与业务资料 | 否；按需要单独迁移 |
+
+首次接续采用**一个安装级 Rooter + 每个迁入项目一个现任 Coordinator**。其他工位不默认恢复运行，但不删除原工位与业务历史。具体边界只有一份：[架构与资产边界](ARCHITECTURE.md)。
+
+## 从新克隆开始
+
+在仓库根目录，使用 Python 3.10 或更高版本：
+
+```text
+python portable.py plan
+python portable.py init
+python portable.py doctor
 ```
-paos-portable/
-├─ code/personal-agent-os/     核心代码（PAOS 本体，v3 正常路径 + 历史兼容链）
-├─ data/                       安装事实（data_root，已从代码里抽离）
-├─ libraries/                  共享资产（workflow 流程库 / skill 技能库 / 工具目录）
-└─ config/                     安装配置（路径已指向本目录）
-    ├─ installation.json
-    ├─ library-roots.json
-    └─ AGENT-NUMBERS.json
-```
 
-**这是纯系统包**：只含"机制 + 流程资产 + 安装事实"，**不含工位等业务文件**。
+`plan` 只显示按当前仓库位置展开的两个配置；`init` 生成 `config/local/` 中的配置对，并创建空的数据根与 Library 元数据目录。它不覆盖已有配置，不导入项目，不创建工位，不修改 Runtime、不启动服务。遇到已有安装、损坏配置或旧路径，明确报错，不猜测修复。
 
-**分层原则**：代码可重建（clone）、数据必须带走（data）、流程资产可复用（libraries）、配置集中（config）。**业务工作区（各 Agent 工位 TODO、项目文件）是独立的 Markdown，不属于本系统包**——它们由人或 Agent 直接编辑，按需另行处理。架构与分层理由见 `ARCHITECTURE.md`，逐条优化批注见 `MIGRATION-NOTES.md`。
+`doctor` 是**只读定位检查**：即使 `configuration_ok: true`，也不代表 CLI、项目接续或唤醒已经通过测试。输出分别保留 `cli_verified`、`business_verified`、`runtime_verified` 为 `false`。
 
-## 3002 完整闭环
-
-本系统包与**项目库**组合，构成 Project 3002 的完整闭环：
-
-| 部分 | 位置 | 角色 | 大小 |
-| --- | --- | --- | --- |
-| 硬侧代码 | `code/personal-agent-os` | PAOS 本体（可 clone） | 226 MB |
-| PAOS 库（软侧） | `libraries/` | 流程库 / 技能库 / 工具目录 / Rooter 工位 | ~9 MB |
-| 运行状态 | `data/` + `config/` | 安装事实 + 配置 | ~23 MB |
-| **项目库** | `D:\paos-business` | **全部 10 个工位** + Materials | ~16 MB |
-
-项目库是独立的 Obsidian 库，含 `Workstations/`（s010…s037 全部 10 个工位）与 `Materials/`。**工位属项目业务，不进系统包**，但闭环通过 `data/project-registry/projects/3002.json` 的 `root_path` 指向它。
-
-**闭环验证**（已实测）：
-
-- `paos health` → `ok:true`（build `a48fe60`）
-- 工位解析 → `D:\paos-business\Workstations\3002-s035`（确认指向项目库）
-- `attention show 3002 3002-s035` → 工位正文可读
-- 流程库 `workflow/CATALOG.md`、`skill/CATALOG.md` 均在
-
-## 在本机/新机跑起来
+选用本机生成的配置后，再核查 CLI。以下入口已用完整源码、隔离项目与真实文件调用验证；不是生产工位采用记录：
 
 ```powershell
-# 1. 指向本单元的安装配置
-$env:PAOS_INSTALLATION_FILE = "D:\paos-portable\config\installation.json"
-$env:PYTHONIOENCODING = "utf-8"   # Windows 控制台必须，否则中文/特殊字符报 GBK 错
-
-# 2. 进入代码目录运行
-cd D:\paos-portable\code\personal-agent-os
-python scripts\paos.py health
-
-# 3. 系统本体自检（工位业务数据不在本包内，见下方说明）
+$env:PAOS_INSTALLATION_FILE = (Resolve-Path .\config\local\installation.json).Path
+$env:PAOS_LIBRARY_ROOTS_CONFIG = (Resolve-Path .\config\local\library-roots.json).Path
+$env:PYTHONIOENCODING = "utf-8"
+python .\code\personal-agent-os\scripts\paos.py --help
+python .\code\personal-agent-os\scripts\paos.py health
 ```
 
-已实测通过：`health` 返回 `ok:true`（build `a48fe60`），系统本体可独立运行。工位等业务文件不在本系统包内——它们是独立的 Markdown 工作区，由人或 Agent 直接编辑，按需指向或另行迁移。
+Linux 对应设置：
 
-## 换电脑怎么做
+```sh
+export PAOS_INSTALLATION_FILE="$PWD/config/local/installation.json"
+export PAOS_LIBRARY_ROOTS_CONFIG="$PWD/config/local/library-roots.json"
+export PYTHONIOENCODING=utf-8
+python code/personal-agent-os/scripts/paos.py --help
+python code/personal-agent-os/scripts/paos.py health
+```
 
-1. **整目录拷到新机**（放哪都行，不必是 D 盘）。
-2. **若路径变了，改三处**（就这三处，没有第四处）：
-   - `config/installation.json` 的 5 个路径（source_root / data_root / library_roots_config / rooter_home / agent_numbers_config）
-   - `config/library-roots.json` 的 3 个路径（workflow_root / skill_root / tool_catalog）
-   - `data/project-registry/projects/3002.json` 的 `root_path`（指向新的业务工作区位置）
-3. **装 Runtime**（Codex / OpenCode）并登录——这些不随包迁移。
-4. **设 `PAOS_INSTALLATION_FILE`** 指向新位置的 `config/installation.json`。
-5. **逐工位重建 Contact / wake binding**：原生会话 ID、接收器、端口都是新机重新建立，不沿用旧值。
-6. 用 `paos health` + 各工位 `attention show` 验收——**恢复的是工位与 Current，不是聊天历史**。
+已有 Rooter 或编号登记文件时，首次 `init` 可以用 `--rooter-home <绝对目录>` 与 `--agent-numbers-config <绝对文件>` 显式绑定；没有提供时保持未绑定，不伪造身份，也不重置编号。之后的安装变更继续使用核心已有的配置入口，而不是反复运行初始化来覆盖。
 
-## 这份副本没包含什么（有意不带）
+### 登记一个项目，而不是创建项目管理对象
 
-- `project-registry/backups/`（4.67 GB 历史快照，留原机，需要时可取）
-- `node_modules`、`.git`、`.gitnexus`、缓存、构建产物（可重建）
-- **工位等业务文件**（Workstations、Materials、Rooter 工位）——已单独移出系统包，不属系统本体
-- `Works/` 工作现场（约 4 GB，非资产）
-- Rooter 的 candidate / reports / restore-points（历史快照）
-- Runtime 软件、登录凭据、原生会话 ID、接收器进程、PID / 命名管道
+在目标电脑准备好一个现有的 OB 项目根目录，显式登记项目路径和现任 Coordinator：
 
-## 注意
+```powershell
+python .\code\personal-agent-os\scripts\paos.py project register 3002 --root "D:\OB\3002-Personal-Agent-OS" --coordinator 3002-s010
+python .\code\personal-agent-os\scripts\paos.py project show 3002
+```
 
-- 本系统包**不含工位业务文件**。各 Agent 工位 TODO、项目材料属业务资料，由人或 Agent 直接编辑，按需另行处理（原机仍在，副本暂存 `D:\paos-business`）。registry 里的 `root_path` 指向业务工作区位置，新机按需指向已有或新建的工作区。
-- 代码里仍含 v2 历史 HTTP 链（内部兼容用）。**业务入口是 v3 CLI**，Core 8766 属历史链，迁移时不需要拉起它也能用 CLI。
-- 这是一份**副本快照**（2026-10-29），原系统后续变更不会自动同步。
+`project register` 只建立一条 **`paos-project-registry/v1`** 机器定位记录，字段固定为 `schema/id/root_path/homes/coordinator_home_id`；无须 `human`、`generated`、`next_items`、`key_files`、Session 周期和项目报告。重复同值登记不写入；不同值或已有旧 Project JSON 则拒绝覆盖。
+
+初次只登记 Coordinator 即可。Rooter 由安装描述单独定位，不算项目成员。将来需要其他 Agent 时可在首次登记使用重复的 `--home`，实际 Home 文件仍需通过相应合法入口建立。最新口径由项目 `INDEX.md` 指向一篇现有正文，不生成第二份项目概览；当前行动在工位 TODO。**登记成功不代表目标工位已经存在或 Runtime 已经绑定。**
+
+## 换电脑与最小接续
+
+[迁移说明](MIGRATION-NOTES.md) 区分三件事：重新取得代码和库、迁入选定的耐久业务资料、在目标机器重新建立运行绑定。项目 `root_path` 不会因为安装路径更新而自动变化；不要直接搜索替换 Project JSON。
+
+公开 Git 仓库不等于完整备份。尤其 `.paos/usage-events/` 中的使用事件不是可重建缓存，Rooter/Coordinator 引用的 Works、决策与消息也不能按目录名整批丢弃。
+
+## Agent 工作底座：已收敛的调用链
+
+```text
+CLI → 本地项目登记 → 工位 TODO / Mail / Notice
+CLI → 登记的 Workflow / Skill / Tool 文件
+显式 remind / cat → 对应外部 Runtime / CAT（不作为本地读写前置）
+```
+
+`orient`、`inbox`、`status`、`attention`、`agent send`、`mail`、`peers/team`、
+`wake` 的项目定位和 `library search/tools` 不再查询旧 Core。
+`project show` 只回 `paos-project-registry/v1` 的五个机器字段；项目最新口径按原文维护，不填 human/generated。
+旧 Session 管理、项目进度填报、Dashboard/Workbench 和旧 Tips HTTP 代理已从 CLI 退出。
+命令用途见[共享接口参考](libraries/workflow/Guides/guide-paos-interface-reference.md)。
+
+对话、日会和 Tips 增量整理复用[已有工作流](libraries/workflow/Workflows/wf-meeting-audio-package.md)：
+保留原件，按需更新唯一口径、TODO 或方法；不是新增状态服务，也没有自动启动采集任务。
+
+## 验证
+
+```text
+python code/personal-agent-os/scripts/verify.py
+```
+
+当前验证器检查初始化与真实文件接续、接收器/安装合同、保留的扫描管道及 Python 语法；
+不再依赖已剥离的 Node/Dashboard。原无效 Core 测试按退出接口退役，仍有用的数据根/备份
+断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
+
+本包尚未自动迁入真实项目；TODO v4 已使用原生 Markdown 任务列表。
+每台目标电脑仍须独立验收自己的项目登记、Home 接续和 Runtime/CAT；本仓库测试不代表这些机器均已切换。
+保留的旧非入口模块按实际调用继续裁减，不作为文件工作底座的部署前置。
+
+## TODO v4 — Agent 与 Obsidian 共用一份原件
+
+Portable 现行 Home 使用 `paos-todo/v4`，参照 [模板与写入边界](libraries/workflow/Templates/workstation-todo.md)。`Pinned` 用普通 Markdown 表达持续有效要求或来源；`Current` 只含当前目标、下一步、等待、在途和引用；`Tasks` 用 Markdown checkbox 的单一状态标记。旧 TODO v3 不在运行时自动兼容、也不自动覆盖原始业务资料。
+
+本轮只改候选代码和模板。真实 Home 转换与本机 Runtime 采用仍须分别验证。
+
+### TODO v3 原件的离线候选转换
+
+只在确实迁入原工位时使用 [`tools/convert_todo_v3.py`](tools/convert_todo_v3.py)，它不是运行时兼容层，不扫描全部项目，也不会修改生产 `TODO.md`。先用准确的 Rooter 或 Coordinator 原件运行只读规划：
+
+```powershell
+python .\tools\convert_todo_v3.py --source "<旧工位绝对路径>/TODO.md" --output "<独立审核目录>/TODO.v4.md" --expect-home-id "<该工位真实ID>"
+# 人工确认来源和报告的 source_sha256；需要时再重复命令，加 --expected-source-sha256 <实际SHA> --write
+```
+
+`--write` 只会创建**尚不存在**的候选文件，输出源/目标 SHA、任务数量和迁移保留字段名；不会覆盖原件或已有候选。旧 `approved_scope`、`stage` 等非现行字段如非空会放在 Pinned 的“v3 遗留 Current（待核现行性）”部分；不会伪装成最新项目口径。任务 `source_refs`、`acceptance_refs`、`notify_after` 及 ID/状态逐项回读核对。不能无损表示、未知的手写文本或损坏结构直接拒绝转换。**该工具不安装候选、不搬 Mail/Notice/ENTRY、不替代新的 Project 登记或 Runtime 绑定。**
+
+Rooter 和项目 Coordinator 分别在私有工位来源上执行；项目 Coordinator 的真实身份由当前登记/原件确认，不要把示例 `3002-s010` 当作必然现任。完整接续顺序见 [迁移说明](MIGRATION-NOTES.md)。
