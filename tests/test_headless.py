@@ -1,0 +1,271 @@
+"""Real CLI + existing Home/Mail/Notice modules, disposable files, no network.
+
+Not mocks of writers or an imported toy CLI. Only explicit native reminder
+submission is stubbed: these checks must never call a paid model.
+"""
+from __future__ import annotations
+import contextlib
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / 'code' / 'personal-agent-os' / 'scripts'
+sys.path.insert(0, str(SCRIPTS))
+import paos
+from paos_installation import write_installation_descriptor
+from paos_library import ensure_workflow_library, ensure_skill_library, register_library_roots
+from paos_todo_v3 import render_todo_v3, parse_todo_v3
+from paos_registry import ProjectRegistry, RegistryProblem
+
+
+class HeadlessTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / '中文 工作区'
+        self.root.mkdir()
+        self.data = self.root / 'data'
+        self.records = self.data / 'project-registry' / 'projects'
+        self.records.mkdir(parents=True)
+        self.vault = self.root / '项目库'
+        self.rooter = self.root / 'Rooter' / 'rooter-001'
+        self.install = self.root / 'installation.json'
+        self.libconfig = self.root / 'library-roots.json'
+        workflow, skill = self.root / 'workflow', self.root / 'skill'
+        ensure_workflow_library(workflow)
+        ensure_skill_library(skill)
+        (workflow / 'Workflows' / 'intake.md').write_text('---\nschema: paos-workflow/v1\nid: daily-intake\ntitle: 每日整理\ndescription: 会议原件和最新口径\nstatus: active\n---\n# 每日整理\n', encoding='utf-8')
+        self.tools = self.root / 'tools.md'
+        self.tools.write_text('---\nschema: paos-tool-catalog/v1\n---\n# 本机工具\n',encoding='utf-8')
+        register_library_roots(self.libconfig, workflow_root=workflow, skill_root=skill,tool_catalog=str(self.tools))
+        write_installation_descriptor(self.install, source_root=str(SCRIPTS.parent), data_root=str(self.data),
+                                      library_roots_config=str(self.libconfig),rooter_home=str(self.rooter),
+                                      agent_numbers_config=str(self.root/'numbers.json'))
+        self.project = {'schema':'paos-project/v3','id':'3002','name':'Portable',
+                        'root_path':str(self.vault),'sessions':[{'id':'3002-s001','status':'active'}, {'id':'3002-s002','status':'active'}],
+                        'organization':{'coordinator_session_id':'3002-s001'},'revision':1}
+        self.record = self.records / '3002.json'
+        self.save_project()
+        for sid in ('3002-s001','3002-s002'):
+            self.make_home(self.vault / 'Workstations' / sid,sid,'3002')
+        self.make_home(self.rooter,'rooter-001','')
+        self.env = patch.dict(os.environ, {'HOME':str(self.root), 'USERPROFILE':str(self.root),
+            'PAOS_INSTALLATION_FILE':str(self.root/'wrong-installation.json'),
+            'PAOS_LIBRARY_ROOTS_CONFIG':'','PAOS_BASE_URL':'not even a URL',
+            'PAOS_WORKBENCH_PROJECTION':'1','PYTHONIOENCODING':'utf-8'})
+        self.env.start(); self.addCleanup(self.env.stop)
+        self.net = patch('socket.create_connection',side_effect=AssertionError('network forbidden'))
+        self.net.start();self.addCleanup(self.net.stop)
+        self.http = patch.object(paos,'urlopen',side_effect=AssertionError('Core HTTP forbidden'))
+        self.http.start();self.addCleanup(self.http.stop)
+
+    def make_home(self,path,sid,pid):
+        (path/'mailbox').mkdir(parents=True)
+        (path/'notices').mkdir()
+        (path/'ENTRY.md').write_text('# 入口\n参照项目最新口径。\n',encoding='utf-8')
+        (path/'TODO.md').write_text(render_todo_v3(home_kind='project_agent' if pid else 'rooter',
+            home_id=sid, project_id=pid, objective='归档原件、更新已有口径',next_action='实读新增材料'),encoding='utf-8')
+
+    def save_project(self):
+        self.record.write_text(json.dumps(self.project,ensure_ascii=False),encoding='utf-8')
+
+    def call(self,*args,ok=True):
+        out,err=io.StringIO(),io.StringIO()
+        with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+            try: code=paos.main(['--installation-file',str(self.install),'--json',*args])
+            except SystemExit as exc: code=exc.code
+        if ok:self.assertEqual(code,0,err.getvalue()+out.getvalue())
+        raw=out.getvalue() or err.getvalue()
+        try:value=json.loads(raw)
+        except ValueError:value=raw
+        return code,value
+
+    def send(self,mid='mail-intake-001',*extras):
+        return self.call('agent','send','3002','--to','3002-s002', '--sender-kind','agent',
+            '--sender-id','3002-s001','--subject','日会增量','--body','原件已保存；请更新当前口径。',
+            '--message-id',mid,*extras)[1]
+
+    def test_health_is_local_not_runtime_success(self):
+        r=self.call('health')[1]
+        self.assertEqual(r['backend'],'local_files')
+        self.assertFalse(r['runtime_verified']);self.assertFalse(r['http_service_required'])
+
+    def test_project_show_needs_no_business_summary_fields(self):
+        before=self.record.read_bytes()
+        r=self.call('project','show','3002')[1]
+        self.assertEqual(r['homes'],[{'id':'3002-s001'},{'id':'3002-s002'}])
+        self.assertNotIn('generated',r['project'])
+        self.assertEqual(before,self.record.read_bytes())
+
+    def test_stored_old_summary_is_not_echoed_or_rewritten(self):
+        self.project.update(human={'original_requirement':'old'},generated={'stage':'old'},next_items=['old'])
+        self.save_project();before=self.record.read_bytes()
+        r=self.call('project','show','3002')[1]
+        self.assertNotIn('old',json.dumps(r))
+        self.assertEqual(before,self.record.read_bytes())
+
+    def test_orient_is_home_not_old_request_lifecycle(self):
+        r=self.call('orient','3002','3002-s001')[1]
+        self.assertTrue(r['todo']['trusted'])
+        self.assertEqual(r['next_action'],'实读新增材料')
+        self.assertNotIn('formal_requests',r['communication'])
+
+    def test_status_does_not_probe_http(self):
+        r=self.call('status','3002','3002-s001')[1]
+        self.assertEqual(r['backend'],'local_files')
+
+    def test_rooter_needs_no_project(self):
+        self.record.unlink()
+        r=self.call('attention','rooter-show')[1]
+        self.assertEqual(r['home']['home_kind'],'rooter')
+
+    def test_update_uses_existing_writer_and_no_projection(self):
+        r=self.call('attention','todo-update','3002','3002-s001','--set','next_action=整理今日原件')[1]
+        text=(self.vault/'Workstations/3002-s001/TODO.md').read_text(encoding='utf-8')
+        self.assertEqual(parse_todo_v3(text)['current']['next_action'],'整理今日原件')
+        self.assertNotIn('projection',r)
+
+    def test_bad_fingerprint_does_not_write(self):
+        path=self.vault/'Workstations/3002-s001/TODO.md';before=path.read_bytes()
+        rc,_=self.call('attention','todo-update','3002','3002-s001','--set','next_action=错误覆盖',
+                       '--expected-fingerprint','0'*64,ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(path.read_bytes(),before)
+
+    def test_mail_notice_takeover_handle_loop(self):
+        sent=self.send()
+        self.assertFalse(sent['runtime_wake_performed'])
+        self.assertEqual(self.call('inbox','3002','3002-s002')[1]['durable_mail']['unhandled_count'],1)
+        files=list((self.vault/'Workstations/3002-s002/notices').glob('*.md'))
+        self.assertEqual(len(files),1)
+        nid=files[0].stem
+        r=self.call('attention','takeover','3002','3002-s002',nid,'--set','objective=处理日会',
+                    '--set','next_action=核对原件')[1]
+        self.assertTrue(r['stages']['current'])
+        self.assertEqual(self.call('inbox','3002','3002-s002')[1]['durable_mail']['unhandled_count'],1)
+        self.call('attention','handle','3002','3002-s002',nid,'--resolution','原件已归档、口径已更新','--action-ref','Works/整理结果.md')
+        self.assertEqual(self.call('inbox','3002','3002-s002')[1]['durable_mail']['unhandled_count'],0)
+
+    def test_reminder_replay_never_submits_twice(self):
+        with patch.object(paos,'_remind_via_native',return_value={'agent_id':'3002-s002','state':'accepted','accepted':True}) as inject:
+            self.send('mail-remind-001','--remind')
+            self.send('mail-remind-001','--remind')
+            self.assertEqual(inject.call_count,1)
+
+    def test_uncertain_reminder_keeps_mail_and_no_replay(self):
+        with patch.object(paos,'_remind_via_native',return_value={'agent_id':'3002-s002','state':'delivery_uncertain','accepted':None,'retry':False}) as inject:
+            first=self.send('mail-unknown-001','--remind')
+            self.send('mail-unknown-001','--remind')
+            self.assertEqual(inject.call_count,1)
+        self.assertTrue((self.vault/'Workstations/3002-s002/mailbox/mail-unknown-001.md').exists())
+        self.assertIsNone(first['reminders'][0]['accepted'])
+
+    def test_library_search_runs_on_existing_filesystem_helper(self):
+        r=self.call('library','search','会议')[1]
+        self.assertIn('daily-intake',json.dumps(r,ensure_ascii=False))
+
+    def test_library_tools_raw_markdown(self):
+        r=self.call('library','tools')[1]
+        self.assertEqual(r['raw_markdown'],self.tools.read_text(encoding='utf-8'))
+
+    def test_project_experience_is_ordinary_markdown(self):
+        p=self.vault/'Materials'/'TIPS.md';p.parent.mkdir();p.write_text('# 经验\n一次原件，多处引用。',encoding='utf-8')
+        self.assertEqual(self.call('project','experience','3002')[1]['raw_markdown'],p.read_text(encoding='utf-8'))
+
+    def test_explicit_installation_is_scoped(self):
+        before=os.environ['PAOS_INSTALLATION_FILE']
+        self.call('attention','show','3002','3002-s001')
+        self.assertEqual(os.environ['PAOS_INSTALLATION_FILE'],before)
+
+    def test_unknown_project_does_not_create_files(self):
+        rc,r=self.call('project','show','3003',ok=False)
+        self.assertEqual(r['error_code'],'project_not_registered')
+        self.assertNotEqual(rc,0);self.assertFalse((self.records/'3003.json').exists())
+
+    def test_corrupt_registry_is_not_empty_success(self):
+        self.record.write_text('{bad',encoding='utf-8')
+        rc,r=self.call('project','show','3002',ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(r['error_code'],'project_registry_unreadable')
+
+    def test_duplicate_member_is_rejected(self):
+        self.project['sessions'].append(dict(self.project['sessions'][0]));self.save_project()
+        self.assertEqual(self.call('project','show','3002',ok=False)[1]['error_code'],'project_members_invalid')
+
+    def test_unknown_home_is_not_guessed(self):
+        rc,r=self.call('orient','3002','3002-s099',ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(r['error_code'],'home_agent_unknown')
+
+    def test_obsolete_commands_are_removed(self):
+        for args in [('project','progress-update','3002'),('session','show','3002','3002-s001'),('workbench','build'),('tips','search','x')]:
+            with self.subTest(args=args):self.assertEqual(self.call(*args,ok=False)[0],2)
+
+    def test_real_cli_subprocess_without_server(self):
+        env=dict(os.environ,PAOS_INSTALLATION_FILE=str(self.install),PAOS_BASE_URL='invalid')
+        p=subprocess.run([sys.executable,str(SCRIPTS/'paos.py'),'--json','attention','show','3002','3002-s001'],env=env,cwd=self.root,capture_output=True,text=True,encoding='utf-8',timeout=10)
+        self.assertEqual(p.returncode,0,p.stderr)
+        self.assertEqual(json.loads(p.stdout)['home']['home_id'],'3002-s001')
+
+    def test_cross_project_delivery_honors_explicit_installation(self):
+        p2=dict(self.project,id='3003',root_path=str(self.root/'另一项目'),sessions=[{'id':'3003-s001','status':'active'}],organization={})
+        (self.records/'3003.json').write_text(json.dumps(p2),encoding='utf-8')
+        target=Path(p2['root_path'])/'Workstations/3003-s001';self.make_home(target,'3003-s001','3003')
+        self.call('agent','send','3002','--to','3003-s001','--subject','跨项目','--body','原件入口','--message-id','cross-test-001')
+        self.assertTrue((target/'mailbox/cross-test-001.md').exists())
+
+    def test_rooter_receives_durable_input_without_project_identity(self):
+        self.call('agent','send','3002','--to','rooter-001','--subject','安装接续','--body','原件入口','--message-id','rooter-test-001')
+        self.assertTrue((self.rooter/'mailbox/rooter-test-001.md').exists())
+
+    def test_peers_and_team_use_local_roster(self):
+        for command in ('peers','team'):
+            r=self.call(command,'3002','3002-s001')[1]
+            self.assertIn('3002-s002',json.dumps(r))
+
+    def test_wake_status_does_not_require_server(self):
+        self.assertEqual(self.call('wake','status','3002','3002-s001')[1]['agent_id'],'3002-s001')
+
+    def test_read_commands_do_not_change_files(self):
+        def snapshot():
+            return {str(p.relative_to(self.root)): hashlib.sha256(p.read_bytes()).hexdigest()
+                    for p in self.root.rglob('*') if p.is_file()}
+        before=snapshot()
+        for args in [('health',),('orient','3002','3002-s001'),('inbox','3002','3002-s001'),
+                     ('project','show','3002'),('library','search','会议')]:self.call(*args)
+        self.assertEqual(before,snapshot())
+
+    def test_no_inherited_native_binding(self):
+        self.project['sessions'][0]['runtime_session']={'session_id':'old-machine-id'}
+        self.project['sessions'][0]['runtime_id']='codex';self.save_project()
+        rc,r=self.call('wake','bind','3002','3002-s001','--driver','codex',ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(r['error_code'],'wake_native_session_missing')
+
+    def test_cat_is_explicit_external_transport(self):
+        self.install.unlink()
+        with patch.object(paos.RestClient,'request',return_value={'ok':True,'rooms':[]}) as http:
+            self.call('cat','list')
+            http.assert_called_once_with('GET','/api/rooms')
+
+    def test_minimal_registered_home_can_be_initialized(self):
+        self.project['sessions'].append({'id':'3002-s003','status':'active'});self.save_project()
+        config=json.loads(self.install.read_text(encoding='utf-8'));config['agent_numbers_config']=''
+        self.install.write_text(json.dumps(config),encoding='utf-8')
+        self.call('workstation','init','3002','3002-s003','--objective','接续实际工作')
+        path=self.vault/'Workstations/3002-s003/TODO.md'
+        self.assertEqual(parse_todo_v3(path.read_text(encoding='utf-8'))['schema'],'paos-todo/v3')
+        self.call('orient','3002','3002-s003')
+
+    def test_malformed_coordinator_is_explicit_error(self):
+        self.project['organization']={'coordinator_session_id':[]};self.save_project()
+        rc,r=self.call('project','show','3002',ok=False)
+        self.assertNotEqual(rc,0);self.assertEqual(r['error_code'],'project_coordinator_invalid')
+
+
+if __name__=='__main__':unittest.main()

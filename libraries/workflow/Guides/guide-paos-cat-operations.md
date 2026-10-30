@@ -5,12 +5,12 @@ title: PAOS 操作指南：联系、当前页与运行
 description: 按需操作：正常留信与提醒、维护本人当前页、查看版本和排查阻碍。
 tags: paos, cat, cli, operations
 status: active
-version: 81
+version: 82
 ---
 
 # PAOS 操作指南
 
-从固定 ENTRY 取安装入口。Windows 使用 `C:\Users\remo\.paos\bin\paos.cmd`，WSL 使用 `/home/remo/.local/bin/paos`。下面的 `paos` 代表该入口。服务版本读 `health`，CLI 与安装版本读 `status`，安装定位读 `install show`；参数不清楚时查对应子命令的 `--help`。
+从固定 ENTRY 取安装入口。Windows 使用 `C:\Users\remo\.paos\bin\paos.cmd`，WSL 使用 `/home/remo/.local/bin/paos`。下面的 `paos` 代表该入口。Portable 的 `health` 检查本地安装，工位与联系读 `status`，安装定位读 `install show`；这些不依赖 Core HTTP；参数不清楚时查对应子命令的 `--help`。
 
 ## 查看当前事实
 
@@ -180,47 +180,12 @@ paos attention rooter-takeover <notice_id> \
 - 坏字段/坏值/缺来源/坏指纹都在标读前拒绝。若来源和标读已成功、Current 写入再失败，回执带 `stages` 说明已完成哪步；从该事实接续，不自动重试。
 - 标读不等于处理完成：Notice `handled` 仍需正常 `attention handle`；本入口不触发模型、不唤醒自己、不改模型/STOP。
 
-### 恢复本人 Markdown 工作台页
+### 本地工位读面
 
-真实 TODO 正确，但本人生成页报 conflict 或仍显示旧阶段时，由该 Home 的 Owner 完整核读页面。先把需保留的人工内容保存为项目原件，再保存当前页与当时 metadata，只移出本人这一页，用正式命令重建。
-
-Windows 示例；填本人 Home ID 和本任务已有恢复目录。安装根从现装描述读取：
-
-```powershell
-$paosCmd = 'C:\Users\remo\.paos\bin\paos.cmd'
-$pageHome = '<本人完整Home ID>'
-$recoveryRoot = '<本任务已有恢复目录的绝对路径>'
-$install = & $paosCmd --json install show | ConvertFrom-Json
-$workbenchRoot = Join-Path $install.data_root 'workbench'
-$pagePath = Join-Path $workbenchRoot "homes/$pageHome.md"
-$backupDir = Join-Path $recoveryRoot ("page-$pageHome-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
-
-New-Item -ItemType Directory -Path $backupDir -ErrorAction Stop | Out-Null
-Copy-Item -LiteralPath $pagePath -Destination (Join-Path $backupDir "$pageHome.md.before") -ErrorAction Stop
-Copy-Item -LiteralPath (Join-Path $workbenchRoot '.paos-workbench.json') -Destination (Join-Path $backupDir '.paos-workbench.json.before') -ErrorAction Stop
-Move-Item -LiteralPath $pagePath -Destination (Join-Path $backupDir "$pageHome.md.moved") -ErrorAction Stop
-& $paosCmd --json workbench build --home $pageHome --changed-only
-```
-
-metadata 只作恢复原件；本次不删 entry、不改 hash、不整份替换 `.paos-workbench.json`。保留真实 TODO、Notice 和其他 Home 页。命令报锁忙或仍有冲突时，保留输出与恢复目录，交运行维护者处理。
-
-核命令回执、本人页的新 Current 与 INDEX 导航。随后按真实进度用正规 `todo-update` 撤旧等待；重建派生页与维护业务 Current 是两个动作。Rooter 使用同组 `rooter-todo-update`。本人沿原责任直接处理；接口说明见[Markdown 工作台](guide-paos-interface-reference.md#markdown-工作台)。
-
-### Home 读面与恢复（D1.3）
-
-先沿现有 Home resolver 定位准确 Home，再读取共用 Home read service；Project Home 使用现有 Project registry，Rooter Home 使用安装描述中的 Rooter 定位。不要按路径猜测兄弟目录，不创建 Project Session，不复制另一套 driver、Contact 或状态规则。Rooter Home 仍是安装级岗位，不是 Project Session。
-
-Home read 是只读恢复读面，不新增 Notice、Task 或 Runtime 状态权威。读面至少带准确 Home、Current、任务及其任务层 `source_refs` / `acceptance_refs`、TODO 原始字节指纹与 `current.updated_at`、Notice tree 指纹/文件系统观察时间、`observed_at`、可达性、过滤范围和多文件一致性观察。来源缺失、不可读、过滤掉或语义未知时如实保留未知；多文件读取不是全局原子快照，若读取期间来源变化或指纹不足，按读面给出的变化/未知结果处理，不用总览时间覆盖差异。
-
-恢复读面把 Notice 当前事实分成三个便于继续工作的观察集合：
-
-- `unread_pending`：仍为 pending 且尚未显式标读；
-- `read_pending`：已经显式标读但仍为 pending/未完成；
-- `handled_unread`：已经 handled 但没有显式标读。
-
-这三个集合只是恢复筛选视图，不是新的 Notice 状态。尤其是 `read_pending`：回合中断或崩溃后仍须在 Home 读面可见，继续从本人 Current、对应任务引用和原输入判断下一合法动作；不能因为已经 read 就当成 handled、接受或完成。普通读取 Home、team/Markdown 投影或 `contact.py status` 均不代替显式 Notice read。
-
-日常连续阶段仍只读新公告和相关增量；入场、压缩或换 Runtime 时，才按既有恢复顺序实读 ENTRY 所指正文、Current、当前原输入和本人合法所需原件。Home read 用于准确定位和校准，不把历史全量扫描或读面生成当成新的恢复仪式。
+直接使用 `orient`、`attention show` 和 `inbox`，需要原件时读 TODO/Mail/Notice。
+不再重建第二份 Markdown 工作台，也不轮询生成页。读到输入后按实际接手与处理
+记录 Notice；已读不等于完成。正常连续阶段只读相关增量，恢复时读 ENTRY、当前
+工作和必要原件。接口用途见[Home 读面](guide-paos-interface-reference.md#home-读面)。
 
 ### 工位 Contact 薄入口
 
@@ -238,7 +203,7 @@ python scripts/paos_contact_package.py <agent_id> --installation-file <现有安
 
 已有同名文件不覆盖，已有人工内容不因安装而重写。三份文件都只落在准确 Home；Rooter 包不绑定 Project。它们调用安装 Source 中已有共享实现，不复制 driver、token、PID、native credential 或第二套规则。代码候选存在不等于真实 Home 已安装；实际安装、读回和采用仍以安装记录及真实结果为准。
 
-运行 `python <Home>/contact.py status` 读取准确 Home 的共享读面、联系状态与 `capabilities`。`send/notify` 的调用方条件统一读[外部调用授权](guide-paos-interface-reference.md#外部调用授权a14)。正常成员交接使用 `agent send --remind`；薄入口沿用原权限与 Contact/Notice 语义。
+运行 `python <Home>/contact.py status` 读取准确 Home 的共享读面、联系状态与 `capabilities`。`send/notify` 的调用方条件统一读现行调用方授权。正常成员交接使用 `agent send --remind`；薄入口沿用原权限与 Contact/Notice 语义。
 
 `STATUS.md` 只是稳定导航和读面入口，不是第二个 Current/TODO 或验收权威。需要真实事实时回到准确 Home 的 TODO、Notice、原输入、成果及共享 read service；页面显示来源、指纹、观察时点、恢复集合和过滤/缺失范围时，以这些原件为准。
 

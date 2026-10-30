@@ -1,45 +1,34 @@
 #!/usr/bin/env python3
-"""Agent-first PAOS localhost REST CLI.
+"""Agent-first file-backed PAOS CLI.
 
-Durable state is accessed only through HTTP. The CLI intentionally exposes
-Agent/Runtime actions and supported Coordinator governance commands. Human-only
-governance remains on its approved Human surface.
+Home work and Library lookup run without a PAOS HTTP service.
+Only explicit CAT/native operations use external transports.
 """
 from __future__ import annotations
+
 
 import argparse
 import socket
 import json
 import locale
 import os
-import re
-import subprocess
 import sys
-import uuid
 from pathlib import Path
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlencode, urlsplit
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from paos_workstation import (  # noqa: E402
-    posix_windows_drive_locator,
-    WorkstationProblem,
-    ensure_fixed_workstation,
-    read_fixed_workstation,
-    resolve_path,
-)
+from paos_registry import ProjectRegistry, RegistryProblem
+from paos_library import search_library_resources, _validate_tool_catalog_file
+
+from paos_workstation import posix_windows_drive_locator, WorkstationProblem, ensure_fixed_workstation, read_fixed_workstation
 from paos_coordinator import session_from_project  # noqa: E402
-from paos_guide import (  # noqa: E402
-    GuideProblem,
-    build_guide_diff,
-    promote_guide_candidate,
-    validate_current_coordinator,
-)
+from paos_guide import GuideProblem, build_guide_diff
 from paos_mail import (  # noqa: E402
     MailProblem,
     dispatch_status,
@@ -54,7 +43,7 @@ from paos_agent_activation import (  # noqa: E402
     activate_mail_dispatch,
     send_agent_mail,
 )
-from paos_home import HomeProblem, agent_project_id, project_agent_home
+from paos_home import HomeProblem, agent_project_id
 from paos_attention_service import (  # noqa: E402
     resolve_home_by_registry,
     AttentionServiceProblem,
@@ -113,10 +102,6 @@ from paos_installation import (
     resolve_library_roots_path,
     write_installation_descriptor,
 )
-DEFAULT_BASE_URL = "http://127.0.0.1:8766"
-CLI_CONFIG_SCHEMA = "paos-cli-config/v1"
-AGENT_CONTEXT_SCHEMA = "paos-cli-agent-context/v1"
-AGENT_MAILBOX_SCHEMA = "paos-cli-agent-mailbox/v1"
 ORIENT_SCHEMA = "paos-orient/v1"
 INBOX_SCHEMA = "paos-inbox/v1"
 from paos_agent_numbers import (
@@ -134,52 +119,11 @@ from paos_contact import (  # noqa: E402
 )
 from paos_cat_cli import add_cat_parser, execute_cat  # noqa: E402
 PEERS_SCHEMA = "paos-peers/v2"
-COORDINATOR_CONTROL_SCHEMA = "paos-cli-coordinator-control/v1"
-CONTROL_LIST_LIMIT = 6
-CONTROL_DELTA_LIMIT = 8
-CONTROL_TEXT_MAX_CHARS = 320
-REQUEST_TYPES = (
-    "information",
-    "artifact",
-    "review",
-    "decision",
-    "coordination",
-    "resource",
-    "clarification",
-    "assignment",
-    "integration",
-)
-PROTECTED_BODY_FIELDS = {
-    "schema",
-    "operation_id",
-    "revision",
-    "base_revision",
-    "session_id",
-    "coordinator_session_id",
-    "execution_cycle",
-    "context_pack_id",
-    "runtime_id",
-    "model_id",
-    "write_owner_id",
-    "write_owner_generation",
-}
-
-
-from paos_render import (
-    render_workbench,
-    render_program_rollback,
-    render_install_plan,
-    render_install_homes,
-    render_authority,
-)
 
 
 from paos_orient import (
     _orient_source_root, _orient_library_roots, _orient_next_action,
     _todo_current_view, _todo_open_tasks, _orient_todo_contract_issues, render_orient,
-)
-from paos_compact import (
-    _bounded_compact_text, compact_request_ref, compact_mailbox, compact_work, compact_action,
 )
 
 
@@ -283,15 +227,6 @@ class RestClient:
         return body
 
 
-def new_operation_id() -> str:
-    return "op-cli-" + uuid.uuid4().hex
-
-
-def new_project_update_id() -> str:
-    """Generate an ID for the existing authorized Project Agent write contract."""
-    return "up-cli-" + uuid.uuid4().hex
-
-
 def normalize_base_url(value: str, label: str) -> str:
     text = str(value or "").strip().rstrip("/")
     parsed = urlsplit(text)
@@ -307,76 +242,6 @@ def normalize_base_url(value: str, label: str) -> str:
             error_code="invalid_base_url",
         )
     return f"{parsed.scheme}://{parsed.netloc}"
-
-
-def resolve_config_path(explicit: str | None = None) -> Path:
-    raw = explicit or os.environ.get("PAOS_CONFIG_PATH")
-    if raw:
-        return Path(raw).expanduser()
-    return Path.home() / ".paos" / "config.json"
-
-
-def load_cli_config(path: Path) -> dict[str, Any]:
-    if not path.exists():
-        return {}
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise CliError(
-            f"Cannot read PAOS CLI config: {path}",
-            error_code="config_error",
-            hint="Fix or remove the local config file, or select another one with --config-file.",
-        ) from exc
-    if not isinstance(value, dict):
-        raise CliError(
-            f"PAOS CLI config must contain one JSON object: {path}",
-            error_code="config_error",
-        )
-    schema = value.get("schema")
-    if schema not in (None, CLI_CONFIG_SCHEMA):
-        raise CliError(
-            f"Unsupported PAOS CLI config schema: {schema}",
-            error_code="config_error",
-        )
-    result: dict[str, Any] = {}
-    if "base_url" in value:
-        result["base_url"] = normalize_base_url(str(value["base_url"]), "config base_url")
-    return result
-
-
-def write_cli_config(path: Path, *, base_url: str) -> dict[str, Any]:
-    normalized = normalize_base_url(base_url, "base URL")
-    payload = {"schema": CLI_CONFIG_SCHEMA, "base_url": normalized}
-    temporary = path.with_name(f"{path.name}.tmp-{uuid.uuid4().hex}")
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temporary.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        os.replace(temporary, path)
-    except OSError as exc:
-        try:
-            temporary.unlink(missing_ok=True)
-        except OSError:
-            pass
-        raise CliError(
-            f"Cannot write PAOS CLI config: {path}",
-            error_code="config_error",
-        ) from exc
-    return payload
-
-
-def resolve_base_url(explicit: str | None, config_path: Path) -> str:
-    if explicit:
-        return normalize_base_url(explicit, "--base-url")
-    env_value = os.environ.get("PAOS_BASE_URL")
-    if env_value:
-        return normalize_base_url(env_value, "PAOS_BASE_URL")
-    config = load_cli_config(config_path)
-    if config.get("base_url"):
-        return str(config["base_url"])
-    return DEFAULT_BASE_URL
 
 
 def _decode_stdin_bytes(data: bytes, label: str) -> str:
@@ -522,167 +387,12 @@ def todo_text_arg(value: str | None, label: str, *, required: bool = False) -> s
     return text
 
 
-def text_list(values: list[str] | None, label: str) -> list[str]:
-    return [
-        item
-        for index, value in enumerate(values or [], start=1)
-        if (item := text_arg(value, f"{label}[{index}]"))
-    ]
-
-
-def load_body(path: str | None) -> dict[str, Any]:
-    if not path:
-        return {}
-    try:
-        raw = _read_stdin_text("JSON body") if path == "-" else Path(path).read_text(encoding="utf-8")
-        value = json.loads(raw)
-    except (OSError, json.JSONDecodeError) as exc:
-        raise CliError(
-            f"Cannot read --body JSON: {path}",
-            error_code="invalid_body_file",
-        ) from exc
-    if not isinstance(value, dict):
-        raise CliError("--body must contain one JSON object", error_code="invalid_body_file")
-    conflict = sorted(PROTECTED_BODY_FIELDS.intersection(value))
-    if conflict:
-        raise CliError(
-            f"--body cannot override protected field: {conflict[0]}",
-            error_code="protected_field",
-        )
-    return value
-
-
-def build_project_progress_update_payload(args: argparse.Namespace) -> dict[str, Any]:
-    """Build only the existing Session-authorized generated-summary patch."""
-    project_id = str(getattr(args, "project_id", "") or "").strip()
-    if not re.fullmatch(r"[123]\d{3}", project_id):
-        raise CliError("Project ID 必须符合现有四位编号合同。", error_code="invalid_project_id")
-
-    expected_revision = getattr(args, "expected_revision", None)
-    if isinstance(expected_revision, bool) or not isinstance(expected_revision, int) or expected_revision < 1:
-        raise CliError("必须提供正整数 --expected-revision。", error_code="invalid_revision")
-
-    update_id = str(getattr(args, "update_id", None) or new_project_update_id()).strip()
-    if not re.fullmatch(r"up-[A-Za-z0-9._:-]{4,120}", update_id):
-        raise CliError("update_id 必须符合现有 up- ID 合同。", error_code="invalid_update_id")
-
-    session_id = str(getattr(args, "session_id", None) or "").strip()
-    handshake_id = str(getattr(args, "handshake_id", None) or "").strip()
-    if bool(session_id) == bool(handshake_id):
-        raise CliError("必须且只能提供一个 --session-id 或 --handshake-id。", error_code="invalid_session_ref")
-    if any(value.startswith("<") and value.endswith(">") for value in (session_id, handshake_id) if value):
-        raise CliError("不能使用占位符作为受管 Session 引用。", error_code="invalid_session_ref")
-
-    reason = text_arg(getattr(args, "reason", None), "reason", required=True).strip()
-    if not reason or len(reason) > 8000:
-        raise CliError("reason 必须是 1–8000 个字符的非空文本。", error_code="invalid_reason")
-
-    fields = (
-        ("stage", "stage"),
-        ("progress_and_results", "progress_and_results"),
-        ("recent_change", "recent_change"),
-        ("current_gap", "current_gap"),
-    )
-    generated_patch: dict[str, str] = {}
-    for argument, field in fields:
-        value = getattr(args, argument, None)
-        if value is not None:
-            generated_patch[field] = text_arg(value, field)
-
-    if not generated_patch:
-        raise CliError(
-            "至少提供一个进度字段：--stage、--progress-and-results、--recent-change 或 --current-gap。",
-            error_code="empty_generated_patch",
-        )
-
-    return {
-        "schema": "paos-agent-project-progress-update/v1",
-        "update_id": update_id,
-        "project_id": project_id,
-        "expected_revision": expected_revision,
-        "session_ref": {
-            "handshake_id": handshake_id,
-            "session_id": session_id,
-        },
-        "generated_patch": generated_patch,
-        "reason": reason,
-    }
-
-
-def project_revision(client: RestClient, project_id: str) -> int:
-    response = client.request("GET", f"/api/projects/{project_id}")
-    return int(response["project"]["revision"])
-
-
-def get_session_detail(
-    client: RestClient, project_id: str, session_id: str
-) -> dict[str, Any]:
-    return client.request(
-        "GET", f"/api/projects/{project_id}/sessions/{session_id}"
-    )
-
-
-def mutation_meta(
-    client: RestClient,
-    project_id: str,
-    args: argparse.Namespace,
-) -> tuple[str, int]:
-    op = args.operation_id or new_operation_id()
-    revision = (
-        args.revision
-        if args.revision is not None
-        else project_revision(client, project_id)
-    )
-    return op, revision
-
-
-def session_mutation_meta(
-    client: RestClient,
-    project_id: str,
-    session_id: str,
-    args: argparse.Namespace,
-    detail: dict[str, Any] | None = None,
-) -> tuple[str, int, dict[str, Any] | None]:
-    op = args.operation_id or new_operation_id()
-    if args.revision is not None:
-        return op, args.revision, detail
-    current = detail or get_session_detail(client, project_id, session_id)
-    try:
-        revision = int(current["project_revision"])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise CliError(
-            "Session Detail is missing project_revision",
-            error_code="invalid_response",
-        ) from exc
-    return op, revision, current
-
-
-def post_mutation(
-    client: RestClient,
-    path: str,
-    payload: dict[str, Any],
-    op: str,
-    revision: int,
-    *,
-    unknown_message: str | None = None,
-    unknown_hint: str | None = None,
-) -> dict[str, Any]:
-    try:
-        return client.request("POST", path, payload)
-    except CliError as exc:
-        exc.operation_id = op
-        exc.revision = revision
-        raise
-    except (TimeoutError, socket.timeout) as exc:
-        raise CliError(
-            unknown_message
-            or "请求超时，服务端可能已提交，结果未知。保留原 update_id，不要自动重发或更换 ID。",
-            error_code="commit_result_unknown",
-            hint=unknown_hint
-            or "用同一 update_id 与 expected_revision 重新读取最新 revision 后再决定；不要自动重发。",
-            operation_id=op,
-            revision=revision,
-        ) from exc
+def get_session_detail(registry, project_id, session_id):
+    project = registry.read(project_id)
+    session = session_from_project(project, session_id)
+    if not session:
+        raise CliError("工位成员未登记。", error_code="home_agent_unknown")
+    return {"session": session, "project_revision": project.get("revision")}
 
 
 def find_by_id(
@@ -697,562 +407,21 @@ def find_by_id(
     )
 
 
-def _prepare_session_handoff(
-    args: argparse.Namespace,
-    client: RestClient,
-    *,
-    operation_id: str,
-) -> dict[str, Any] | None:
-    recipient_id = str(getattr(args, "handoff_to", None) or "").strip()
-    if not recipient_id:
-        if any(
-            str(getattr(args, field, None) or "").strip()
-            for field in ("handoff_subject", "handoff_body", "handoff_message_id")
-        ):
-            raise CliError("--handoff-subject/body/message-id require --handoff-to", error_code="invalid_handoff")
-        return None
-    subject = text_arg(args.handoff_subject, "handoff subject", required=True)
-    body = text_arg(args.handoff_body, "handoff body", required=True)
-    message_id = str(getattr(args, "handoff_message_id", None) or operation_id).strip()
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{2,119}", message_id):
-        raise CliError(
-            "handoff message_id 必须为 3–120 位字母、数字、点、下划线或短横线。",
-            error_code="mail_message_id_invalid",
-        )
-    response = client.request("GET", f"/api/projects/{args.project_id}")
-    project = response.get("project")
-    if not isinstance(project, dict):
-        raise CliError("Project response is missing project", error_code="invalid_response")
-    if recipient_id == args.session_id:
-        raise CliError("handoff recipient must be another Project Agent", error_code="mail_recipient_self")
-    find_by_id(project.get("sessions", []), recipient_id, "handoff Agent")
-    root_raw = str(project.get("root_path") or "").strip()
-    if not root_raw:
-        raise CliError(
-            "Project 没有 root_path，无法保存 durable handoff Mail。",
-            error_code="mail_project_root_missing",
-        )
-    root = Path(posix_windows_drive_locator(root_raw)).expanduser()
-    if not root.is_dir():
-        raise CliError(
-            f"Project root 不可用，未提交本次责任更新：{root}",
-            error_code="mail_project_root_missing",
-        )
-    return {
-        "project": project,
-        "root": root,
-        "recipient_id": recipient_id,
-        "subject": subject,
-        "body": body,
-        "message_id": message_id,
-    }
-
-
-def _deliver_session_handoff(
-    result: dict[str, Any],
-    *,
-    handoff: dict[str, Any] | None,
-    project_id: str,
-    sender_id: str,
-    operation_id: str,
-) -> dict[str, Any]:
-    if handoff is None:
-        return result
-    try:
-        persisted = send_mail(
-            root=handoff["root"],
-            project=handoff["project"],
-            subject=handoff["subject"],
-            body=handoff["body"],
-            recipients=[handoff["recipient_id"]],
-            sender_kind="agent",
-            sender_id=sender_id,
-            message_id=handoff["message_id"],
-        )
-    except MailProblem as problem:
-        return {
-            **result,
-            "handoff": {
-                "state": "not_persisted",
-                "operation_id": operation_id,
-                "message_id": handoff["message_id"],
-                "recipient_id": handoff["recipient_id"],
-                "error_code": problem.code,
-                "detail": str(problem),
-                "details": problem.details,
-            },
-        }
-    try:
-        activation = activate_mail_dispatch(
-            root=handoff["root"],
-            project_id=project_id,
-            message_id=handoff["message_id"],
-        )
-    except AgentActivationProblem as problem:
-        activation = {
-            "state": "activation_error",
-            "error_code": problem.code,
-            "detail": str(problem),
-        }
-    return {
-        **result,
-        "handoff": {
-            "state": "persisted",
-            "operation_id": operation_id,
-            "message_id": handoff["message_id"],
-            "recipient_id": handoff["recipient_id"],
-            "mail": persisted,
-            "activation": activation,
-        },
-    }
-
-
-def validate_guide_candidate_binding(
-    project: dict[str, Any], *, work_id: str, session_id: str, cycle: int
-) -> None:
-    """Bind one local Guide path to the canonical Session Cycle that created it."""
-    find_by_id(project.get("work_items") or [], work_id, "Guide candidate Work")
-    session = find_by_id(
-        project.get("sessions") or [], session_id, "Guide candidate Session"
-    )
-    if isinstance(cycle, bool) or not isinstance(cycle, int) or cycle < 1:
-        raise CliError(
-            "Guide candidate Cycle 必须是正整数。",
-            error_code="guide_candidate_cycle_invalid",
-            details={"cycle": cycle},
-        )
-    cycle_record = next(
-        (
-            item
-            for item in (session.get("cycles") or [])
-            if isinstance(item, dict) and int(item.get("number") or 0) == cycle
-        ),
-        None,
-    )
-    if cycle_record is None:
-        raise CliError(
-            f"Session {session_id} 没有 Cycle {cycle}；不能把该目录作为 canonical Guide 候选。",
-            error_code="guide_candidate_cycle_missing",
-            details={"session_id": session_id, "cycle": cycle},
-        )
-    cycle_work_id = str(cycle_record.get("work_item_id") or "")
-    if cycle_work_id != work_id:
-        raise CliError(
-            "Guide candidate Work 与该 Session Cycle 的 canonical Work 不一致。",
-            error_code="guide_candidate_work_mismatch",
-            details={
-                "session_id": session_id,
-                "cycle": cycle,
-                "supplied_work_item_id": work_id,
-                "cycle_work_item_id": cycle_work_id,
-            },
-        )
-
-
-
-
-
-
-
-
-
-
-
-
-def session_actor(project_id: str, session: dict[str, Any]) -> str:
-    coordinator = session.get("coordinator") or {}
-    if (
-        coordinator.get("level") == "coordinator"
-        and not coordinator.get("revoked_at")
-        and coordinator.get("project_id") == project_id
-        and session.get("status") == "active"
-        and session.get("acknowledgement") is not None
-    ):
-        return "coordinator"
-    return "worker"
-
-
-
-
-
-
-
-
-
-
-
-
-def _control_item(item: dict[str, Any]) -> dict[str, Any]:
-    """Compact one stewardship/office item without copying long bodies."""
-    keep = (
-        "id",
-        "event_id",
-        "type",
-        "kind",
-        "request_id",
-        "request_type",
-        "decision_id",
-        "work_item_id",
-        "session_id",
-        "target_session_id",
-        "target_identity_id",
-        "binding_state",
-        "status",
-        "waiting_on",
-        "requires_human",
-        "cycle_number",
-        "revision",
-        "event_type",
-        "operation_id",
-    )
-    result = {key: item.get(key) for key in keep if key in item}
-    for field in ("title", "description", "detail", "reason", "waiting_reason", "summary"):
-        if field not in item:
-            continue
-        value, omitted = _bounded_compact_text(item.get(field), CONTROL_TEXT_MAX_CHARS)
-        result[field] = value
-        if omitted:
-            result[f"{field}_omitted"] = True
-    return result
-
-
-def _control_list(items: Any, *, limit: int = CONTROL_LIST_LIMIT) -> dict[str, Any]:
-    values = [item for item in (items or []) if isinstance(item, dict)]
-    shown = [_control_item(item) for item in values[:limit]]
-    return {
-        "items": shown,
-        "omitted": max(0, len(values) - len(shown)),
-        "total": len(values),
-    }
-
-
-def build_coordinator_control(
-    *,
-    project_id: str,
-    stewardship: dict[str, Any],
-    office: dict[str, Any],
-    delta: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Build a thin Coordinator control view from existing read projections.
-
-    This is not a new durable state model. It keeps unresolved responsibilities
-    visible while exposing new ledger events only when the caller supplies a
-    since_revision cursor.
-    """
-    coordinator = stewardship.get("coordinator")
-    if not isinstance(coordinator, dict):
-        coordinator = {}
-
-    lifecycle = stewardship.get("lifecycle_findings")
-    lifecycle_items = lifecycle.get("items") if isinstance(lifecycle, dict) else []
-
-    attention = {
-        "needs_human": _control_list(
-            (stewardship.get("needs_me") or {}).get("items")
-            if isinstance(stewardship.get("needs_me"), dict)
-            else []
-        ),
-        "responsibility_gaps": _control_list(stewardship.get("responsibility_gaps")),
-        "pending_integration": _control_list(office.get("pending_integration")),
-        "review_work": _control_list(stewardship.get("review_work")),
-        "lifecycle_findings": _control_list(lifecycle_items),
-        "coordinator_pending_requests": _control_list(office.get("pending_requests")),
-    }
-
-    delta_view: dict[str, Any] = {
-        "requested": False,
-        "since_revision": None,
-        "current_revision": stewardship.get("revision"),
-        "events": [],
-        "omitted": 0,
-    }
-    if isinstance(delta, dict):
-        raw_events = [item for item in (delta.get("events") or []) if isinstance(item, dict)]
-        shown = [_control_item(item) for item in raw_events[-CONTROL_DELTA_LIMIT:]]
-        delta_view = {
-            "requested": True,
-            "since_revision": delta.get("since_revision"),
-            "current_revision": delta.get("current_revision"),
-            "events": shown,
-            "omitted": max(0, len(raw_events) - len(shown)),
-        }
-
-    session_id = str(coordinator.get("session_id") or "")
-    revision = int(stewardship.get("revision") or 0)
-    next_revision = int(delta_view.get("current_revision") or revision)
-    expand = {
-        "full_stewardship": f"paos project inspect {project_id}",
-        "needs_human": f"paos needs-me {project_id}",
-        "project": f"paos project show {project_id}",
-        "next_delta": (
-            f"paos coordinator control {project_id} --since-revision {next_revision}"
-        ),
-    }
-    if session_id:
-        expand["coordinator_context"] = f"paos session context {project_id} {session_id}"
-        expand["coordinator_mailbox"] = f"paos session mailbox {project_id} {session_id}"
-
-    counts = dict(stewardship.get("counts") or {})
-    counts.update(
-        {
-            "pending_integration": len(office.get("pending_integration") or []),
-            "blocked_work_items": len(office.get("blocked_work_items") or []),
-            "coordinator_pending_requests": len(office.get("pending_requests") or []),
-            "active_sessions": len(office.get("active_sessions") or []),
-        }
-    )
-
-    return {
-        "ok": True,
-        "schema": COORDINATOR_CONTROL_SCHEMA,
-        "project_id": project_id,
-        "revision": revision,
-        "coordinator": {
-            key: coordinator.get(key)
-            for key in (
-                "session_id",
-                "status",
-                "acknowledged",
-                "active",
-                "identity_id",
-                "agent_label",
-            )
-            if key in coordinator
-        },
-        "counts": counts,
-        "attention": attention,
-        "delta": delta_view,
-        "meta": {
-            "atomic_snapshot": False,
-            "revision_source": "stewardship",
-            "sources": [
-                "stewardship",
-                "office",
-                *(["delta"] if isinstance(delta, dict) else []),
-            ],
-        },
-        "expand": expand,
-    }
-
-
-def coordinator_control(
-    client: RestClient,
-    project_id: str,
-    *,
-    since_revision: int | None = None,
-) -> dict[str, Any]:
-    stewardship_response = client.request(
-        "GET", f"/api/projects/{project_id}/stewardship"
-    )
-    stewardship = stewardship_response.get("stewardship")
-    if not isinstance(stewardship, dict):
-        raise CliError(
-            "Stewardship response is missing stewardship",
-            error_code="invalid_response",
-        )
-
-    coordinator = stewardship.get("coordinator")
-    session_id = (
-        str(coordinator.get("session_id") or "")
-        if isinstance(coordinator, dict)
-        else ""
-    )
-    office_path = f"/api/projects/{project_id}/office"
-    if session_id:
-        office_path += "?" + urlencode({"session_id": session_id})
-    office_response = client.request("GET", office_path)
-    office = office_response.get("office")
-    if not isinstance(office, dict):
-        raise CliError(
-            "Office response is missing office",
-            error_code="invalid_response",
-        )
-
-    delta = None
-    if since_revision is not None:
-        delta_response = client.request(
-            "GET",
-            f"/api/projects/{project_id}/delta?"
-            + urlencode({"since_revision": since_revision}),
-        )
-        delta = delta_response.get("delta")
-        if not isinstance(delta, dict):
-            raise CliError(
-                "Delta response is missing delta",
-                error_code="invalid_response",
-            )
-
-    return build_coordinator_control(
-        project_id=project_id,
-        stewardship=stewardship,
-        office=office,
-        delta=delta,
-    )
-
-
-def build_agent_context(
-    detail: dict[str, Any],
-    authority: dict[str, Any],
-    *,
-    project_id: str,
-    session_id: str,
-) -> dict[str, Any]:
-    session = detail.get("session")
-    if not isinstance(session, dict):
-        raise CliError(
-            "Session Detail is missing session",
-            error_code="invalid_response",
-        )
-    mailbox = detail.get("mailbox")
-    if not isinstance(mailbox, dict):
-        mailbox = {}
-    context_pack = detail.get("context_pack")
-    if not isinstance(context_pack, dict):
-        context_pack = {}
-    pack_content = context_pack.get("content")
-    if not isinstance(pack_content, dict):
-        pack_content = {}
-    actor = str(authority.get("actor") or session_actor(project_id, session))
-    allowed_actions = [
-        compact_action(action)
-        for action in authority.get("actions", [])
-        if isinstance(action, dict) and bool(action.get("allowed", True))
-    ]
-    entry = session.get("entry") or {}
-    return {
-        "ok": True,
-        "schema": AGENT_CONTEXT_SCHEMA,
-        "project_id": project_id,
-        "live": {
-            "project_revision": detail.get("project_revision"),
-            "agent": {
-                "id": session_id,
-                "status": session.get("status"),
-                "current_cycle": session.get("current_cycle"),
-                "identity_id": session.get("identity_id"),
-                "agent_label": session.get("agent_label"),
-                "runtime_id": session.get("runtime_id"),
-                "model_id": session.get("model_id"),
-            },
-            "mission": session.get("mission") or {},
-            "current_work": compact_work(detail.get("current_work_item")),
-            "progress": session.get("progress") or {},
-            "mailbox": compact_mailbox(mailbox),
-            "working_memory": detail.get("working_memory") or {},
-            "artifact_lineages": detail.get("artifact_lineages") or {},
-            "typed_references": detail.get("typed_references") or {},
-            "authority": {
-                "actor": actor,
-                "available_actions": allowed_actions,
-            },
-        },
-        "entry_snapshot": {
-            "status": context_pack.get("status"),
-            "path": context_pack.get("path"),
-            "project_revision_at_entry": pack_content.get("project_revision"),
-            "context_pack_id": (
-                pack_content.get("context_pack_id")
-                or (entry.get("context_pack_id") if isinstance(entry, dict) else None)
-            ),
-            "context_level": pack_content.get("context_level"),
-            "execution": pack_content.get("execution") or {},
-            "working_memory_at_entry": pack_content.get("working_memory") or {},
-            "materials": pack_content.get("materials") or [],
-            "project_location": pack_content.get("project_location") or {},
-            "boundaries": pack_content.get("boundaries") or [],
-        },
-        "expand": {
-            "mailbox": f"paos session mailbox {project_id} {session_id}",
-            "session": f"paos session show {project_id} {session_id}",
-            "project": f"paos project show {project_id}",
-            "authority": f"paos authority --actor {actor} --allowed-only",
-        },
-    }
-
-
-def session_context(
-    client: RestClient,
-    project_id: str,
-    session_id: str,
-) -> dict[str, Any]:
-    detail = get_session_detail(client, project_id, session_id)
-    session = detail.get("session")
-    if not isinstance(session, dict):
-        raise CliError(
-            "Session Detail is missing session",
-            error_code="invalid_response",
-        )
-    actor = str(detail.get("authority_actor") or session_actor(project_id, session))
-    authority_response = client.request(
-        "GET", "/api/authority?" + urlencode({"actor": actor})
-    )
-    authority = authority_response.get("authority")
-    if not isinstance(authority, dict):
-        raise CliError(
-            "Authority response is missing authority",
-            error_code="invalid_response",
-        )
-    return build_agent_context(
-        detail,
-        authority,
-        project_id=project_id,
-        session_id=session_id,
-    )
-
-
-def session_mailbox(
-    client: RestClient,
-    project_id: str,
-    session_id: str,
-) -> dict[str, Any]:
-    detail = get_session_detail(client, project_id, session_id)
-    mailbox = detail.get("mailbox")
-    if not isinstance(mailbox, dict):
-        raise CliError(
-            "Session Detail is missing mailbox",
-            error_code="invalid_response",
-        )
-    return {
-        "ok": True,
-        "schema": AGENT_MAILBOX_SCHEMA,
-        "project_id": project_id,
-        "session_id": session_id,
-        "project_revision": detail.get("project_revision"),
-        "mailbox": mailbox,
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def _read_orient_inputs(
-    client: RestClient,
+    registry: ProjectRegistry,
     project_id: str,
     agent_id: str,
     *,
     root_override: str | None,
     installation_path: Path,
 ) -> dict[str, Any]:
-    project_response = client.request("GET", f"/api/projects/{project_id}")
-    project = project_response.get("project")
+    project = registry.read(project_id)
     if not isinstance(project, dict):
         raise CliError("Project response is missing project", error_code="invalid_response")
-    detail = get_session_detail(client, project_id, agent_id)
+    detail = get_session_detail(registry, project_id, agent_id)
     session = detail.get("session")
     if not isinstance(session, dict):
         raise CliError("Session Detail is missing session", error_code="invalid_response")
-    mailbox = detail.get("mailbox")
-    if not isinstance(mailbox, dict):
-        raise CliError("Session Detail is missing mailbox", error_code="invalid_response")
 
     root_raw = str(root_override or project.get("root_path") or "").strip()
     root = (
@@ -1333,8 +502,6 @@ def _read_orient_inputs(
         )
     installation_roots = _orient_library_roots(installation, issues)
     source_root = _orient_source_root(installation, issues)
-    counts = mailbox.get("counts") or {}
-    request_inbox_count = int(counts.get("inbox") or 0)
     workstation_mailbox = workstation_view.get("mailbox") or {}
     mail_count = int(workstation_mailbox.get("message_count") or 0)
     unhandled_mail_count = 0
@@ -1377,7 +544,7 @@ def _read_orient_inputs(
     payload = {
         "ok": True,
         "schema": ORIENT_SCHEMA,
-        "project_revision": detail.get("project_revision"),
+        "project_revision": project.get("revision"),
         "identity": {
             "project_id": project_id,
             "project_name": project.get("name"),
@@ -1414,12 +581,10 @@ def _read_orient_inputs(
                 "unhandled_count": unhandled_mail_count,
                 "path": workstation_mailbox.get("path", ""),
             },
-            "formal_requests": compact_mailbox(mailbox),
         },
         "runtime_reachability": "unknown",
         "inconsistencies": issues,
         "next_action": _orient_next_action(
-            request_inbox_count,
             unhandled_mail_count,
             current,
             open_tasks,
@@ -1427,22 +592,19 @@ def _read_orient_inputs(
         ),
         "expand": {
             "inbox": f"paos inbox {project_id} {agent_id}",
-            "session": f"paos session show {project_id} {agent_id}",
             "project": f"paos project show {project_id}",
         },
     }
     return payload
 
 
-
-
 def execute_orient(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     installation_path: Path,
 ) -> Any:
     payload = _read_orient_inputs(
-        client,
+        registry,
         args.project_id,
         args.agent_id,
         root_override=args.root,
@@ -1459,313 +621,18 @@ def execute_orient(
     return payload if args.json_output else render_orient(payload)
 
 
-def _git_source_revision(root: Path) -> str | None:
-    if not root.is_dir():
-        return None
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "HEAD"],
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    revision = result.stdout.strip()
-    return revision or None
-
-
-def execute_status(
-    args: argparse.Namespace,
-    client: RestClient,
-    installation_path: Path,
-) -> dict[str, Any]:
-    project_response = client.request("GET", f"/api/projects/{args.project_id}")
-    project = project_response.get("project")
-    if not isinstance(project, dict):
-        raise CliError("Project response is missing project", error_code="invalid_response")
-    detail = get_session_detail(client, args.project_id, args.agent_id)
-    session = detail.get("session")
-    if not isinstance(session, dict):
-        raise CliError("Session Detail is missing session", error_code="invalid_response")
-
-    blockers: list[dict[str, str]] = []
-    try:
-        installation = load_installation_descriptor(installation_path)
-    except InstallationProblem as problem:
-        installation = {"configured": False, "source_root": "", "data_root": "", "path": str(installation_path)}
-        blockers.append({"kind": "installation", "action": str(problem)})
-    try:
-        effective_data_root(installation)
-    except InstallationProblem as problem:
-        blockers.append({"kind": "installation_data_root", "action": str(problem)})
-
-    running_cli_path = Path(__file__).resolve()
-    running_source_root = running_cli_path.parent.parent
-    configured_source_root = str(installation.get("source_root") or "")
-    configured_source_path = (
-        Path(posix_windows_drive_locator(configured_source_root)).expanduser()
-        if configured_source_root
-        else None
-    )
-    same_source = None
-    if configured_source_path is not None:
-        same_source = os.path.normcase(str(configured_source_path.resolve())) == os.path.normcase(
-            str(running_source_root.resolve())
-        )
-        if not same_source:
-            blockers.append(
-                {
-                    "kind": "installation_source_mismatch",
-                    "action": "安装 descriptor 指向的 Source 与当前运行 CLI 不同；核对安装路径和版本后再判断运行态。",
-                }
-            )
-
-    server_build: dict[str, Any] = {"state": "unknown"}
-    try:
-        health = client.request("GET", "/api/health")
-        build = health.get("build")
-        server_build = {
-            "state": "available",
-            "service": health.get("service"),
-            "source_commit": (build or {}).get("source_commit") if isinstance(build, dict) else None,
-            "release_tag": (build or {}).get("release_tag") if isinstance(build, dict) else None,
-            "runtime_fingerprint": (build or {}).get("runtime_fingerprint") if isinstance(build, dict) else None,
-            "static_fingerprint": (build or {}).get("static_fingerprint") if isinstance(build, dict) else None,
-        }
-    except CliError as problem:
-        server_build["error_code"] = problem.error_code or "health_unavailable"
-
-    root_raw = str(getattr(args, "root", None) or project.get("root_path") or "").strip()
-    root = Path(posix_windows_drive_locator(root_raw)).expanduser() if root_raw else None
-    workstation: dict[str, Any] = {}
-    if root is None:
-        blockers.append({"kind": "project_root", "action": "为 Project 配置 root_path，或在本命令提供 --root。"})
-    else:
-        try:
-            workstation = read_fixed_workstation(root, args.agent_id, tolerate_todo_errors=True)
-        except WorkstationProblem as problem:
-            blockers.append({"kind": "workstation", "action": f"修复固定工位：{problem}"})
-        if workstation.get("todo_error"):
-            blockers.append(
-                {
-                    "kind": "todo_unavailable",
-                    "action": "修复当前 TODO.md；orient/status 仍以 live PAOS Work 为准，不从历史 TODO 推断下一步。",
-                }
-            )
-        todo = workstation.get("todo") if isinstance(workstation.get("todo"), dict) else {}
-        todo_issues = (
-            _orient_todo_contract_issues(todo, args.project_id, args.agent_id)
-            if workstation and not workstation.get("todo_error")
-            else []
-        )
-        if todo_issues:
-            blockers.append(
-                {
-                    "kind": "todo_contract",
-                    "action": "修复 TODO 当前区的身份或字段；从正式 Mail/Notice 恢复真实责任，不回退到历史 Cycle。",
-                }
-            )
-
-    mail_state: dict[str, Any] = {"available": False, "count": 0, "unhandled_count": 0, "latest_received": None}
-    if root is not None:
-        try:
-            todo_view = workstation.get("todo") if isinstance(workstation.get("todo"), dict) else {}
-            if todo_view.get("schema") == "paos-todo/v3":
-                mail_listing = attention_list_project_mail_inputs(
-                    root=root,
-                    project=project,
-                    agent_id=args.agent_id,
-                )
-                pending_count = int(
-                    mail_listing.get("unresolved_count")
-                    if mail_listing.get("unresolved_count") is not None
-                    else mail_listing.get("pending_count") or 0
-                )
-            else:
-                mail_listing = list_mail(root, args.agent_id)
-                pending_count = int(mail_listing.get("unhandled_count") or 0)
-            items = mail_listing.get("items") or []
-            latest = max(
-                (item for item in items if isinstance(item, dict)),
-                key=lambda item: str(item.get("created_at") or ""),
-                default=None,
-            )
-            latest_received = None
-            if latest is not None:
-                if str(latest.get("input_state") or ""):
-                    latest_received = {
-                        "message_id": latest.get("message_id"),
-                        "subject": latest.get("subject"),
-                        "sender_id": latest.get("sender_id"),
-                        "persisted": True,
-                        "input_state": latest.get("input_state"),
-                        "resolution": latest.get("resolution"),
-                        "action_ref": latest.get("action_ref"),
-                        "handling_source": "notice",
-                    }
-                else:
-                    latest_received = {
-                        "message_id": latest.get("message_id"),
-                        "subject": latest.get("subject"),
-                        "sender_id": latest.get("sender_id"),
-                        "persisted": True,
-                        "handled_marker": bool(latest.get("handled")),
-                        "handling_state": latest.get("handling_state"),
-                        "handling_reason": latest.get("handling_reason"),
-                        "replied": latest.get("handling_state") == "replied",
-                        "handling_error": latest.get("handling_error"),
-                    }
-            mail_state = {
-                "available": True,
-                "count": int(mail_listing.get("count") or 0),
-                "unhandled_count": pending_count,
-                "latest_received": latest_received,
-            }
-        except (MailProblem, AttentionServiceProblem) as problem:
-            mail_state.update(
-                {
-                    "error_code": str(getattr(problem, "code", "mail_unavailable")),
-                    "detail": str(problem),
-                    "details": getattr(problem, "details", {}),
-                }
-            )
-            blockers.append({"kind": "mailbox", "action": f"恢复 Workstation Mailbox：{problem}"})
-
-    wake_view: dict[str, Any] = {
-        "configured": False,
-        "target_status": "unconfigured",
-        "runtime": None,
-        "native_session_id": None,
-        "stop_present": None,
-        "activation": None,
-        "native_turn": {"state": "not_observed"},
-    }
-    if root is not None:
-        wake_view = {
-            **runtime_contact(root, args.agent_id),
-            "activation": None,
-            "native_turn": {"state": "not_observed"},
-        }
-
+def execute_status(args, registry, installation_path):
+    """工位事实 + Contact；不查询已经退出包的 Core HTTP 服务。"""
+    view = _read_orient_inputs(registry, args.project_id, args.agent_id,
+                               root_override=args.root, installation_path=installation_path)
+    root = Path(view["project"]["root_path"])
+    result = {"ok": view["ok"], "schema": "paos-status/v2", "work": view,
+              "contact": runtime_contact(root, args.agent_id),
+              "backend": "local_files", "http_service_required": False}
     if args.message_id:
-        if root is None:
-            outgoing = {"state": "unavailable", "detail": "Project root is not available."}
-        else:
-            try:
-                dispatch = dispatch_status(root, args.message_id, registry_lookup=_registry_authoritative_or_none(getattr(args, "installation_file", None)))
-                deliveries = [
-                    {
-                        "agent_id": item.get("recipient_agent_id"),
-                        "state": item.get("state"),
-                    }
-                    for item in dispatch.get("deliveries", [])
-                    if isinstance(item, dict)
-                ]
-                outgoing = {
-                    "state": "persisted",
-                    "message_id": dispatch.get("message_id"),
-                    "deliveries": deliveries,
-                }
-            except (MailProblem, AttentionServiceProblem) as problem:
-                outgoing = {
-                    "state": "unavailable",
-                    "error_code": problem.code,
-                    "detail": str(problem),
-                    "details": problem.details,
-                }
-        mail_state["outgoing_message"] = outgoing
-
-    progress = session.get("progress") if isinstance(session.get("progress"), dict) else {}
-    for blocker in progress.get("blockers") or []:
-        if str(blocker or "").strip():
-            blockers.append({"kind": "session_progress", "action": str(blocker)})
-    current_work = detail.get("current_work_item")
-    work_id = str((current_work or {}).get("id") or "") if isinstance(current_work, dict) else ""
-    artifacts = [
-        item
-        for item in detail.get("artifacts", []) or []
-        if isinstance(item, dict) and (not work_id or work_id in (item.get("work_item_ids") or []))
-    ]
-    latest_artifact = max(
-        artifacts,
-        key=lambda item: str(item.get("created_at") or ""),
-        default=None,
-    )
-    todo = workstation.get("todo") if isinstance(workstation.get("todo"), dict) else {}
-    todo_trusted = bool(workstation) and not bool(workstation.get("todo_error")) and not bool(
-        _orient_todo_contract_issues(todo, args.project_id, args.agent_id) if todo else ["missing"]
-    )
-    payload = {
-        "ok": True,
-        "schema": "paos-status/v1",
-        "project_id": args.project_id,
-        "agent_id": args.agent_id,
-        "runtime": {
-            "cli_path": str(running_cli_path),
-            "cli_source_root": str(running_source_root),
-            "cli_source_revision": _git_source_revision(running_source_root),
-            "installation": {
-                "descriptor_path": str(installation_path),
-                "configured": bool(installation.get("configured")),
-                "source_root": configured_source_root,
-                "data_root": str(installation.get("data_root") or ""),
-                "source_revision": _git_source_revision(configured_source_path) if configured_source_path else None,
-                "matches_running_cli": same_source,
-            },
-            "paos_server": server_build,
-        },
-        "responsibility": {
-            "session_status": session.get("status"),
-            "todo": {
-                "path": workstation.get("todo_path", ""),
-                "trusted": todo_trusted,
-                "current": _todo_current_view(todo) if todo_trusted else None,
-                "error": workstation.get("todo_error"),
-            },
-            "formal_request_counts": (detail.get("mailbox") or {}).get("counts") or {},
-            "next_action": _orient_next_action(
-                int(((detail.get("mailbox") or {}).get("counts") or {}).get("inbox") or 0),
-                int(mail_state.get("unhandled_count") or 0),
-                _todo_current_view(todo) if todo_trusted else {},
-                _todo_open_tasks(todo) if todo_trusted else [],
-                todo_trusted,
-            ),
-        },
-        "contact": {"workstation_mail": mail_state, "native_wake": wake_view},
-        "artifact_evidence": (
-            {
-                "state": "registered",
-                "artifact_id": latest_artifact.get("id"),
-                "path": latest_artifact.get("path"),
-                "purpose": latest_artifact.get("purpose"),
-            }
-            if latest_artifact
-            else {"state": "none_registered_for_current_work"}
-        ),
-        "blockers": blockers,
-    }
-    return payload
-
-
-MUTATION_RECEIPT_FIELDS = (
-    "schema",
-    "ok",
-    "operation_id",
-    "project_id",
-    "session_id",
-    "revision",
-    "base_revision",
-    "event_type",
-    "event_id",
-    "created_at",
-    "state",
-    "request_hash",
-    "touched_paths",
-    "allocated_ids",
-    "summary",
-)
+        result["delivery"] = dispatch_status(root, args.message_id,
+            registry_lookup=_registry_authoritative_or_none(str(installation_path)))
+    return result
 
 
 def _remind_via_native(
@@ -1947,71 +814,6 @@ def _inject_from_contact_store(
     return normalized
 
 
-def _compact_mutation_receipt(result: dict[str, Any]) -> dict[str, Any]:
-    """Compact default mutation receipt; the full payload only via --full-result.
-
-    Compact output keeps provenance fields (operation/revision/event/receipt,
-    progress summary, replay state, handoff/activation outcome when present)
-    and a small session summary; bulky history such as cycles/project history
-    is dropped from this view and never re-hid under a nested "full" key.
-    Failure information is never dropped, and "ok" is only reported when the
-    mutation actually returned it - it is never synthesized here.
-    """
-
-    if not isinstance(result, dict):
-        raise TypeError("mutation receipt must be a dict")
-
-    def _blocked() -> bool:
-        handoff = result.get("handoff")
-        if isinstance(handoff, dict) and handoff.get("state") == "not_persisted":
-            return True
-        activation = result.get("activation")
-        if isinstance(activation, dict) and (
-            activation.get("error") or activation.get("uncertain")
-        ):
-            return True
-        return (
-            result.get("ok") is False
-            or bool(result.get("error") or result.get("error_code"))
-        )
-
-    if result.get("full") is None and not _blocked():
-        receipt = result.get("receipt") if isinstance(result.get("receipt"), dict) else {}
-        compacted = {
-            field: result[field]
-            for field in MUTATION_RECEIPT_FIELDS
-            if field in result
-        }
-        for field in MUTATION_RECEIPT_FIELDS:
-            if field not in compacted and field in receipt:
-                compacted[field] = receipt[field]
-        for field in ("replayed", "handoff", "activation", "request_updates"):
-            if field in result:
-                compacted[field] = result[field]
-        session = result.get("session") if isinstance(result.get("session"), dict) else None
-        if session:
-            compacted["session"] = {
-                key: session[key]
-                for key in ("id", "status", "current_work_item_id", "project_revision")
-                if key in session
-            }
-            progress = session.get("progress") if isinstance(session.get("progress"), dict) else None
-            if progress:
-                compacted["session"]["progress"] = {
-                    key: progress[key]
-                    for key in ("status", "summary", "blockers", "next_actions")
-                    if key in progress
-                }
-        if receipt:
-            compacted["receipt_keys"] = sorted(receipt.keys())
-        return compacted
-    return result
-
-
-def _compact_top(marker: dict[str, Any]) -> dict[str, Any]:
-    return {field: marker[field] for field in MUTATION_RECEIPT_FIELDS if field in marker}
-
-
 def _mail_item_pending(item: dict[str, Any]) -> bool:
     if str(item.get("input_state") or "") in {"pending", "handled"}:
         return str(item.get("input_state")) == "pending"
@@ -2039,16 +841,12 @@ def _rank_inbox_mail_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def execute_inbox(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
 ) -> Any:
-    project_response = client.request("GET", f"/api/projects/{args.project_id}")
-    project = project_response.get("project")
+    project = registry.read(args.project_id)
     if not isinstance(project, dict):
         raise CliError("Project response is missing project", error_code="invalid_response")
-    detail = get_session_detail(client, args.project_id, args.agent_id)
-    mailbox = detail.get("mailbox")
-    if not isinstance(mailbox, dict):
-        raise CliError("Session Detail is missing mailbox", error_code="invalid_response")
+    get_session_detail(registry, args.project_id, args.agent_id)
     root_raw = str(args.root or project.get("root_path") or "").strip()
     durable_mail: dict[str, Any] = {
         "state": "unavailable",
@@ -2109,19 +907,17 @@ def execute_inbox(
         durable_mail["detail"] = "Project 未登记 root_path，且未提供 --root。"
 
     payload = {
-        "ok": True,
+        "ok": durable_mail["state"] == "ready",
         "schema": INBOX_SCHEMA,
         "project_id": args.project_id,
         "agent_id": args.agent_id,
-        "project_revision": detail.get("project_revision"),
+        "project_revision": project.get("revision"),
         "durable_mail": durable_mail,
-        "formal_requests": compact_mailbox(mailbox),
         "runtime_reachability": {"state": "unknown", "checked": False},
         "message_consumption": {"state": "not_observed", "source": "inbox read does not inspect CAT Exchanges or native Runtime turns"},
         "business_result_delivery": {"state": "not_inferred"},
         "business_acceptance": {"state": "not_inferred"},
         "expand": {
-            "request_details": f"paos session mailbox {args.project_id} {args.agent_id}",
             "mail_list": f"paos mail list {args.project_id} {args.agent_id}",
             "project": f"paos project show {args.project_id}",
         },
@@ -2131,10 +927,9 @@ def execute_inbox(
     lines = [
         f"PAOS inbox — {args.agent_id} @ {args.project_id}",
         f"Durable Workstation Mail: {durable_mail.get('state')} ({durable_mail.get('count', 0)})；未处理 {durable_mail.get('unhandled_count', 0)}；其余用 {durable_mail.get('expand_with', 'paos mail list …')} 查看",
-        f"Formal Request inbox/waiting: {(payload['formal_requests'].get('counts') or {}).get('inbox', 0)}/{(payload['formal_requests'].get('counts') or {}).get('waiting', 0)}",
         "Runtime reachability: unknown (not probed)",
         "Message consumption/reply: not observed by this read",
-        "Business result delivery/acceptance: not inferred from Mail or Request presence",
+        "Business result delivery/acceptance: not inferred from Mail presence",
     ]
     for item in durable_mail.get("items") or []:
         marker = " [未处理]" if _mail_item_pending(item) else ""
@@ -2144,16 +939,14 @@ def execute_inbox(
             f"  …其余 {durable_mail['omitted']} 封用 {durable_mail.get('expand_with', 'paos mail list …')} 查看"
             f"（未处理隐藏 {durable_mail.get('unhandled_hidden', 0)} 封）"
         )
-    for item in (payload["formal_requests"].get("inbox") or []):
-        lines.append(f"  Request · {item.get('request_id')} [{item.get('status')}] {item.get('description') or ''}")
     return "\n".join(lines)
 
 
 def _roster_root(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
 ) -> tuple[Path, dict[str, Any]]:
-    project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+    project = registry.read(args.project_id)
     root_raw = str(getattr(args, "root", None) or project.get("root_path") or "").strip()
     if not root_raw:
         raise CliError(
@@ -2170,77 +963,17 @@ def _apply_fresh_probe(root: Path, entry: dict[str, Any]) -> None:
     runtime.update({"state_basis": "probe_never_run", "checked_at": None})
 
 
-def execute_ports(args: argparse.Namespace, client: RestClient) -> Any:
-    project_roots = []
-    items = (client.request("GET", "/api/projects") or {}).get("items") or []
-    for project in items:
-        raw_root = str(project.get("root_path") or "").strip()
-        if raw_root:
-            project_roots.append(
-                (str(project.get("id")), Path(posix_windows_drive_locator(raw_root)).expanduser())
-            )
-    from paos_ports import build_ports_view, PortsProblem, render_ports_markdown  # noqa: PLC0415
-
-    view = build_ports_view(
-        installation=load_installation_descriptor(resolve_installation_path()),
-        core_base_url=client.base_url,
-        cat_base_url=os.environ.get("PAOS_CAT_BASE_URL") or None,
-        project_roots=project_roots,
-        probed=bool(getattr(args, "probe", True)),
-        probe_host=getattr(args, "probe_host", None) or None,
-    )
-    if getattr(args, "json_output", False):
-        return view
-    print(render_ports_markdown(view))
-    return None
-
-
-def execute_home(args: argparse.Namespace, client: RestClient) -> Any:
-    """Read-only same-source home view; optional PAOS-HOME.md region write."""
-    data = client.request("GET", "/api/home") or {}
-    markdown = str(data.get("markdown") or "")
-    if getattr(args, "write", None):
-        home_module_dir = Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"
-        if str(home_module_dir) not in sys.path:
-            sys.path.insert(0, str(home_module_dir))
-        from home_readmodel import (  # noqa: PLC0415
-            HomeWriteProblem,
-            apply_generated_region_bytes,
-        )
-
-        target = Path(posix_windows_drive_locator(str(args.write))).expanduser()
-        if not target.is_file():
-            raise CliError(
-                f"目标文件不存在：{target}",
-                error_code="home_target_missing",
-                hint="PAOS-HOME.md 由入口 owner 维护；生成区标记需在既有文件内预先明确。",
-            )
-        existing = target.read_bytes()
-        new_bytes = apply_generated_region_bytes(existing, markdown.encode("utf-8"))
-        target.write_bytes(new_bytes)
-        return {
-            "ok": True,
-            "written": str(target),
-            "captured_at": (data.get("view") or {}).get("captured_at"),
-            "note": "仅替换 PAOS-HOME:GENERATED 生成区；生成区外字节原样保留（换行风格按标记间原字节）",
-        }
-    if getattr(args, "json_output", False):
-        return data.get("view") or data
-    print(markdown.rstrip())
-    return None
-
-
 def execute_team(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
 ) -> Any:
-    root, project = _roster_root(args, client)
+    root, project = _roster_root(args, registry)
     numbers_map = _staff_numbers_map(args)
     agents = build_team_rows(project, root, numbers_map=numbers_map)["agents"]
     for entry in agents:
         if bool(getattr(args, "probe", False)):
             _apply_fresh_probe(root, entry)
-    installation = load_installation_descriptor(resolve_installation_path())
+    installation = load_installation_descriptor(registry.installation_path)
     payload = {
         "ok": True,
         "schema": CONTACT_SCHEMA,
@@ -2249,7 +982,7 @@ def execute_team(
         "roster_filter": "fixed_workstation",
         "agents": agents,
         "meta": {
-            "base_url": client.base_url,
+            "backend": "local_files",
             "installation": installation,
             "note": (
                 "TEAM=长期固定工位名册，与 Session 状态分离；历史 probe 不声称现在在线；"
@@ -2262,8 +995,8 @@ def execute_team(
     return render_contact(payload, include_self=True)
 
 
-def execute_peers(args: argparse.Namespace, client: RestClient) -> Any:
-    root, project = _roster_root(args, client)
+def execute_peers(args: argparse.Namespace, registry: ProjectRegistry) -> Any:
+    root, project = _roster_root(args, registry)
     numbers_map = _staff_numbers_map(args)
     # peers 与 team 共用 TEAM 长期固定工位名册（fixed_workstation 接线），
     # 排除请求本人；既有 JSON 读面键保留。Session 状态退为历史事实
@@ -2289,7 +1022,6 @@ def execute_peers(args: argparse.Namespace, client: RestClient) -> Any:
     if args.json_output:
         return payload
     return render_contact(payload, include_self=False)
-
 
 
 def _staff_numbers_map(args: argparse.Namespace) -> dict[str, str]:
@@ -2327,47 +1059,10 @@ def render_contact(payload: dict[str, Any], *, include_self: bool) -> str:
         lines.append(f"Installation locator: {installation.get('path') or 'not configured'}")
         if installation.get("source_root"):
             lines.append(f"Source root: {installation.get('source_root')}")
-    if isinstance(meta.get("base_url"), str):
-        lines.append(f"base_url: {meta['base_url']}")
     note = str(meta.get("note") or "")
     if note:
         lines.append(f"Note: {note}")
     return "\n".join(lines)
-
-
-def build_session_update_payload(
-    *,
-    op: str,
-    revision: int,
-    session_id: str,
-    fields: dict[str, Any],
-) -> dict[str, Any]:
-    return {
-        "schema": "paos-session-update/v1",
-        "operation_id": op,
-        "base_revision": revision,
-        "session_id": session_id,
-        **fields,
-    }
-
-
-def complete_version_ref(args: argparse.Namespace) -> dict[str, str] | None:
-    values = {
-        "provider": getattr(args, "version_provider", None),
-        "revision": getattr(args, "version_revision", None),
-        "path": getattr(args, "version_path", None),
-    }
-    present = [bool(str(value or "").strip()) for value in values.values()]
-    if any(present) and not all(present):
-        raise CliError(
-            "--version-provider, --version-revision and --version-path must be provided together",
-            error_code="incomplete_version_ref",
-        )
-    if not all(present):
-        return None
-    return {key: str(value).strip() for key, value in values.items()}
-
-
 
 
 def _allocate_staff_number(args: argparse.Namespace, installation_path: Path) -> str:
@@ -2387,11 +1082,11 @@ def _allocate_staff_number(args: argparse.Namespace, installation_path: Path) ->
 
 def execute_workstation(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     installation_path: Path,
 ) -> dict[str, Any]:
-    """Runtime-local workspace preflight / cycle-bound materialization."""
-    project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+    """Create/read files for an already registered stable Home."""
+    project = registry.read(args.project_id)
     root_raw = args.root or str(project.get("root_path") or "").strip()
     if not root_raw:
         raise CliError(
@@ -2403,7 +1098,7 @@ def execute_workstation(
     root = Path(root_raw).expanduser()
 
     if args.workstation_command == "init":
-        detail = get_session_detail(client, args.project_id, args.session_id)
+        detail = get_session_detail(registry, args.project_id, args.session_id)
         session = detail.get("session") or {}
         workflow_library = str(getattr(args, "workflow_library", None) or "")
         skill_library = str(getattr(args, "skill_library", None) or "")
@@ -2520,7 +1215,6 @@ def _home_uses_todo_v3(root: Path, agent_id: str) -> bool:
     return _frontmatter_schema(raw) == "paos-todo/v3"
 
 
-
 def _resolve_staff_number_recipients(args: argparse.Namespace) -> list[str]:
     """Human 统一 S 号寻址：`--to`/`--agents` 中的 `Sxxx`（列表或单字符串，
     如 chat --to S032 / mail --to S032）经真实注册登记反查为完整 Agent ID，
@@ -2549,7 +1243,7 @@ def _resolve_staff_number_recipients(args: argparse.Namespace) -> list[str]:
 
 
 def _cross_project_target_lookup(
-    client: RestClient,
+    registry: ProjectRegistry,
     root: Path,
     target_agent_id: str,
 ) -> Callable[[str], dict[str, Any]] | None:
@@ -2562,7 +1256,7 @@ def _cross_project_target_lookup(
     (None => keep the invoked-project path unchanged)."""
     try:
         project_id = agent_project_id(target_agent_id)
-        project = client.request("GET", f"/api/projects/{project_id}").get("project")
+        project = registry.read(project_id)
     except (CliError, AgentActivationProblem, HomeProblem):
         # Non-convention ids (rooter-001 etc.) never enter the cross-project
         # branch: keep the invoked-project path unchanged instead of leaking.
@@ -2731,11 +1425,11 @@ def _todo_write_receipt(write_result: dict[str, Any]) -> dict[str, Any]:
 
 def execute_agent(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     installation_path: Path | None = None,
 ) -> dict[str, Any]:
     """Agent-first durable communication (durable delivery + persisted intent only); an independent wake trigger is executed once by a legitimate native caller."""
-    project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+    project = registry.read(args.project_id)
     root_raw = str(getattr(args, "root", None) or project.get("root_path") or "").strip()
     if not root_raw:
         raise CliError(
@@ -2902,7 +1596,7 @@ def execute_agent(
                 }
                 if target not in invoked_members:
                     cross_lookup = _cross_project_target_lookup(
-                        client, root, target
+                        registry, root, target
                     )
             if cross_lookup is not None or _recipient_contract(root=root, recipients=[target]) == "v3":
                 return {
@@ -3034,53 +1728,10 @@ def execute_agent(
         error_code="unsupported_command",
     )
 
-def _refresh_workbench_notice(
-    installation_path: Path, home_ref: dict[str, Any], result: dict[str, Any],
-    notice_id: str,
-) -> dict[str, Any]:
-    try:
-        import sys as _sys
-
-        _sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-        from workbench_markdown import refresh_home_after_notice
-
-        notice = result.get("notice") if isinstance(result.get("notice"), dict) else result
-        page = refresh_home_after_notice(
-            installation_path, home_ref, notice_id=notice_id,
-            state=str(notice.get("state") or "pending"),
-            read=bool(notice.get("read")),
-        )
-    except Exception as error:  # noqa: BLE001 - business write already committed
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_failed", "error": type(error).__name__}
-        return result
-    if page.get("status") == "conflict":
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_conflict", "page": page.get("page")}
-    else:
-        result["projection"] = {"ok": True, "page": page.get("page"), "status": page.get("status")}
-    return result
-
-
-def _refresh_workbench_fast(installation_path: Path, home_ref: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
-    try:
-        import sys as _sys
-
-        _sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-        from workbench_markdown import refresh_home_after_todo
-
-        page = refresh_home_after_todo(installation_path, home_ref)
-    except Exception as error:  # noqa: BLE001 - business write already committed
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_failed", "error": type(error).__name__}
-        return result
-    if page.get("status") == "conflict":
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_conflict", "page": page.get("page")}
-    else:
-        result["projection"] = {"ok": True, "page": page.get("page"), "status": page.get("status")}
-    return result
-
 
 def execute_attention(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     installation_path: Path,
 ) -> dict[str, Any]:
     """V1.3 Home service; public paths persist facts but never submit native turns."""
@@ -3190,7 +1841,7 @@ def execute_attention(
                     ),
                 }
 
-        project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+        project = registry.read(args.project_id)
         root_raw = str(
             getattr(args, "root", None)
             or project.get("root_path")
@@ -3232,13 +1883,13 @@ def execute_attention(
                     resolution=text_arg(args.resolution, "resolution"),
                     action_ref=text_arg(args.action_ref, "action ref"),
                 )}
-                return _refresh_workbench_notice(installation_path, home_ref, handled, str(args.notice_id))
+                return handled
             if args.attention_command == "read":
                 marked = {"ok": True, **attention_mark_input_read(
                     home_ref=home_ref,
                     notice_id=str(args.notice_id),
                 )}
-                return _refresh_workbench_notice(installation_path, home_ref, marked, str(args.notice_id))
+                return marked
             if args.attention_command == "notice-update":
                 return {
                     "ok": True,
@@ -3259,7 +1910,7 @@ def execute_attention(
                     ),
                 }
             if args.attention_command == "todo-write":
-                return _refresh_workbench_fast(installation_path, home_ref, {
+                return {
                     "ok": True,
                     **_todo_write_receipt(
                         attention_write_home_todo(
@@ -3274,9 +1925,9 @@ def execute_attention(
                             ),
                         )
                     ),
-                })
+                }
             if args.attention_command == "takeover":
-                return _refresh_workbench_fast(installation_path, home_ref, {
+                return {
                     "ok": True,
                     **attention_takeover_input(
                         home_ref=home_ref,
@@ -3284,9 +1935,9 @@ def execute_attention(
                         updates=_parse_todo_update_sets(args.sets),
                         expected_fingerprint=getattr(args, "expected_fingerprint", None),
                     ),
-                })
+                }
             if args.attention_command == "todo-update":
-                return _refresh_workbench_fast(installation_path, home_ref, {
+                return {
                     "ok": True,
                     **attention_update_home_todo_fields(
                         home_ref=home_ref,
@@ -3295,7 +1946,7 @@ def execute_attention(
                             args, "expected_fingerprint", None
                         ),
                     ),
-                })
+                }
             if args.attention_command == "source-register":
                 return {
                     "ok": True,
@@ -3373,7 +2024,7 @@ def load_driver_config(path: str | None) -> dict[str, Any]:
 
 def execute_wake(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     installation_path: Path | None = None,
 ) -> dict[str, Any]:
     """Workless wake surface: native-target config + one-shot injection only.
@@ -3395,7 +2046,7 @@ def execute_wake(
     if is_rooter_home:
         root = route[1]
     else:
-        project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+        project = registry.read(args.project_id)
         root_raw = str(getattr(args, "root", None) or project.get("root_path") or "").strip()
         if not root_raw:
             raise CliError(
@@ -3405,30 +2056,15 @@ def execute_wake(
         root = Path(posix_windows_drive_locator(root_raw)).expanduser()
     try:
         if args.wake_command == "bind":
-            if is_rooter_home:
-                # Rooter Home 不是 Project Session：只从 argv 取原生目标，不查/建 Session。
-                native_session_id = str(getattr(args, "native_session_id", None) or "").strip()
-                if not native_session_id:
-                    raise CliError(
-                        "Rooter Home bind 需要 --native-session-id（不读 Project Session）。",
-                        error_code="wake_native_session_missing",
-                    )
-                runtime_id = str(getattr(args, "runtime_id", None) or "").strip() or None
-            else:
-                detail = get_session_detail(client, args.project_id, args.agent_id)
-                session = detail.get("session") or {}
-                runtime_session = (
-                    session.get("runtime_session")
-                    if isinstance(session.get("runtime_session"), dict)
-                    else {}
-                )
-                runtime_id = str(args.runtime_id or session.get("runtime_id") or "").strip() or None
-                native_session_id = str(args.native_session_id or runtime_session.get("session_id") or "").strip()
-                if not native_session_id:
-                    raise CliError(
-                        "bind 需要 --native-session-id 或 Session 已登记 runtime_session。",
-                        error_code="wake_native_session_missing",
-                    )
+            # Portable binding is explicit; never inherit a native session from
+            # an old machine's Project JSON, even if historical fields remain.
+            if not is_rooter_home:
+                get_session_detail(registry, args.project_id, args.agent_id)
+            native_session_id = str(args.native_session_id or "").strip()
+            runtime_id = str(args.runtime_id or "").strip() or None
+            if not native_session_id:
+                raise CliError("bind 需要本机明确的 --native-session-id。",
+                               error_code="wake_native_session_missing")
             driver_config = load_driver_config(args.driver_config)
             return {
                 "ok": True,
@@ -3557,10 +2193,10 @@ def execute_wake(
 
 def execute_mail(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
 ) -> dict[str, Any]:
     """V1.3 Mail UX backed by immutable Mail + unified Notice handling."""
-    project = client.request("GET", f"/api/projects/{args.project_id}")["project"]
+    project = registry.read(args.project_id)
     root_raw = str(
         getattr(args, "root", None)
         or project.get("root_path")
@@ -3804,20 +2440,20 @@ def execute_mail(
 def execute_library(
     args: argparse.Namespace,
     installation_path: Path,
-    client: RestClient,
+    registry: ProjectRegistry,
 ) -> dict[str, Any]:
-    """Workflow / Skill Library operations (catalog/usage on disk; search via the local HTTP read face)."""
+    """Workflow / Skill helpers share the same installed local roots."""
     try:
         if args.library_command == "search":
-            query = urlencode({
-                "q": args.query,
-                "kind": args.kind,
-                "limit": args.limit,
-            })
-            return client.request("GET", "/api/library/search?" + query)
+            roots = _load_roots(installation_path)
+            return {"ok": True, **search_library_resources(roots, args.query,
+                                                          kind=args.kind, limit=args.limit)}
 
         if args.library_command == "tools":
-            return client.request("GET", "/api/library/tools")
+            roots = _load_roots(installation_path)
+            path = _validate_tool_catalog_file(roots.get("tool_catalog") or "")
+            text = Path(posix_windows_drive_locator(path)).read_text(encoding="utf-8")
+            return {"ok": True, "path": path, "raw_markdown": text}
         if args.library_command == "roots":
             installation = load_installation_descriptor(installation_path)
             config_path = resolve_library_roots_path(
@@ -3896,128 +2532,19 @@ def execute_library(
 
 def execute(
     args: argparse.Namespace,
-    client: RestClient,
+    registry: ProjectRegistry,
     *,
-    config_path: Path | None = None,
     installation_path: Path | None = None,
 ) -> Any:
     if args.command == "cat":
-        return execute_cat(args, client, text_arg)
+        return execute_cat(args, RestClient(args.url, service="CAT"), text_arg)
     resolved_installation_path = installation_path or resolve_installation_path(
         getattr(args, "installation_file", None)
     )
 
-    if args.command == "workbench":
-        import sys as _sys
-        from pathlib import Path as _Path
-
-        _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-        from workbench_markdown import WorkbenchProblem, build_workbench
-
-        if args.workbench_command in {"scan", "watch"}:
-            import time as _time
-            from workbench_refresh import scan_dirty
-
-            limit = int(getattr(args, "limit", 32) or 32)
-            while True:
-                result = scan_dirty(resolved_installation_path, limit=limit)
-                if args.json_output and args.workbench_command == "scan":
-                    return result
-                if args.workbench_command == "scan":
-                    return f"工作台补扫：处理 {result['processed']} 个标记；ok={result['ok']}"
-                if bool(getattr(args, "once", False)):
-                    return result
-                _time.sleep(max(1, int(getattr(args, "interval", 60))))
-
-        try:
-            result = build_workbench(
-                resolved_installation_path,
-                home_ids=list(getattr(args, "home", None) or []),
-                project_ids=list(getattr(args, "project", None) or []),
-                changed_only=bool(getattr(args, "changed_only", False)),
-            )
-        except WorkbenchProblem as error:
-            raise CliError(
-                str(error), status=error.status, error_code=error.code,
-                details=error.details,
-            ) from error
-        if args.json_output:
-            return result
-        return render_workbench(result)
 
     if args.command == "install":
         try:
-            if args.install_command == "rollback":
-                import sys as _sys
-                from pathlib import Path as _Path
-
-                _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-                from paos_program_rollback import RollbackProblem, apply_program_rollback, plan_program_rollback
-
-                try:
-                    if getattr(args, "apply", False):
-                        if not args.compatibility_file:
-                            raise RollbackProblem("rollback_compatibility_missing", "执行回退必须提供 --compatibility-file。")
-                        result = apply_program_rollback(
-                            resolved_installation_path, args.target_source, args.compatibility_file,
-                        )
-                    else:
-                        result = plan_program_rollback(resolved_installation_path, args.target_source)
-                        if args.compatibility_file:
-                            from paos_program_rollback import _load_compat, validate_compatibility
-                            compat = _load_compat(Path(args.compatibility_file))
-                            validate_compatibility(result, compat)
-                            result["compatibility"] = compat
-                            result["ready"] = True
-                            result["reason"] = None
-                except RollbackProblem as error:
-                    raise CliError(
-                        str(error), status=409 if error.code == "rollback_writer_active" else 422,
-                        error_code=error.code, details=error.details,
-                    ) from error
-                return result if args.json_output else render_program_rollback(result)
-            if args.install_command == "plan":
-                import sys as _sys
-                from pathlib import Path as _Path
-
-                _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-                from install_plan import InstallPlanProblem, build_install_plan
-
-                try:
-                    plan = build_install_plan(
-                        resolved_installation_path,
-                        target_source=getattr(args, "target_source", None),
-                        retire=bool(getattr(args, "retire", False)),
-                    )
-                except InstallPlanProblem as error:
-                    raise CliError(
-                        str(error), status=error.status, error_code=error.code,
-                        details=error.details,
-                    ) from error
-                if args.json_output:
-                    return plan
-                return render_install_plan(plan)
-            if args.install_command == "homes":
-                import sys as _sys
-                from pathlib import Path as _Path
-
-                _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-                from install_homes import InstallHomesProblem, build_install_home_coverage
-
-                try:
-                    coverage = build_install_home_coverage(
-                        resolved_installation_path,
-                        project=getattr(args, "project", None),
-                        home=getattr(args, "home", None),
-                    )
-                except InstallHomesProblem as error:
-                    raise CliError(
-                        str(error), status=error.status, error_code=error.code,
-                        details=error.details,
-                    ) from error
-                if args.json_output:
-                    return coverage
-                return render_install_homes(coverage)
             if args.install_command == "configure":
                 return {
                     "ok": True,
@@ -4076,514 +2603,71 @@ def execute(
             ) from None
 
     if args.command == "workstation":
-        return execute_workstation(args, client, resolved_installation_path)
+        return execute_workstation(args, registry, resolved_installation_path)
 
     if args.command == "orient":
-        return execute_orient(args, client, resolved_installation_path)
+        return execute_orient(args, registry, resolved_installation_path)
 
     if args.command == "status":
-        return execute_status(args, client, resolved_installation_path)
+        return execute_status(args, registry, resolved_installation_path)
 
     if args.command == "inbox":
-        return execute_inbox(args, client)
+        return execute_inbox(args, registry)
 
     if args.command == "peers":
-        return execute_peers(args, client)
+        return execute_peers(args, registry)
 
     if args.command == "team":
-        return execute_team(args, client)
+        return execute_team(args, registry)
 
-    if args.command == "home":
-        return execute_home(args, client)
-
-    if args.command == "ports":
-        return execute_ports(args, client)
 
     if args.command == "library":
-        return execute_library(args, resolved_installation_path, client)
+        return execute_library(args, resolved_installation_path, registry)
 
-    if args.command == "tips":
-        if args.tips_command == "search":
-            project_values = args.project or []
-            if len(project_values) > 1:
-                raise CliError(
-                    "--project 只能指定一次。",
-                    error_code="tips_search_project_invalid",
-                )
-            params = {"q": args.query, "limit": args.limit}
-            if project_values:
-                project_value = project_values[0]
-                if (
-                    not isinstance(project_value, str)
-                    or not project_value.strip()
-                    or len(project_value.strip()) > 200
-                    or "\x00" in project_value
-                ):
-                    raise CliError(
-                        "--project 去除首尾空白后长度必须为 1–200 个字符，且不能包含 NUL。",
-                        error_code="tips_search_project_invalid",
-                    )
-                params["project"] = project_value
-            return client.request("GET", "/api/tips/search?" + urlencode(params))
-        if args.tips_command == "read":
-            if not isinstance(args.tip_id, str) or not re.fullmatch(r"tip-[A-Za-z0-9_-]{1,120}", args.tip_id):
-                raise CliError(
-                    "Tip ID 无效；只接受 tip-[A-Za-z0-9_-]{1,120}。",
-                    error_code="tips_id_invalid",
-                )
-            encoded_tip_id = quote(args.tip_id, safe="")
-            return client.request("GET", "/api/tips/" + encoded_tip_id)
-        if args.tips_command == "correct":
-            raw_text = text_arg(args.body, "correction request", required=True)
-            try:
-                payload = json.loads(raw_text)
-            except json.JSONDecodeError as exc:
-                raise CliError("correction request 不是合法 JSON。", error_code="tips_correction_invalid") from exc
-            if not isinstance(payload, dict):
-                raise CliError("correction request 必须是 JSON 对象。", error_code="tips_correction_invalid")
-            if payload.get("schema") != "paos-tip-correction/v1":
-                raise CliError("schema 必须是 paos-tip-correction/v1。", error_code="tips_correction_invalid")
-            required = ("id", "base_tip_id", "base_source_sha256", "title", "project", "reason", "actor")
-            missing = [name for name in required if name not in payload]
-            if missing:
-                raise CliError("correction request 缺少字段：" + "、".join(missing), error_code="tips_correction_invalid")
-            for key in ("id", "base_tip_id"):
-                if not re.fullmatch(r"tip-[A-Za-z0-9_-]{1,120}", str(payload[key])):
-                    raise CliError(f"{key} 无效。", error_code="tips_correction_invalid")
-            if payload["id"] == payload["base_tip_id"]:
-                raise CliError("新旧 ID 必须不同。", error_code="tips_correction_invalid")
-            if not re.fullmatch(r"[0-9a-f]{64}", str(payload["base_source_sha256"])):
-                raise CliError("base_source_sha256 必须是 64 位小写十六进制。", error_code="tips_correction_invalid")
-            return post_mutation(
-                client, "/api/tips/corrections", payload, str(payload["id"]), 0,
-                unknown_message="请求超时，服务端可能已提交，结果未知。保留原 Tip ID，按该新 ID 核查后再决定；不要自动重发。",
-                unknown_hint="按新 Tip ID 读取或搜索确认是否已提交；不要自动重发或更换 ID。",
-            )
-        if args.tips_command == "absorptions":
-            if not isinstance(args.tip_id, str) or not re.fullmatch(r"tip-[A-Za-z0-9_-]{1,120}", args.tip_id):
-                raise CliError("Tip ID 无效；只接受 tip-[A-Za-z0-9_-]{1,120}。", error_code="tips_id_invalid")
-            if not re.fullmatch(r"[0-9a-f]{64}", str(args.source_sha256 or "")):
-                raise CliError("--source-sha256 必须是 64 位小写十六进制。", error_code="tips_absorption_query_invalid")
-            return client.request(
-                "GET",
-                "/api/tips/" + quote(args.tip_id, safe="") + "/absorptions?source_sha256=" + args.source_sha256,
-            )
-        if args.tips_command == "history":
-            if not isinstance(args.tip_id, str) or not re.fullmatch(r"tip-[A-Za-z0-9_-]{1,120}", args.tip_id):
-                raise CliError(
-                    "Tip ID 无效；只接受 tip-[A-Za-z0-9_-]{1,120}。",
-                    error_code="tips_id_invalid",
-                )
-            return client.request("GET", "/api/tips/" + quote(args.tip_id, safe="") + "/history")
-        raise CliError("Unsupported Tips command", error_code="unsupported_command")
 
     if args.command == "attention":
-        return execute_attention(args, client, resolved_installation_path)
+        return execute_attention(args, registry, resolved_installation_path)
 
     if args.command == "mail":
-        return execute_mail(args, client)
+        return execute_mail(args, registry)
 
     if args.command == "agent":
-        return execute_agent(args, client, resolved_installation_path)
+        return execute_agent(args, registry, resolved_installation_path)
 
     if args.command == "wake":
-        return execute_wake(args, client, resolved_installation_path)
+        return execute_wake(args, registry, resolved_installation_path)
 
-    if args.command == "config":
-        path = config_path or resolve_config_path(getattr(args, "config_file", None))
-        if args.config_command == "set-base-url":
-            config = write_cli_config(path, base_url=args.value)
-            return {
-                "ok": True,
-                "schema": CLI_CONFIG_SCHEMA,
-                "path": str(path),
-                **config,
-            }
-        config = load_cli_config(path)
-        return {
-            "ok": True,
-            "schema": CLI_CONFIG_SCHEMA,
-            "path": str(path),
-            "configured_base_url": config.get("base_url", ""),
-            "effective_base_url": resolve_base_url(args.base_url, path),
-        }
 
     if args.command == "health":
-        return client.request("GET", "/api/health")
+        descriptor = load_installation_descriptor(resolved_installation_path)
+        data = effective_data_root(descriptor)
+        if not data.is_dir():
+            raise CliError("安装 data_root 不存在。", error_code="installation_data_root_unavailable")
+        return {"ok": True, "backend": "local_files", "installation": str(resolved_installation_path),
+                "data_root": str(data), "http_service_required": False, "runtime_verified": False}
 
-    if args.command == "authority":
-        q = "?" + urlencode({"actor": args.actor}) if args.actor else ""
-        response = client.request("GET", "/api/authority" + q)
-        if args.json_output:
-            return response
-        return render_authority(response["authority"], args.allowed_only)
-
-    if args.command == "relations":
-        return client.request("GET", f"/api/projects/{args.project_id}/relations")
-
-    if args.command == "needs-me":
-        return client.request("GET", f"/api/projects/{args.project_id}/needs-me")
 
     if args.command == "project":
+        project = registry.read(args.project_id)
         if args.project_command == "experience":
-            return client.request("GET", f"/api/projects/{quote(args.project_id, safe='')}/experience")
-        if args.project_command == "acceptance-check":
-            if not isinstance(args.home, str) or not args.home.strip() or not isinstance(args.task, str) or not args.task.strip():
-                raise CliError("--home 与 --task 不能为空。", error_code="acceptance_check_query_invalid")
-            if args.ref_index < 0:
-                raise CliError("--ref-index 必须是非负整数。", error_code="acceptance_check_query_invalid")
-            if not re.fullmatch(r"[0-9a-f]{64}", str(args.todo_sha256 or "")):
-                raise CliError("--todo-sha256 必须是 64 位小写十六进制。", error_code="acceptance_check_query_invalid")
-            params = urlencode({
-                "home_id": args.home.strip(),
-                "task_id": args.task.strip(),
-                "ref_index": args.ref_index,
-                "todo_sha256": args.todo_sha256,
-            })
-            return client.request(
-                "GET",
-                f"/api/projects/{quote(args.project_id, safe='')}/acceptance-ref/verify?" + params,
-            )
-        if args.project_command == "outcomes":
-            view = "full" if args.full else "summary"
-            return client.request(
-                "GET",
-                f"/api/projects/{args.project_id}/outcomes?view={view}",
-            )
-        if args.project_command == "progress-update":
-            payload = build_project_progress_update_payload(args)
-            return post_mutation(
-                client,
-                "/api/agent/project-progress-update",
-                payload,
-                payload["update_id"],
-                payload["expected_revision"],
-            )
-        if args.project_command == "show":
-            return client.request("GET", f"/api/projects/{args.project_id}")
-        return client.request("GET", f"/api/projects/{args.project_id}/stewardship")
+            path = Path(posix_windows_drive_locator(project["root_path"])) / "Materials" / "TIPS.md"
+            return {"ok": True, "path": str(path), "raw_markdown": path.read_text(encoding="utf-8")}
+        # 返回登记所需字段；项目最新口径与任务不是另一个 JSON 概览。
+        return {"ok": True, "project": {k: project.get(k) for k in
+                ("id", "name", "root_path", "organization")},
+                "homes": [{"id": h["id"]} for h in project["sessions"]]}
 
-    if args.command == "session":
-        if args.session_command == "show":
-            return get_session_detail(client, args.project_id, args.session_id)
-        if args.session_command == "context":
-            return session_context(client, args.project_id, args.session_id)
-        if args.session_command == "mailbox":
-            return session_mailbox(client, args.project_id, args.session_id)
-
-        base_path = (
-            f"/api/projects/{args.project_id}/sessions/{args.session_id}"
-        )
-        detail: dict[str, Any] | None = None
-        if args.session_command == "artifact-add" and args.revision is not None:
-            detail = get_session_detail(client, args.project_id, args.session_id)
-        op, rev, detail = session_mutation_meta(
-            client,
-            args.project_id,
-            args.session_id,
-            args,
-            detail,
-        )
-        if args.session_command == "ack":
-            contact_args = []
-            if args.environment is not None:
-                contact_args.append(("environment", args.environment))
-            if args.runtime_title is not None:
-                contact_args.append(("title", args.runtime_title))
-            if args.native_session_id is not None:
-                contact_args.append(("session_id", args.native_session_id))
-            if args.source_path is not None:
-                contact_args.append(("source_path", args.source_path))
-            runtime_contact = dict(contact_args)
-            payload = {
-                "schema": "paos-session-ack/v1",
-                "operation_id": op,
-                "base_revision": rev,
-                "session_id": args.session_id,
-                "agent_label": args.agent_label or "",
-                "runtime_session": runtime_contact,
-                "understood_objective": text_arg(
-                    args.understood_objective, "understood objective", required=True
-                ),
-                "understood_boundaries": text_list(args.boundary, "boundary"),
-                "proposed_first_steps": text_list(args.first_step, "first step"),
-                "detected_risks": text_list(args.risk, "risk"),
-            }
-            if args.runtime_id:
-                payload["runtime_id"] = args.runtime_id
-                payload["model_id"] = args.model_id or ""
-            elif args.model_id:
-                raise CliError(
-                    "--model-id requires --runtime-id",
-                    error_code="invalid_runtime_binding",
-                )
-            return post_mutation(
-                client,
-                base_path + "/acknowledge",
-                payload,
-                op,
-                rev,
-            )
-
-        if args.session_command in {"update", "report"}:
-            handoff = _prepare_session_handoff(args, client, operation_id=op)
-            payload = build_session_update_payload(
-                op=op,
-                revision=rev,
-                session_id=args.session_id,
-                fields={
-                    "progress": {
-                        "status": args.status,
-                        "summary": text_arg(args.summary, "summary"),
-                        "percent": None,
-                        "blockers": text_list(args.blocker, "blocker"),
-                        "next_actions": text_list(args.next_action, "next action"),
-                    }
-                },
-            )
-            payload.update(load_body(args.body))
-            result = post_mutation(
-                client,
-                base_path + "/updates",
-                payload,
-                op,
-                rev,
-            )
-            compact = True if args.full_result is None else not args.full_result
-            result = _deliver_session_handoff(
-                result,
-                handoff=handoff,
-                project_id=args.project_id,
-                sender_id=args.session_id,
-                operation_id=op,
-            )
-            if compact:
-                return _compact_mutation_receipt(result)
-            return result
-
-        if args.session_command == "artifact-add":
-            purpose = text_arg(args.purpose, "purpose")
-            change_summary = text_arg(args.change_summary, "change summary")
-            if args.replaces and not change_summary:
-                raise CliError(
-                    "--change-summary is required when --replaces is used",
-                    error_code="missing_change_summary",
-                )
-            payload = {
-                "schema": "paos-session-artifact-add/v1",
-                "operation_id": op,
-                "base_revision": rev,
-                "session_id": args.session_id,
-                "path": args.path,
-                "type": args.type,
-                "purpose": purpose,
-                "replaces": args.replaces or "",
-            }
-            if change_summary:
-                payload["change_summary"] = change_summary
-            version_ref = complete_version_ref(args)
-            if version_ref is not None:
-                payload["version_ref"] = version_ref
-            return post_mutation(
-                client,
-                base_path + "/artifacts",
-                payload,
-                op,
-                rev,
-            )
-
-        if args.session_command == "request-create":
-            request = {
-                "request_type": args.request_type,
-                "requires_human": args.requires_human,
-                "target_identity_id": args.target_identity_id or "",
-                "target_session_id": args.target_session_id or "",
-                "description": text_arg(args.description, "request description", required=True),
-            }
-            payload = build_session_update_payload(
-                op=op,
-                revision=rev,
-                session_id=args.session_id,
-                fields={"requests": [request]},
-            )
-            return post_mutation(
-                client,
-                base_path + "/updates",
-                payload,
-                op,
-                rev,
-            )
-
-        if args.session_command == "request-resolve":
-            payload = build_session_update_payload(
-                op=op,
-                revision=rev,
-                session_id=args.session_id,
-                fields={
-                    "request_updates": [
-                        {
-                            "request_id": args.request_id,
-                            "status": args.status,
-                            "resolution": text_arg(args.resolution, "request resolution"),
-                        }
-                    ]
-                },
-            )
-            result = post_mutation(
-                client,
-                base_path + "/updates",
-                payload,
-                op,
-                rev,
-            )
-            return result if args.full_result else _compact_mutation_receipt(result)
-
-        if args.session_command in {"close", "submit"}:
-            handoff = _prepare_session_handoff(args, client, operation_id=op)
-            payload = {
-                "schema": "paos-session-close/v1",
-                "operation_id": op,
-                "base_revision": rev,
-                "session_id": args.session_id,
-                "result": args.result,
-                "result_summary": text_arg(args.summary, "result summary"),
-                "remaining_work": text_list(args.remaining, "remaining work"),
-                "recommended_next_identity_id": args.recommended_next or "",
-            }
-            payload.update(load_body(args.body))
-            result = post_mutation(
-                client,
-                base_path + "/close",
-                payload,
-                op,
-                rev,
-            )
-            return _deliver_session_handoff(
-                result,
-                handoff=handoff,
-                project_id=args.project_id,
-                sender_id=args.session_id,
-                operation_id=op,
-            )
-
-        raise CliError(
-            f"unsupported session command: {args.session_command}",
-            error_code="unsupported_command",
-        )
-
-    if args.command == "coordinator":
-        if args.coordinator_command == "control":
-            return coordinator_control(
-                client,
-                args.project_id,
-                since_revision=args.since_revision,
-            )
-
-        if args.coordinator_command == "guide-promote":
-            project = client.request(
-                "GET", f"/api/projects/{args.project_id}"
-            )["project"]
-            try:
-                validate_current_coordinator(
-                    project,
-                    coordinator_session_id=args.coordinator_session_id,
-                )
-                candidate = Path(
-                    posix_windows_drive_locator(str(args.candidate))
-                ).expanduser()
-                result = promote_guide_candidate(
-                    candidate,
-                    canonical_src=Path(
-                        posix_windows_drive_locator(str(args.canonical))
-                    ).expanduser(),
-                    expected_candidate_sha256=args.expected_candidate_sha256,
-                    change_summary=text_arg(
-                        args.change_summary, "change summary", required=True
-                    ),
-                )
-            except GuideProblem as problem:
-                raise CliError(
-                    str(problem), error_code=problem.code, details=problem.details
-                ) from None
-            return {
-                "ok": True,
-                "project_id": args.project_id,
-                "coordinator_session_id": args.coordinator_session_id,
-                "candidate": str(candidate),
-                **result,
-            }
-
-        op, rev = mutation_meta(client, args.project_id, args)
-        root = f"/api/projects/{args.project_id}/coordinator"
-        common = {
-            "operation_id": op,
-            "revision": rev,
-            "coordinator_session_id": args.coordinator_session_id,
-        }
-        if args.coordinator_command == "request":
-            payload = {
-                "schema": "paos-coordinator-request-create/v1",
-                "operation_id": op,
-                "expected_revision": rev,
-                "session_id": args.coordinator_session_id,
-                "requests": [
-                    {
-                        "request_type": args.request_type,
-                        "target_session_id": args.target_session_id,
-                        "target_identity_id": args.target_identity_id or "",
-                        "description": text_arg(args.description, "description", required=True),
-                    }
-                ],
-            }
-            path = root + "/requests"
-        return post_mutation(client, path, payload, op, rev)
 
     raise CliError("unsupported command", error_code="unsupported_command")
-
-
-def add_mutation_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--operation-id",
-        help="Optional idempotency key; generated when omitted",
-    )
-    parser.add_argument(
-        "--revision",
-        type=int,
-        help="Optimistic-lock revision; current revision is read when omitted",
-    )
-
-
-def add_session_write_args(parser: argparse.ArgumentParser) -> None:
-    add_mutation_args(parser)
-
-
-def add_session_handoff_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--handoff-to", help="Target Agent for a durable post-report handoff")
-    parser.add_argument("--handoff-subject", help="Required durable handoff Mail subject")
-    parser.add_argument("--handoff-body", help="Required durable handoff Mail body, @FILE or '-' for stdin")
-    parser.add_argument("--handoff-message-id", help="Stable Mail id; defaults to this Session operation-id")
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="paos",
         description=(
-            "PAOS Agent/Runtime workflows and supported Coordinator governance. "
-            "Actions that remain explicitly Human-owned stay on the approved Human "
-            "surface. Text values accept "
+            "PAOS local Agent workbench: Home, Mail, Notice, Library and explicit native/CAT actions. Text values accept "
             "literal text, @FILE, or '-' for UTF-8 stdin (use @@... for a literal leading @)."
         ),
-    )
-    p.add_argument(
-        "--base-url",
-        help=(
-            "PAOS origin. Resolution: --base-url > PAOS_BASE_URL > local config "
-            "> http://127.0.0.1:8766"
-        ),
-    )
-    p.add_argument(
-        "--config-file",
-        help="Override the user config path (default ~/.paos/config.json)",
     )
     p.add_argument(
         "--installation-file",
@@ -4607,27 +2691,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=None,
         help=(
-            "For mutating commands (session update/report, request-resolve): "
-            "emit the original full receipt (session history etc.) instead of "
-            "the compact default. Failures always print failure fields."
+            "Show the full Mail/CAT result instead of the compact default."
         ),
     )
     sub = p.add_subparsers(dest="command", required=True)
     add_cat_parser(sub)
 
-    sub.add_parser("health", help="Check PAOS reachability")
-
-    home = sub.add_parser("home", help="Read-only same-source status view")
-    home.add_argument(
-        "--write",
-        dest="write",
-        metavar="PATH",
-        help="Write the generated region of the given PAOS-HOME.md; markers required",
-    )
-
-    ports = sub.add_parser("ports", help="Derived service/port view with real bind+health probes")
-    ports.add_argument("--no-probe", dest="probe", action="store_false", help="Derive rows only")
-    ports.add_argument("--probe-host", dest="probe_host", default="127.0.0.1", help="Bind probe host")
+    sub.add_parser("health", help="Check local installation (not Runtime availability)")
 
     orient = sub.add_parser(
         "orient",
@@ -4648,7 +2718,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     inbox = sub.add_parser(
         "inbox",
-        help="Read durable Workstation Mail separately from formal PAOS Requests",
+        help="Read durable Workstation Mail and its Notice handling state",
     )
     inbox.add_argument("project_id")
     inbox.add_argument("agent_id")
@@ -4656,7 +2726,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     attention = sub.add_parser(
         "attention",
-        help="V1.3 Home TODO/NOTICE/source service; never submits native turns inline",
+        help="Local Home TODO/Notice/source operations; no inline native turn",
     )
     attention_sub = attention.add_subparsers(dest="attention_command", required=True)
 
@@ -5220,62 +3290,12 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("--tool-catalog", help="Absolute path to the registered paos-tool-catalog/v1 file")
     x.add_argument("--config", dest="roots_config")
 
-    tips = sub.add_parser("tips", help="Search and read the current Core-resolved Tips Inbox")
-    tips_sub = tips.add_subparsers(dest="tips_command", required=True)
-    x = tips_sub.add_parser("search", help="Deterministic all-term search of current Inbox Tips")
-    x.add_argument("query")
-    x.add_argument("--project", action="append", help="Exact captured project-text filter; repeat is rejected")
-    x.add_argument("--limit", type=int, choices=range(1, 51), default=20)
-    x = tips_sub.add_parser("read", help="Read one Tip by stable ID from the current Inbox")
-    x.add_argument("tip_id")
-    x = tips_sub.add_parser("correct", help="Append one immutable Tip correction version")
-    x.add_argument("--body", required=True, help="Correction request JSON, @FILE, or '-' for stdin")
-    x = tips_sub.add_parser("history", help="Derive the linear version chain for a Tip")
-    x.add_argument("tip_id")
-    x = tips_sub.add_parser("absorptions", help="Where registered Workflow methods absorbed this Tip version")
-    x.add_argument("tip_id")
-    x.add_argument("--source-sha256", required=True, help="Exact original-byte SHA from tips read")
-
-    cfg = sub.add_parser("config", help="Inspect or persist CLI connection config")
-    cfgs = cfg.add_subparsers(dest="config_command", required=True)
-    cfgs.add_parser("show", help="Show configured/effective PAOS base URL")
-    x = cfgs.add_parser("set-base-url", help="Persist the PAOS base URL for this user")
-    x.add_argument("value")
-
-    workbench = sub.add_parser("workbench", help="Rebuild Markdown workbench pages")
-    workbenches = workbench.add_subparsers(dest="workbench_command", required=True)
-    wb = workbenches.add_parser("build", help="Rebuild install/project/home/resource Markdown pages")
-    wb.add_argument("--home", action="append", help="Exact Home id to include (repeatable)")
-    wb.add_argument("--project", action="append", help="Project id to include (repeatable)")
-    wb.add_argument("--changed-only", action="store_true", help="Skip pages whose source signature is unchanged")
-    scan = workbenches.add_parser("scan", help="Process dirty Home markers once (host maintenance/cron)")
-    scan.add_argument("--limit", type=int, default=32)
-    watch = workbenches.add_parser("watch", help="Host maintenance loop: scan dirty markers every interval")
-    watch.add_argument("--interval", type=int, default=60)
-    watch.add_argument("--once", action="store_true")
-
     install = sub.add_parser(
         "install",
         help="Inspect or configure machine-local PAOS installation locators",
     )
     installs = install.add_subparsers(dest="install_command", required=True)
     installs.add_parser("show", help="Show the installation descriptor and Library registry state")
-    x = installs.add_parser(
-        "rollback", help="Preview or apply an explicit program rollback preserving data_root"
-    )
-    x.add_argument("--target-source", required=True)
-    x.add_argument("--compatibility-file")
-    x.add_argument("--apply", action="store_true")
-    x = installs.add_parser(
-        "plan", help="Read-only upgrade diff and retire preview for this installation"
-    )
-    x.add_argument("--target-source", help="Explicit target Source tree for upgrade diff")
-    x.add_argument("--retire", action="store_true", help="Include retire preview")
-    x = installs.add_parser(
-        "homes", help="Read-only coverage of every registered Project Agent and Rooter Home"
-    )
-    x.add_argument("--project", help="Exact Project ID filter")
-    x.add_argument("--home", help="Exact Home ID filter")
     x = installs.add_parser("configure", help="Write the machine-local installation descriptor")
     x.add_argument("--source-root", required=True)
     x.add_argument(
@@ -5288,199 +3308,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional absolute path of the registered installation-level Rooter Home",
     )
 
-    a = sub.add_parser("authority", help="Inspect current action authority")
-    a.add_argument("--actor", choices=["human", "coordinator", "worker"])
-    a.add_argument("--allowed-only", action="store_true")
-
-    for name in ("relations", "needs-me"):
-        x = sub.add_parser(name)
-        x.add_argument("project_id")
-
-    pr = sub.add_parser("project", help="Inspect Project facts and authorized Agent progress")
+    pr = sub.add_parser("project", help="Read local project registration or project experience")
     prs = pr.add_subparsers(dest="project_command", required=True)
-    x = prs.add_parser(
-        "progress-update",
-        help="Update only generated Project progress fields through a matching managed Session",
-    )
-    x.add_argument("project_id")
-    session_ref_group = x.add_mutually_exclusive_group(required=True)
-    session_ref_group.add_argument("--session-id", help="Managed PAOS Session ID")
-    session_ref_group.add_argument("--handshake-id", help="Existing managed handshake ID")
-    x.add_argument("--expected-revision", type=int, required=True)
-    x.add_argument("--update-id", help="Stable up- ID; reuse unchanged after an uncertain result")
-    x.add_argument("--reason", required=True)
-    x.add_argument("--stage", help="Patch generated.stage")
-    x.add_argument("--progress-and-results", help="Patch generated.progress_and_results")
-    x.add_argument("--recent-change", help="Patch generated.recent_change")
-    x.add_argument("--current-gap", help="Patch generated.current_gap")
-
-    x = prs.add_parser("experience", help="Read the registered Project's Materials/TIPS.md (read-only)")
-    x.add_argument("project_id")
-    x = prs.add_parser(
-        "acceptance-check",
-        help="Verify one acceptance_refs entry's local registered bytes (read-only)",
-    )
-    x.add_argument("project_id")
-    x.add_argument("--home", required=True, help="Registered Project Agent Home ID")
-    x.add_argument("--task", required=True, help="TODO Task ID")
-    x.add_argument("--ref-index", type=int, required=True, help="Zero-based acceptance_refs index")
-    x.add_argument("--todo-sha256", required=True, help="TODO fingerprint_sha256 from the Home work read")
-    x = prs.add_parser(
-        "outcomes",
-        help="Read Project Artifact, Decision and recorded Close history (summary by default)",
-    )
-    x.add_argument("project_id")
-    x.add_argument("--full", action="store_true", help="Return the complete outcomes projection")
-
-    for name in ("show", "inspect"):
+    for name in ("show", "experience"):
         x = prs.add_parser(name)
         x.add_argument("project_id")
 
-    s = sub.add_parser(
-        "session",
-        help="Inspect and manage the current Agent execution Session",
-    )
-    ss = s.add_subparsers(dest="session_command", required=True)
-
-    for name in ("show", "context", "mailbox"):
-        x = ss.add_parser(name)
-        x.add_argument("project_id")
-        x.add_argument("session_id")
-
-    x = ss.add_parser("ack", help="Record an explicit Session acknowledgement")
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument("--understood-objective", required=True)
-    x.add_argument("--agent-label")
-    x.add_argument("--environment")
-    x.add_argument("--runtime-title")
-    x.add_argument("--native-session-id")
-    x.add_argument("--source-path")
-    x.add_argument("--runtime-id")
-    x.add_argument("--model-id")
-    x.add_argument("--boundary", action="append")
-    x.add_argument("--first-step", action="append")
-    x.add_argument("--risk", action="append")
-    add_session_write_args(x)
-
-    x = ss.add_parser("update", aliases=["report"], help="Write current progress")
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument(
-        "--status",
-        default="working",
-        choices=["not_started", "working", "blocked", "done", "review"],
-    )
-    x.add_argument("--summary")
-    x.add_argument("--blocker", action="append")
-    x.add_argument("--next-action", action="append")
-    x.add_argument(
-        "--body",
-        help="Optional extra Session Update JSON file, or '-' for stdin; protected protocol fields cannot be overridden",
-    )
-    add_session_write_args(x)
-    add_session_handoff_args(x)
-
-    x = ss.add_parser(
-        "artifact-add",
-        help="Register a durable Artifact",
-    )
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument("--path", required=True)
-    x.add_argument("--type", default="session_archive")
-    x.add_argument("--purpose")
-    x.add_argument(
-        "--work-id",
-        help="Related Work id; optional",
-    )
-    x.add_argument("--replaces")
-    x.add_argument("--change-summary")
-    x.add_argument("--version-provider")
-    x.add_argument("--version-revision")
-    x.add_argument("--version-path")
-    add_session_write_args(x)
-
-    x = ss.add_parser("request-create", help="Create a Request through Session Update")
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument("--request-type", required=True, choices=REQUEST_TYPES)
-    x.add_argument("--description", required=True)
-    x.add_argument("--requires-human", action="store_true")
-    x.add_argument("--target-identity-id")
-    x.add_argument("--target-session-id")
-    add_session_write_args(x)
-
-    x = ss.add_parser("request-resolve", help="Resolve/cancel a Request through Session Update")
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument("request_id")
-    x.add_argument("--status", required=True, choices=["resolved", "cancelled"])
-    x.add_argument("--resolution")
-    add_session_write_args(x)
-
-    x = ss.add_parser(
-        "close",
-        aliases=["submit"],
-        help="Close this Agent execution Session and record handoff evidence",
-    )
-    x.add_argument("project_id")
-    x.add_argument("session_id")
-    x.add_argument(
-        "--result",
-        required=True,
-        choices=["completed", "partial", "blocked", "abandoned"],
-    )
-    x.add_argument("--summary")
-    x.add_argument("--remaining", action="append")
-    x.add_argument("--recommended-next")
-    x.add_argument(
-        "--body",
-        help="Optional extra Close JSON file, or '-' for stdin; protected protocol fields cannot be overridden",
-    )
-    add_session_write_args(x)
-    add_session_handoff_args(x)
-
-    c = sub.add_parser("coordinator", help="Dedicated Coordinator governance commands")
-    cs = c.add_subparsers(dest="coordinator_command", required=True)
-
-    x = cs.add_parser(
-        "control",
-        help="Thin read-only Coordinator control view over existing projections",
-    )
-    x.add_argument("project_id")
-    x.add_argument(
-        "--since-revision",
-        type=int,
-        help="Optional previous Project revision; include only newer ledger events",
-    )
-
-    x = cs.add_parser(
-        "guide-promote",
-        help="Promote one exactly reviewed canonical Guide candidate (real file input)",
-    )
-    x.add_argument("project_id")
-    x.add_argument("--coordinator-session-id", required=True)
-    x.add_argument("--candidate", required=True, help="Reviewed candidate GUIDE.md path")
-    x.add_argument("--canonical", required=True, help="Canonical GUIDE.md path")
-    x.add_argument("--expected-candidate-sha256", required=True)
-    x.add_argument("--change-summary")
-    add_mutation_args(x)
-
-    for name in ("request",):
-        x = cs.add_parser(name)
-        x.add_argument("project_id")
-        x.add_argument("--coordinator-session-id", required=True)
-        add_mutation_args(x)
-        x.add_argument("--request-type", required=True, choices=REQUEST_TYPES)
-        x.add_argument("--target-session-id")
-        x.add_argument("--target-identity-id")
-        x.add_argument("--description", required=True)
-
-    w = sub.add_parser(
-        "workstation",
-        help="Create, inspect and prepare the stable Agent Workstation",
-    )
+    w = sub.add_parser("workstation", help="Create or read a registered fixed Home")
     ws = w.add_subparsers(dest="workstation_command", required=True)
 
     x = ws.add_parser(
@@ -5535,42 +3369,37 @@ def render_plain_error(exc: CliError) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    config_path = resolve_config_path(args.config_file)
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+    args = build_parser().parse_args(argv)
     installation_path = resolve_installation_path(args.installation_file)
+    # All Home/Contact helpers use this one explicit installation, including
+    # cross-project delivery. Scope is this invocation, restored for embedding.
+    previous = os.environ.get("PAOS_INSTALLATION_FILE")
+    os.environ["PAOS_INSTALLATION_FILE"] = str(installation_path)
     try:
-        if args.command == "cat":
-            base_url = args.url
-        elif args.command == "install":
-            base_url = DEFAULT_BASE_URL
-        elif args.command == "config" and args.config_command == "set-base-url":
-            # Config repair must not depend on the previously configured/env origin.
-            # RestClient validates the new value, but this command performs no HTTP.
-            base_url = args.value
-        else:
-            base_url = resolve_base_url(args.base_url, config_path)
-        client = RestClient(base_url, service="CAT" if args.command == "cat" else "PAOS")
-        result = execute(
-            args,
-            client,
-            config_path=config_path,
-            installation_path=installation_path,
-        )
-    except CliError as exc:
-        if args.json_output:
-            print(
-                json.dumps(exc.as_dict(), ensure_ascii=False, indent=2),
-                file=sys.stderr,
-            )
-        else:
-            print(render_plain_error(exc), file=sys.stderr)
+        result = execute(args, ProjectRegistry(installation_path), installation_path=installation_path)
+        print(result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, indent=2))
+        return 1 if isinstance(result, dict) and result.get("ok") is False else 0
+    except (CliError, RegistryProblem, InstallationProblem, LibraryProblem, NumbersProblem, WorkstationProblem,
+            HomeProblem, MailProblem, AttentionServiceProblem, OSError, ValueError) as exc:
+        error = exc if isinstance(exc, CliError) else CliError(str(exc),
+            error_code=getattr(exc, "code", "local_operation_failed"),
+            details=getattr(exc, "details", {}))
+        print(json.dumps(error.as_dict(), ensure_ascii=False) if args.json_output
+              else render_plain_error(error), file=sys.stderr)
         return 1
-    if isinstance(result, str):
-        print(result)
-    else:
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    finally:
+        if previous is None:
+            os.environ.pop("PAOS_INSTALLATION_FILE", None)
+        else:
+            os.environ["PAOS_INSTALLATION_FILE"] = previous
+
+
+def _load_roots(installation_path):
+    installation = load_installation_descriptor(installation_path)
+    return load_library_roots(resolve_library_roots_path(installation=installation))
 
 
 if __name__ == "__main__":

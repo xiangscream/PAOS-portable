@@ -8,7 +8,7 @@
 
 | 路径 | 内容 | 是否随 Git 发布 |
 |---|---|---|
-| `code/personal-agent-os/` | CLI、服务模块、Runtime 适配代码及保留的测试 | 是；旧 HTTP 服务目录已不在包内，部分依赖仍待核清 |
+| `code/personal-agent-os/` | CLI、服务模块、Runtime 适配代码及保留的测试 | 是；常用工位、输入与 Library 入口已改为文件直连 |
 | `libraries/` | Workflow、Skill、参考范例、Tool Catalog | 是；Catalog 是索引，不是原文替代品 |
 | `config/*.example.json` | 安装定位模板 | 是；占位模板不能直接作为有效安装使用 |
 | `config/local/` | 本机生成的安装描述与 Library 定位 | 否；换电脑重新生成 |
@@ -30,7 +30,7 @@ python portable.py doctor
 
 `doctor` 是**只读定位检查**：即使 `configuration_ok: true`，也不代表 CLI、项目接续或唤醒已经通过测试。输出分别保留 `cli_verified`、`business_verified`、`runtime_verified` 为 `false`。
 
-选用本机生成的配置后，再核查 CLI。以下为待在完整检出上执行的命令，不是本次已通过的实机记录：
+选用本机生成的配置后，再核查 CLI。以下入口已用完整源码、隔离项目与真实文件调用验证；不是生产工位采用记录：
 
 ```powershell
 $env:PAOS_INSTALLATION_FILE = (Resolve-Path .\config\local\installation.json).Path
@@ -58,12 +58,33 @@ python code/personal-agent-os/scripts/paos.py health
 
 公开 Git 仓库不等于完整备份。尤其 `.paos/usage-events/` 中的使用事件不是可重建缓存，Rooter/Coordinator 引用的 Works、决策与消息也不能按目录名整批丢弃。
 
-## 本轮验证范围
+## Agent 工作底座：已收敛的调用链
 
 ```text
-python -m unittest discover -s tests -v
+CLI → 本地项目登记 → 工位 TODO / Mail / Notice
+CLI → 登记的 Workflow / Skill / Tool 文件
+显式 remind / cat → 对应外部 Runtime / CAT（不作为本地读写前置）
 ```
 
-根目录 `tests/` 覆盖新增配置助手的隔离合同，不替代核心测试。本轮结果和现存缺口见 [代码健康与收敛报告](CODE-HEALTH-NOTES.md)。旧 `code/personal-agent-os/scripts/verify.py` 仍引用已剥离的目录，不能将旧的“7/7”搬到本仓库。
+`orient`、`inbox`、`status`、`attention`、`agent send`、`mail`、`peers/team`、
+`wake` 的项目定位和 `library search/tools` 不再查询旧 Core。
+`project show` 只回登记与成员；项目最新口径按原文维护，不填 human/generated。
+旧 Session 管理、项目进度填报、Dashboard/Workbench 和旧 Tips HTTP 代理已从 CLI 退出。
+命令用途见[共享接口参考](libraries/workflow/Guides/guide-paos-interface-reference.md)。
 
-这是待审查的收敛候选，不是“完整多 Agent 系统已迁移并上线”的声明。
+对话、日会和 Tips 增量整理复用[已有工作流](libraries/workflow/Workflows/wf-meeting-audio-package.md)：
+保留原件，按需更新唯一口径、TODO 或方法；不是新增状态服务，也没有自动启动采集任务。
+
+## 验证
+
+```text
+python code/personal-agent-os/scripts/verify.py
+```
+
+当前验证器检查初始化与真实文件接续、接收器/安装合同、保留的扫描管道及 Python 语法；
+不再依赖已剥离的 Node/Dashboard。原无效 Core 测试按退出接口退役，仍有用的数据根/备份
+断言已迁到 `test_installation_files.py`。范围和未完成项见[代码健康说明](CODE-HEALTH-NOTES.md)。
+
+本包尚未自动迁入真实项目，也未重写 TODO v3 为原生 Markdown 任务列表。
+初次项目登记写入口、生产 Windows/WSL 原生接续、旧非入口模块的后续裁减仍是剩余工作。
+这是草稿候选，不是生产安装已切换。

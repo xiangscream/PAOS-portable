@@ -80,13 +80,12 @@ def _orient_library_roots(
 
 
 def _orient_next_action(
-    request_inbox_count: int,
     unhandled_mail_count: int,
     current: dict[str, str],
     open_tasks: list[dict[str, Any]],
     todo_is_coherent: bool,
 ) -> str:
-    """Workless：责任来源只有 Current(next)/TODO open tasks/正式 Request/未处理 Mail；
+    """责任来源只有当前 TODO 与未处理输入；
     不存在 live Work 推导，也不从历史消息推断主线。"""
     if not todo_is_coherent:
         return (
@@ -98,11 +97,6 @@ def _orient_next_action(
         return next_text
     if open_tasks:
         return f"处理 TODO 待办 {open_tasks[0].get('id')}：{open_tasks[0].get('title')}"
-    if request_inbox_count:
-        return (
-            "处理正式 PAOS Request inbox（仅与 TODO 主线相关项；"
-            "陈旧/无关 Request 记为待收口，不篡位）。"
-        )
     if unhandled_mail_count:
         return "可查看未处理 Mail，但不从历史消息推断新的主线。"
     return "当前无未完成责任；保持待机或向 Coordinator 确认新责任。"
@@ -195,13 +189,10 @@ def _orient_todo_contract_issues(
 
 def render_orient(payload: dict[str, Any]) -> str:
     identity = payload.get("identity") or {}
-    work = payload.get("current_work") or {}
     todo = payload.get("todo") or {}
     project = payload.get("project") or {}
     communication = payload.get("communication") or {}
     mail = communication.get("durable_mail") or {}
-    requests = communication.get("formal_requests") or {}
-    request_counts = (requests.get("counts") or {})
     entry = payload.get("entry") or {}
     lines = [
         f"PAOS orient — {identity.get('agent_id')} @ {identity.get('project_id')}",
@@ -209,10 +200,9 @@ def render_orient(payload: dict[str, Any]) -> str:
         + (f" · 员工号 {identity.get('staff_number')}" if identity.get('staff_number') else ""),
         f"Project: {identity.get('project_id')} · {identity.get('project_name') or ''}",
         f"Status: {identity.get('status') or ''}",
-        f"Work: {work.get('id') or '（无当前 Work）'} · {work.get('title') or ''}",
         f"ENTRY: {'available' if entry.get('available') else 'missing'} · {entry.get('path') or ''}",
         f"TODO: {'trusted' if todo.get('trusted') else 'untrusted'} · {todo.get('current', {}).get('next') or ''}",
-        f"Mail: {mail.get('count', 0)} total / {mail.get('unhandled_count', 0)} unhandled; Request inbox/waiting: {request_counts.get('inbox', 0)}/{request_counts.get('waiting', 0)}",
+        f"Mail: {mail.get('count', 0)} total / {mail.get('unhandled_count', 0)} unhandled",
         f"Source: {project.get('source_root') or '（未登记或不可验证）'}",
         f"Libraries: {project.get('library_roots', {}).get('state', 'unknown')}",
         f"Runtime reachability: {payload.get('runtime_reachability', 'unknown')}",

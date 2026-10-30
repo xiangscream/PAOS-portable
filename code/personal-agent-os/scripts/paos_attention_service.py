@@ -175,11 +175,9 @@ def resolve_home_by_registry(agent_id: str, *, installation_file: str | None = N
         )
     try:
         project_id = agent_project_id(agent_id)
-        project = json.loads(
-            (_registry_projects_root(descriptor) / f"{project_id}.json").read_text(
-                encoding="utf-8"
-            )
-        )
+        # CLI and cross-Project routing read the same registration contract.
+        from paos_registry import ProjectRegistry
+        project = ProjectRegistry(resolve_installation_path(installation_file)).read(project_id)
     except AttentionServiceProblem:
         raise
     except Exception as problem:
@@ -1943,39 +1941,8 @@ def activation_work(home_ref: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _workbench_projection_enabled() -> bool:
-    return os.environ.get("PAOS_WORKBENCH_PROJECTION") == "1" and bool(
-        os.environ.get("PAOS_INSTALLATION_FILE")
-    )
 
 
-def _workbench_after_write(result: dict[str, Any], kind: str) -> dict[str, Any]:
-    if not _workbench_projection_enabled():
-        return result
-    try:
-        import sys as _sys
-        from pathlib import Path as _Path
-
-        _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "attention-dashboard-v1-static"))
-        from workbench_markdown import refresh_home_after_notice, refresh_home_after_todo
-
-        installation = os.environ["PAOS_INSTALLATION_FILE"]
-        if kind == "notice":
-            notice = result.get("notice") if isinstance(result.get("notice"), dict) else {}
-            page = refresh_home_after_notice(
-                installation, result["home"], notice_id=str(notice.get("notice_id") or ""),
-                state=str(notice.get("state") or "pending"), read=bool(notice.get("read")),
-            )
-        else:
-            page = refresh_home_after_todo(installation, result["home"])
-    except Exception as error:  # noqa: BLE001 - business write already committed
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_failed", "error": type(error).__name__}
-        return result
-    if page.get("status") == "conflict":
-        result["projection"] = {"ok": False, "error_code": "workbench_projection_conflict", "page": page.get("page")}
-    else:
-        result["projection"] = {"ok": True, "page": page.get("page"), "status": page.get("status")}
-    return result
 
 
 def _takeover_mail_source(home_ref: dict[str, Any], source_ref: str) -> dict[str, Any]:
@@ -2097,28 +2064,3 @@ def takeover_input(
         "tasks_count": updated.get("tasks_count"),
         "stages": stages,
     }
-
-
-_write_home_todo_original = write_home_todo
-_update_home_todo_fields_original = update_home_todo_fields
-_handle_input_original = handle_input
-_mark_input_read_original = mark_input_read
-
-
-def write_home_todo(*args, **kwargs):
-    return _workbench_after_write(_write_home_todo_original(*args, **kwargs), "todo")
-
-
-def update_home_todo_fields(*args, **kwargs):
-    result = _update_home_todo_fields_original(*args, **kwargs)
-    if kwargs.get("dry_run"):
-        return result
-    return _workbench_after_write(result, "todo")
-
-
-def handle_input(*args, **kwargs):
-    return _workbench_after_write(_handle_input_original(*args, **kwargs), "notice")
-
-
-def mark_input_read(*args, **kwargs):
-    return _workbench_after_write(_mark_input_read_original(*args, **kwargs), "notice")

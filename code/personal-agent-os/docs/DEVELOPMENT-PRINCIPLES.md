@@ -53,19 +53,19 @@
 
 一个模块一件事，边界写在文档里也写在代码里。
 
-**当前分层（v3 正常入口；改动时不要越界）：**
+**当前 Portable 分层：**
 
 | 层 | 文件 | 职责 | 禁止 |
 |---|---|---|---|
 | CLI 入口 | `scripts/paos.py` | 参数、命令装配、结果渲染与错误出口 | 复制业务规则、绕过 Home/Project 写者 |
 | 服务模块 | `scripts/paos_*.py` | 各自的语义动作与校验（Home、Mail、Notice、Activation、安装等） | 越界改其它 Home、直接拼 Project 状态 |
 | Home 写者 | `paos_todo_v3.py`、`paos_mail.py`、`paos_notice.py`、`paos_attention_service.py` 及激活/唤醒写者 | 只写自己负责的 Home 文件、Mail/Notice/激活事实；合法的跨 Home Mail 投递仍走 mail 写者 | 充当 Project 状态写者、越权改写其它 Home 或绕过对应写者 |
-| Project 状态 | `project_store.py`（`ProjectStore`） | **Project JSON 的唯一写者**：原子写、revision、备份、Ledger、operation receipt、恢复 | 写 Home/Mail/Notice、HTTP 概念 |
+| Project 登记读取 | `paos_registry.py` | 复用既有登记定位项目与成员；只读 | 创建第二份状态、从旧摘要推断当前责任 |
 | 设备/安装定位 | `paos_installation.py`、`paos_workstation.py` | 安装描述、data_root、Library/Windows-WSL locator | 业务状态变更 |
 | 业务规则 | 共享 Workflow Library | 角色、工作循环、Notice/Mail、激活与写协议 | 在 Source 复制第二份规程 |
-| 历史 HTTP 链 | `local_server.py` → `workflow_service.py` | v2 时代内部管线/兼容，不是当前业务入口或恢复路径 | 以它推断当前业务语义 |
+| 外部运行通道 | CAT / runtime injection | 仅显式联络和提醒 | 作为本地工位读写的前置服务 |
 
-**为什么这个分层值得守：** Project 状态换存储层（比如上 SQLite）只需要改 `project_store.py`；Home 文件则各有独立写者。两条写入边界不能合成“一个唯一磁盘写者”，也不能让服务模块绕过任一写者直接落盘——边界一破，revision、recovery 与责任归属就同时失效。
+**为什么这个分层值得守：** 同一项目只有一个登记来源，同一工位沿既有写者操作；不为了删除 HTTP 再复制一套消息/任务实现。当前片没有 Project JSON 写入，历史事务证据仍保留在原文件。
 
 ## 5. 优先采用成熟库（有明确范围）
 
