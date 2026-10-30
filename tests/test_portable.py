@@ -19,7 +19,8 @@ class PortableTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name) / "中文 portable package"
+        # Windows may return an 8.3 TEMP alias; production canonicalizes paths.
+        self.root = (Path(self.temp.name) / "中文 portable package").resolve()
         self.root.mkdir()
         (self.root / "config").mkdir()
         for name in portable.SCHEMAS:
@@ -87,9 +88,9 @@ class PortableTests(unittest.TestCase):
     def test_existing_mismatched_config_not_overwritten(self):
         portable.initialize(self.root)
         path = portable.local_dir(self.root) / "installation.json"
-        value = json.loads(path.read_text())
+        value = json.loads(path.read_text(encoding="utf-8"))
         value["data_root"] = str(self.root / "elsewhere")
-        path.write_text(json.dumps(value))
+        path.write_text(json.dumps(value), encoding="utf-8")
         before = self.snapshot()
         with self.assertRaises(portable.PortableError):
             portable.initialize(self.root)
@@ -98,9 +99,9 @@ class PortableTests(unittest.TestCase):
     def test_equivalent_absolute_locator_not_rewritten(self):
         portable.initialize(self.root)
         path = portable.local_dir(self.root) / "installation.json"
-        value = json.loads(path.read_text())
+        value = json.loads(path.read_text(encoding="utf-8"))
         value["data_root"] = str(self.root / "data" / ".." / "data")
-        path.write_text(json.dumps(value))
+        path.write_text(json.dumps(value), encoding="utf-8")
         before = self.snapshot()
         self.assertFalse(portable.initialize(self.root)["created"])
         self.assertEqual(before, self.snapshot())
@@ -108,15 +109,15 @@ class PortableTests(unittest.TestCase):
     def test_relative_current_locator_is_rejected(self):
         portable.initialize(self.root)
         path = portable.local_dir(self.root) / "installation.json"
-        value = json.loads(path.read_text())
+        value = json.loads(path.read_text(encoding="utf-8"))
         value["data_root"] = "data"
-        path.write_text(json.dumps(value))
+        path.write_text(json.dumps(value), encoding="utf-8")
         self.assertFalse(portable.doctor(self.root)["configuration_ok"])
 
     def test_existing_invalid_json_not_overwritten(self):
         portable.initialize(self.root)
         path = portable.local_dir(self.root) / "installation.json"
-        path.write_text("broken")
+        path.write_text("broken", encoding="utf-8")
         before = self.snapshot()
         with self.assertRaises(portable.PortableError):
             portable.initialize(self.root)
@@ -124,11 +125,11 @@ class PortableTests(unittest.TestCase):
 
     def test_existing_legacy_installation_refuses_second_install(self):
         path = self.root / "config/installation.json"
-        path.write_text("original")
+        path.write_text("original", encoding="utf-8")
         with self.assertRaises(portable.PortableError):
             portable.initialize(self.root)
         self.assertFalse(portable.local_dir(self.root).exists())
-        self.assertEqual(path.read_text(), "original")
+        self.assertEqual(path.read_text(encoding="utf-8"), "original")
 
     def test_wrong_schema_is_rejected_before_writes(self):
         self.change_template(schema="wrong")
@@ -183,12 +184,12 @@ class PortableTests(unittest.TestCase):
     def test_explicit_rooter_preserved_on_repeat(self):
         home = self.root / "private-home"
         home.mkdir()
-        (home / "TODO.md").write_text("unchanged")
+        (home / "TODO.md").write_text("unchanged", encoding="utf-8")
         portable.initialize(self.root, str(home))
         portable.initialize(self.root)
-        value = json.loads((portable.local_dir(self.root) / "installation.json").read_text())
+        value = json.loads((portable.local_dir(self.root) / "installation.json").read_text(encoding="utf-8"))
         self.assertEqual(value["rooter_home"], str(home))
-        self.assertEqual((home / "TODO.md").read_text(), "unchanged")
+        self.assertEqual((home / "TODO.md").read_text(encoding="utf-8"), "unchanged")
 
     def test_rooter_relative_path_refused(self):
         with self.assertRaises(portable.PortableError):
@@ -206,20 +207,20 @@ class PortableTests(unittest.TestCase):
 
     def test_agent_numbers_not_reset(self):
         path = self.root / "config/AGENT-NUMBERS.json"
-        path.write_text('{"existing":99}')
+        path.write_text('{"existing":99}', encoding="utf-8")
         portable.initialize(self.root, agent_numbers=str(path))
-        self.assertEqual(path.read_text(), '{"existing":99}')
+        self.assertEqual(path.read_text(encoding="utf-8"), '{"existing":99}')
 
     def test_partial_existing_pair_is_not_overwritten(self):
         portable.local_dir(self.root).mkdir()
-        (portable.local_dir(self.root) / "library-roots.json").write_text("{}")
+        (portable.local_dir(self.root) / "library-roots.json").write_text("{}", encoding="utf-8")
         before = self.snapshot()
         with self.assertRaises(portable.PortableError):
             portable.initialize(self.root)
         self.assertEqual(before, self.snapshot())
 
     def test_metadata_file_conflict_is_rejected(self):
-        (self.root / "libraries/workflow/.paos").write_text("not a directory")
+        (self.root / "libraries/workflow/.paos").write_text("not a directory", encoding="utf-8")
         with self.assertRaises(portable.PortableError):
             portable.initialize(self.root)
         self.assertFalse(portable.local_dir(self.root).exists())
@@ -264,8 +265,8 @@ class PortableTests(unittest.TestCase):
         new = Path(self.temp.name) / "second checkout"
         shutil.copytree(self.root, new)
         portable.initialize(new)
-        result = json.loads((portable.local_dir(new) / "installation.json").read_text())
-        self.assertEqual(result["source_root"], str(new / "code/personal-agent-os"))
+        result = json.loads((portable.local_dir(new) / "installation.json").read_text(encoding="utf-8"))
+        self.assertEqual(result["source_root"], str((new / "code/personal-agent-os").resolve()))
 
     def test_staging_failure_leaves_no_published_pair(self):
         real_dump = json.dump
@@ -314,7 +315,7 @@ class PortableTests(unittest.TestCase):
 
     def test_doctor_detects_two_descriptors(self):
         portable.initialize(self.root)
-        (self.root / "config/installation.json").write_text("{}")
+        (self.root / "config/installation.json").write_text("{}", encoding="utf-8")
         self.assertFalse(portable.doctor(self.root)["configuration_ok"])
 
     def test_cli_exit_codes(self):
