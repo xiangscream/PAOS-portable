@@ -74,7 +74,9 @@ def expected_configs(root: Path) -> dict[str, dict[str, Any]]:
 
 def package_problems(root: Path, configs: dict[str, dict[str, Any]]) -> list[str]:
     install, libraries = configs["installation"], configs["library-roots"]
-    files = [Path(install["source_root"]) / "scripts" / "paos.py", Path(libraries["tool_catalog"])]
+    files = [Path(install["source_root"]) / "scripts" / "paos.py"]
+    if libraries.get("tool_catalog"):
+        files.append(Path(libraries["tool_catalog"]))
     dirs = []
     for kind in ("workflow", "skill"):
         base = Path(libraries[f"{kind}_root"])
@@ -116,9 +118,16 @@ def configured_pair(root: Path, expected: dict[str, dict[str, Any]]) -> dict[str
             if key in {"rooter_home", "agent_numbers_config", "registered_at"}:
                 continue
             current = actual.get(key)
-            matches = (isinstance(current, str) and bool(current)
-                       and Path(current).is_absolute()
-                       and Path(current).resolve() == Path(value).resolve()) if key in PATH_FIELDS[name] else current == value
+            if name == "library-roots" and key == "tool_catalog" and current == "":
+                continue  # 核心 roots set 的可选 Tool Catalog 合同。
+            if key in PATH_FIELDS[name]:
+                matches = (isinstance(current, str) and bool(current)
+                           and Path(current).is_absolute())
+                # 已安装的共享库沿正式登记读取；模板只提供首次安装默认值。
+                if matches and name == "installation":
+                    matches = Path(current).resolve() == Path(value).resolve()
+            else:
+                matches = current == value
             if not matches:
                 raise PortableError(f"配置与当前位置不符：{path}: {key}；拒绝自动覆盖，请使用核心安装配置入口重新登记")
         for key in ("rooter_home", "agent_numbers_config") if name == "installation" else ():
@@ -145,10 +154,8 @@ def prepare(root: Path, rooter_home: str = "", agent_numbers: str = "") -> dict[
 
 def initialize(root: Path, rooter_home: str = "", agent_numbers: str = "") -> dict[str, Any]:
     root = root.resolve()
-    configs = prepare(root, rooter_home, agent_numbers)
+    configs = expected_configs(root)
     target = local_dir(root)
-    paths = [root / "config", target, *metadata_dirs(configs)]
-    validate_write_paths(root, paths)
     # 不悄悄创建第二份安装；已有手工配置应继续走原配置入口。
     legacy = root / "config" / "installation.json"
     if legacy.exists() or legacy.is_symlink():
@@ -157,12 +164,27 @@ def initialize(root: Path, rooter_home: str = "", agent_numbers: str = "") -> di
         actual = configured_pair(root, configs)
         for key, requested in (("rooter_home", rooter_home), ("agent_numbers_config", agent_numbers)):
             if requested and (not actual["installation"].get(key) or
-                              Path(actual["installation"][key]).resolve() != Path(configs["installation"][key]).resolve()):
+                              not Path(requested).is_absolute() or
+                              not (Path(requested).is_dir() if key == "rooter_home" else Path(requested).is_file()) or
+                              Path(actual["installation"][key]).resolve() != Path(requested).resolve()):
                 raise PortableError(f"已有 {key} 与请求不同；init 不覆盖绑定")
-        for path in metadata_dirs(configs):
+        problems = package_problems(root, actual)
+        internal = []
+        for path in metadata_dirs(actual):
+            if path.resolve().is_relative_to(root):
+                internal.append(path)
+            elif not path.is_dir():
+                problems.append(f"缺少已登记外部库目录：{path}；请使用核心 library init，init 不写包外")
+        if problems:
+            raise PortableError("\n".join(problems))
+        validate_write_paths(root, [root / "config", target, *internal])
+        for path in internal:
             path.mkdir(parents=True, exist_ok=True)
         return {"created": False, "installation_file": str(target / "installation.json")}
 
+    configs = prepare(root, rooter_home, agent_numbers)
+    paths = [root / "config", target, *metadata_dirs(configs)]
+    validate_write_paths(root, paths)
     # 两个配置文件先在同一文件系统的暂存目录写完，再一次 rename 发布。
     # 不为旧配置提供 force；IO 失败时不留下半对“有效安装”。
     stage = Path(tempfile.mkdtemp(prefix=".portable-", dir=root / "config"))
@@ -190,20 +212,22 @@ def doctor(root: Path) -> dict[str, Any]:
     """只检查安装定位，不将静态检查冒充 CLI/工位/唤醒闭环验收。"""
     root = root.resolve()
     expected = expected_configs(root)
-    problems = package_problems(root, expected)
+    problems = []
     warnings = ["空 usage-events 目录不代表历史使用事件已迁入；Catalog 统计尚未复核"]
     legacy = root / "config" / "installation.json"
     if legacy.exists() or legacy.is_symlink():
         problems.append(f"发现另一安装描述：{legacy}；请明确使用哪一份配置")
     pair = None
     try:
-        validate_write_paths(root, [local_dir(root), *metadata_dirs(expected)])
+        validate_write_paths(root, [local_dir(root)])
         pair = configured_pair(root, expected)
+        problems.extend(package_problems(root, pair))
+        validate_write_paths(root, [p for p in metadata_dirs(pair) if p.is_relative_to(root)])
+        for path in metadata_dirs(pair):
+            if not path.is_dir():
+                problems.append(f"缺少本机目录：{path}；包内目录请执行 init，外部库请使用核心 library init")
     except PortableError as exc:
         problems.append(str(exc))
-    for path in metadata_dirs(expected):
-        if not path.is_dir():
-            problems.append(f"缺少本机目录：{path}；请执行 init")
     selected = os.environ.get("PAOS_INSTALLATION_FILE")
     if selected and Path(selected).resolve() != (local_dir(root) / "installation.json"):
         warnings.append("当前 PAOS_INSTALLATION_FILE 指向别处；本检查未改动环境变量")
