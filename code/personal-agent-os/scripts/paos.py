@@ -1325,7 +1325,7 @@ def _rooter_home_root(installation_path: Path) -> tuple[str, Path] | None:
     if not rooter_home:
         return None
     root = Path(posix_windows_drive_locator(rooter_home)).expanduser()
-    return (root.name, root)
+    return ("rooter-001", root)
 
 
 def _registry_authoritative_or_none(explicit_installation_file: str | None = None):

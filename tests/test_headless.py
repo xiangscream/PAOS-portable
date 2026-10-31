@@ -134,6 +134,23 @@ class HeadlessTests(unittest.TestCase):
         r=self.call('attention','rooter-show')[1]
         self.assertEqual(r['home']['home_kind'],'rooter')
 
+    def test_rooter_wake_and_reminder_use_identity_not_directory_basename(self):
+        rooter=self.root/'中文 Rooter 工位'
+        self.rooter.rename(rooter)
+        config=json.loads(self.install.read_text(encoding='utf-8'))
+        config['rooter_home']=str(rooter)
+        self.install.write_text(json.dumps(config),encoding='utf-8')
+        self.record.unlink()  # Installation Rooter must not require any Project.
+        result=self.call('wake','bind','rooter','rooter-001','--driver','opencode',
+                         '--native-session-id','ses_real_local_fixture')[1]
+        self.assertEqual(result['store'],str(rooter/'private-data/contact/native-targets.json'))
+        self.assertNotIn('project_id',result['target'])
+        self.assertEqual(self.call('wake','status','rooter','rooter-001')[1]['agent_id'],'rooter-001')
+        with patch.object(paos,'_inject_from_contact_store',return_value={'accepted':True}) as inject:
+            paos._remind_via_native(root=self.vault,project={},agent_id='rooter-001',
+                message_id='fixture',sender_id='3002-s001',subject='安装接续',installation_path=self.install)
+        self.assertEqual(inject.call_args.args[0],rooter)
+
     def test_update_uses_existing_writer_and_no_projection(self):
         r=self.call('attention','todo-update','3002','3002-s001','--set','next_action=整理今日原件')[1]
         text=(self.vault/'Workstations/3002-s001/TODO.md').read_text(encoding='utf-8')
