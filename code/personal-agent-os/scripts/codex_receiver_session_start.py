@@ -11,6 +11,7 @@ from paos_attention_service import AttentionServiceProblem, _registry_projects_r
 from paos_contact import load_native_targets
 from paos_home import HomeProblem, project_agent_home, rooter_home
 from paos_installation import InstallationProblem, load_installation_descriptor, resolve_installation_path
+from paos_registry import ProjectRegistry
 from paos_workstation import WorkstationProblem, posix_windows_drive_locator
 from runtime_injection import InjectionError
 from wakeup_native.codex_receiver import ReceiverError, retire_owned_runtime
@@ -18,12 +19,16 @@ from wakeup_native.codex_receiver import ReceiverError, retire_owned_runtime
 
 def registered_target(thread_id, descriptor):
     """Read registered Project/Rooter Contacts, then validate the matching Home."""
-    registry = _registry_projects_root(descriptor)
-    if not registry.is_dir():
-        raise ValueError("project_registry_missing")
+    try:
+        registry = _registry_projects_root(descriptor)
+    except AttentionServiceProblem as problem:
+        if problem.code != "attention_projects_registry_missing":
+            raise
+        registry = None  # An installation Rooter does not require a Project.
     matches = []
-    for project_file in sorted(registry.glob("*.json")):
-        project = json.loads(project_file.read_text(encoding="utf-8"))
+    projects = ProjectRegistry(Path(descriptor["path"])) if registry else None
+    for project_file in sorted(registry.glob("*.json")) if registry else ():
+        project = projects.read(project_file.stem)
         root_locator = project.get("root_path")
         if not root_locator:
             continue  # Unhoused projects have no Project Home or Contact root.
@@ -37,9 +42,9 @@ def registered_target(thread_id, descriptor):
     if rooter_locator:
         root = Path(posix_windows_drive_locator(rooter_locator)).expanduser()
         # Same Home id/root contract as the public Rooter Contact route.
-        target = (load_native_targets(root) or {}).get(root.name)
+        target = (load_native_targets(root) or {}).get("rooter-001")
         if target and target.get("runtime") == "codex" and target.get("session_id") == thread_id:
-            home = rooter_home(home_path=root, home_id=root.name)
+            home = rooter_home(home_path=root, home_id="rooter-001")
             matches.append((home, target))
     if len(matches) != 1:
         raise ValueError("contact_thread_not_registered" if not matches else "contact_thread_ambiguous")

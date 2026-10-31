@@ -1325,7 +1325,7 @@ def _rooter_home_root(installation_path: Path) -> tuple[str, Path] | None:
     if not rooter_home:
         return None
     root = Path(posix_windows_drive_locator(rooter_home)).expanduser()
-    return (root.name, root)
+    return ("rooter-001", root)
 
 
 def _registry_authoritative_or_none(explicit_installation_file: str | None = None):
@@ -2634,6 +2634,10 @@ def execute(
                 homes=args.home or (),
             )
             return {"ok": True, **result}
+        if args.project_command == "home-add":
+            return {"ok": True, **registry.add_home(
+                args.project_id, args.home_id, expected_fingerprint=args.expected_fingerprint
+            )}
         if args.project_command == "experience":
             project = registry.read_record(args.project_id)
             path = Path(posix_windows_drive_locator(project["root_path"])) / "Materials" / "TIPS.md"
@@ -3297,6 +3301,10 @@ def build_parser() -> argparse.ArgumentParser:
     x.add_argument("--root", required=True, help="Existing absolute project vault directory")
     x.add_argument("--coordinator", required=True, help="Current Coordinator Home ID, e.g. 3002-s010")
     x.add_argument("--home", action="append", help="Additional registered Home ID; repeatable")
+    x = prs.add_parser("home-add", help="Append one Home to an existing registration; preserve root and Coordinator")
+    x.add_argument("project_id")
+    x.add_argument("home_id")
+    x.add_argument("--expected-fingerprint", required=True, help="SHA-256 of the current registration file's raw bytes")
     for name in ("show", "experience"):
         x = prs.add_parser(name)
         x.add_argument("project_id")
