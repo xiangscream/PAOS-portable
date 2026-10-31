@@ -30,7 +30,8 @@ class SessionStartGuardTests(unittest.TestCase):
             "source_root": str(self.source),
             "data_root": str(self.source / "private-data"),
             "rooter_home": "",
-            "library_roots_config": "",
+            "library_roots_config": str(self.root / "library-roots.json"),
+            "path": str(self.root / "installation.json"),
         }
         self.environment = {"CODEX_THREAD_ID": "own-thread", "CODEX_APP_TOOLS_PIPE_PATH": "own-fixture-pipe"}
         self.event = {"hook_event_name": "SessionStart", "source": "resume", "session_id": "own-thread"}
@@ -47,10 +48,14 @@ class SessionStartGuardTests(unittest.TestCase):
                                 "execution_environment": "windows"}}
         contact.write_text(json.dumps({agent_id: target}), encoding="utf-8")
         (self.registry / f"{project_id}.json").write_text(json.dumps({
-            "id": project_id, "root_path": str(root), "sessions": [{"id": agent_id}]}), encoding="utf-8")
+            "schema": "paos-project-registry/v1", "id": project_id,
+            "root_path": str(root), "homes": [agent_id],
+            "coordinator_home_id": agent_id}), encoding="utf-8")
+        Path(self.descriptor["path"]).write_text(json.dumps(self.descriptor), encoding="utf-8")
         return target
 
     def prepare(self, event=None, *, manual=False):
+        Path(self.descriptor["path"]).write_text(json.dumps(self.descriptor), encoding="utf-8")
         with patch.object(hook, "os", SimpleNamespace(name="nt", environ=self.environment)), \
              patch.object(hook, "load_installation_descriptor", return_value=self.descriptor), \
              patch.object(hook.subprocess, "CREATE_NO_WINDOW", 0x08000000, create=True), \
@@ -59,8 +64,8 @@ class SessionStartGuardTests(unittest.TestCase):
             result = hook.prepare_current() if manual else hook.prepare(event or self.event)
             return result, launch
 
-    def register_rooter(self, thread="rooter-thread"):
-        root = self.root / "rooter-001"
+    def register_rooter(self, thread="rooter-thread", directory="rooter-001"):
+        root = self.root / directory
         contact = root / "private-data/contact/native-targets.json"
         contact.parent.mkdir(parents=True)
         target = {"runtime": "codex", "session_id": thread, "stop_file": str(root / "STOP"),
@@ -69,7 +74,24 @@ class SessionStartGuardTests(unittest.TestCase):
                                 "execution_environment": "windows"}}
         contact.write_text(json.dumps({"rooter-001": target}), encoding="utf-8")
         self.descriptor["rooter_home"] = str(root)
+        Path(self.descriptor["path"]).write_text(json.dumps(self.descriptor), encoding="utf-8")
         return target
+
+    def test_rooter_identity_does_not_depend_on_directory_name(self):
+        self.register_rooter(directory="中文 Rooter")
+        self.environment["CODEX_THREAD_ID"] = "rooter-thread"
+        result, launch = self.prepare(manual=True)
+        self.assertIn("receiver_prepare_started: rooter-001", result)
+        launch.assert_called_once()
+
+    def test_rooter_prepares_without_a_project_registry_directory(self):
+        self.register_rooter()
+        (self.registry / "3002.json").unlink()
+        self.registry.rmdir()
+        self.environment["CODEX_THREAD_ID"] = "rooter-thread"
+        result, launch = self.prepare(manual=True)
+        self.assertIn("receiver_prepare_started: rooter-001", result)
+        launch.assert_called_once()
 
     def test_registered_rooter_uses_own_home_contact_and_normal_prepare(self):
         target = self.register_rooter()
@@ -143,7 +165,7 @@ class SessionStartGuardTests(unittest.TestCase):
         (project / "Workstations/3002-s032").mkdir()
         registry = self.registry / "3002.json"
         value = json.loads(registry.read_text(encoding="utf-8"))
-        value["sessions"].append({"id": "3002-s032"})
+        value["homes"].append("3002-s032")
         registry.write_text(json.dumps(value), encoding="utf-8")
         with patch.object(Path, "home", return_value=self.root), patch.object(wake, "os", SimpleNamespace(name="nt")):
             for agent, thread in (("3002-s031", "own-thread"), ("3002-s032", "peer-thread")):
@@ -370,7 +392,8 @@ class SessionStartGuardTests(unittest.TestCase):
         (self.root / "3002/Workstations/3002-s031").mkdir()
         project_file = self.registry / "3002.json"
         value = json.loads(project_file.read_text(encoding="utf-8"))
-        value["sessions"] = []
+        value["homes"] = ["3002-s099"]
+        value["coordinator_home_id"] = "3002-s099"
         project_file.write_text(json.dumps(value), encoding="utf-8")
         with self.assertRaises(hook.HomeProblem) as caught:
             self.prepare()
@@ -392,7 +415,8 @@ class SessionStartGuardTests(unittest.TestCase):
         self.assertIn("receiver_prepare_started", result)
         read.assert_called_once_with(self.root / "3002")
 
-    def test_empty_registry_root_never_reads_current_directory_contact(self):
+    def test_legacy_empty_roots_fail_without_reading_current_directory_contact(self):
+        from paos_registry import RegistryProblem
         for project_id in ("1005", "2002", "2003"):
             (self.registry / f"{project_id}.json").write_text(json.dumps({
                 "id": project_id, "root_path": "", "sessions": []}), encoding="utf-8")
@@ -400,10 +424,10 @@ class SessionStartGuardTests(unittest.TestCase):
         try:
             os.chdir(self.root / "3002")  # Has the real fixture's matching Contact.
             with patch.object(hook, "load_native_targets", wraps=hook.load_native_targets) as read:
-                result, launch = self.prepare()
-            self.assertIn("receiver_prepare_started: 3002-s031", result)
-            launch.assert_called_once()
-            read.assert_called_once_with(self.root / "3002")
+                with self.assertRaises(RegistryProblem) as caught:
+                    self.prepare()
+            self.assertEqual(caught.exception.code, "project_schema_invalid")
+            read.assert_not_called()
         finally:
             os.chdir(previous)
 
