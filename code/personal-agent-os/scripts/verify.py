@@ -30,6 +30,7 @@ def main():
     results=[run('Architecture',[str(CORE/'scripts/check_architecture.py')]),
              run('Bootstrap + headless real-file integration',['-m','unittest','discover','-s','tests','-v']),
              run('Core receiver + installation contracts',['-m','unittest','discover','-s','tests','-v'],CORE),
+             run('Codex registered Home preparation',['-m','unittest','discover','-s',str(CORE/'scripts/tests'),'-p','test_codex_session_start_guard.py','-v']),
              run('Retained source pipeline',['-m','unittest','discover','-s','tests','-v'],CORE/'attention-memory-pipeline-v0'),
              run('Python syntax',['-m','compileall','-q',str(CORE/'scripts'),str(CORE/'runtime_adapters'),str(CORE/'attention-memory-pipeline-v0'),str(PACKAGE/'portable.py'),str(PACKAGE/'front')])]
     print('\nPortable verifier: '+('PASS' if all(results) else 'FAIL'))

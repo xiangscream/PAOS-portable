@@ -11,9 +11,12 @@ No HTTP server, schema upgrade, or implicit search of neighboring directories.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
+import time
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -25,6 +28,25 @@ _RECORD_KEYS = frozenset({"schema", "id", "root_path", "homes", "coordinator_hom
 _PROJECT_ID_RE = re.compile(r"[123]\d{3}\Z")
 
 
+@contextmanager
+def _membership_lock(path: Path):
+    lock = path.with_name(f".{path.name}.members.lock")
+    deadline = time.monotonic() + 5
+    while True:
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            break
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise RegistryProblem("project_registry_locked", "成员登记写锁未释放；请核原写者后恢复。", path=str(path))
+            time.sleep(.02)
+    try:
+        os.close(fd)
+        yield
+    finally:
+        lock.unlink()
+
+
 class RegistryProblem(ValueError):
     def __init__(self, code: str, message: str, **details: Any):
         super().__init__(message)
@@ -33,7 +55,7 @@ class RegistryProblem(ValueError):
 
 
 class ProjectRegistry:
-    """One file per project; creates only on explicit registration."""
+    """One locator per project; explicit registration and guarded member addition."""
 
     def __init__(self, installation_path: Path):
         self.installation_path = Path(installation_path)
@@ -151,3 +173,56 @@ class ProjectRegistry:
         finally:
             temp.unlink(missing_ok=True)
         return {"created": True, "record": record}
+
+    def add_home(self, project_id: str, home_id: str, *, expected_fingerprint: str) -> dict[str, Any]:
+        """Append one member; preserve root, Coordinator and every existing member.
+
+        Does not create a Home or Runtime binding. The raw-byte guard and the
+        process lock protect this one registered locator; no schema is added.
+        """
+        path = self._path(project_id)
+        if not isinstance(home_id, str) or not re.fullmatch(rf"{project_id}-s(?:\d{{3}}|[1-9]\d{{3,}})", home_id):
+            raise RegistryProblem("project_members_invalid", "新增 Home 必须是本项目的完整成员 ID。")
+        if not isinstance(expected_fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_fingerprint):
+            raise RegistryProblem("project_fingerprint_invalid", "必须提供当前登记原始字节的 SHA-256。")
+        # Read first: an absent/corrupt registration must not create directories.
+        self.read_record(project_id)
+        if path.is_symlink():
+            raise RegistryProblem("project_registry_write_failed", "拒绝替换符号链接登记。", path=str(path))
+        try:
+            with _membership_lock(path):
+                original = path.read_bytes()
+                fingerprint = hashlib.sha256(original).hexdigest()
+                if fingerprint != expected_fingerprint:
+                    raise RegistryProblem("project_fingerprint_conflict", "项目登记已变化；回读后重新决定增员。", path=str(path), actual=fingerprint)
+                record = self._check(json.loads(original), project_id, path)
+                if home_id in record["homes"]:
+                    return {"added": False, "record": record, "fingerprint": fingerprint}
+                updated = {**record, "homes": [*record["homes"], home_id]}
+                self._check(updated, project_id, path)
+                stage = path.with_name(f".{path.name}.members-{uuid.uuid4().hex}")
+                try:
+                    with stage.open("xb") as stream:
+                        stream.write((json.dumps(updated, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+                        stream.flush()
+                        os.fsync(stream.fileno())
+                    if path.read_bytes() != original:
+                        raise RegistryProblem("project_fingerprint_conflict", "提交前登记被外部修改；没有覆盖。", path=str(path))
+                    backups = path.parent / ".backups"
+                    backups.mkdir(exist_ok=True)
+                    backup = backups / f"{project_id}.{fingerprint}.json"
+                    try:
+                        with backup.open("xb") as stream:
+                            stream.write(original)
+                    except FileExistsError:
+                        if backup.read_bytes() != original:
+                            raise RegistryProblem("project_registry_write_failed", "登记备份与指纹不一致；没有覆盖。", path=str(backup))
+                    os.replace(stage, path)
+                    return {"added": True, "record": updated, "backup": str(backup),
+                            "fingerprint": hashlib.sha256(path.read_bytes()).hexdigest()}
+                finally:
+                    stage.unlink(missing_ok=True)
+        except RegistryProblem:
+            raise
+        except (OSError, UnicodeError, ValueError) as exc:
+            raise RegistryProblem("project_registry_write_failed", "无法安全追加成员；请核原登记。", path=str(path), cause=str(exc)) from exc

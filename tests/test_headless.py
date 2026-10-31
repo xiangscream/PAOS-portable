@@ -439,6 +439,43 @@ class HeadlessTests(unittest.TestCase):
         self.assertEqual(r['error_code'],'project_already_registered')
         self.assertEqual(before,self.record.read_bytes())
 
+    def test_add_registered_home_then_init_and_deliver_without_core(self):
+        before=self.record.read_bytes()
+        result=self.call('project','home-add','3002','3002-s003',
+                         '--expected-fingerprint',hashlib.sha256(before).hexdigest())[1]
+        self.assertTrue(result['added'])
+        self.assertEqual(Path(result['backup']).read_bytes(),before)
+        record=self.call('project','show','3002')[1]['project']
+        self.assertEqual(set(record),set(self.project))
+        self.assertEqual(record['root_path'],self.project['root_path'])
+        self.assertEqual(record['coordinator_home_id'],'3002-s001')
+        self.assertEqual(record['homes'],['3002-s001','3002-s002','3002-s003'])
+        home=self.vault/'Workstations/3002-s003'
+        self.assertFalse(home.exists())
+        config=json.loads(self.install.read_text(encoding='utf-8'));config['agent_numbers_config']=''
+        self.install.write_text(json.dumps(config),encoding='utf-8')
+        self.call('workstation','init','3002','3002-s003')
+        self.assertEqual(parse_todo((home/'TODO.md').read_text(encoding='utf-8'))['home_id'],'3002-s003')
+        self.call('agent','send','3002','--to','3002-s003','--subject','新成员接续',
+                  '--body','实读本人Home','--message-id','new-home-intake')
+        self.assertTrue((home/'mailbox/new-home-intake.md').is_file())
+        self.assertEqual(len(list((home/'notices').glob('notice-*.md'))),1)
+        current=self.record.read_bytes()
+        result=self.call('project','home-add','3002','3002-s003',
+                         '--expected-fingerprint',hashlib.sha256(current).hexdigest())[1]
+        self.assertFalse(result['added']);self.assertEqual(self.record.read_bytes(),current)
+
+    def test_add_home_rejects_stale_fingerprint_and_cross_project_id(self):
+        before=self.record.read_bytes()
+        for member,fp,error in [('3002-s003','0'*64,'project_fingerprint_conflict'),
+                                ('3003-s003',hashlib.sha256(before).hexdigest(),'project_members_invalid')]:
+            with self.subTest(member=member):
+                rc,result=self.call('project','home-add','3002',member,
+                                    '--expected-fingerprint',fp,ok=False)
+                self.assertNotEqual(rc,0);self.assertEqual(result['error_code'],error)
+                self.assertEqual(self.record.read_bytes(),before)
+        self.assertFalse((self.records/'.backups').exists())
+
     def test_register_refuses_missing_vault_and_does_not_make_registry(self):
         self.record.unlink()
         rc,r=self.call('project','register','3002','--root',str(self.root/'not-existing'),
