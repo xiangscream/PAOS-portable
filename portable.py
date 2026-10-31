@@ -74,7 +74,9 @@ def expected_configs(root: Path) -> dict[str, dict[str, Any]]:
 
 def package_problems(root: Path, configs: dict[str, dict[str, Any]]) -> list[str]:
     install, libraries = configs["installation"], configs["library-roots"]
-    files = [Path(install["source_root"]) / "scripts" / "paos.py", Path(libraries["tool_catalog"])]
+    files = [Path(install["source_root"]) / "scripts" / "paos.py"]
+    if libraries.get("tool_catalog"):
+        files.append(Path(libraries["tool_catalog"]))
     dirs = []
     for kind in ("workflow", "skill"):
         base = Path(libraries[f"{kind}_root"])
@@ -116,6 +118,8 @@ def configured_pair(root: Path, expected: dict[str, dict[str, Any]]) -> dict[str
             if key in {"rooter_home", "agent_numbers_config", "registered_at"}:
                 continue
             current = actual.get(key)
+            if name == "library-roots" and key == "tool_catalog" and current == "":
+                continue  # 核心 roots set 的可选 Tool Catalog 合同。
             if key in PATH_FIELDS[name]:
                 matches = (isinstance(current, str) and bool(current)
                            and Path(current).is_absolute())

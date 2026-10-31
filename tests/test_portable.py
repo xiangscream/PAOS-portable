@@ -293,6 +293,22 @@ class PortableTests(unittest.TestCase):
         self.assertFalse(missing.exists())
         self.assertEqual(before, self.snapshot())
 
+    def test_registered_tool_catalog_is_optional_but_nonempty_path_is_validated(self):
+        self.external_libraries()
+        path = portable.local_dir(self.root) / "library-roots.json"
+        value = json.loads(path.read_text(encoding="utf-8"))
+        for locator, accepted in (("", True), ("relative-catalog.md", False), (str(Path(self.temp.name) / "missing-catalog.md"), False)):
+            value["tool_catalog"] = locator
+            path.write_text(json.dumps(value), encoding="utf-8")
+            before = self.snapshot()
+            self.assertEqual(portable.doctor(self.root)["configuration_ok"], accepted)
+            if accepted:
+                self.assertFalse(portable.initialize(self.root)["created"])
+            else:
+                with self.assertRaises(portable.PortableError):
+                    portable.initialize(self.root)
+            self.assertEqual(before, self.snapshot())
+
     def test_external_library_paths_must_remain_absolute_and_exist(self):
         self.external_libraries()
         path = portable.local_dir(self.root) / "library-roots.json"
